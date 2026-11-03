@@ -1,0 +1,22 @@
+# AFROFANS - SECURITE
+.env
+.env.*
+!.env.example
+
+# PYTHON
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# BASE DE DONNEES
+db.sqlite3
+*.sqlite3
+
+# FICHIERS PRIVES
+media/
+AfroFansPrivate/
+
+# FICHIERS GENERES
+staticfiles/
+*.log
