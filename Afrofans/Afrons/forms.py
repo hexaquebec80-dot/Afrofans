@@ -340,7 +340,9 @@ class InscriptionForm(UserCreationForm):
 
         utilisateur.save()
 
-        profil = utilisateur.profil
+        profil, created = Profil.objects.get_or_create(
+            utilisateur=utilisateur
+        )
 
         profil.type_compte = self.cleaned_data[
             "type_compte"
