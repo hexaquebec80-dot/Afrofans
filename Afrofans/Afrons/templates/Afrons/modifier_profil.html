@@ -1,0 +1,1544 @@
+{% extends "Afrons/base.html" %}
+
+{% block title %}
+    Modifier mon profil | AfroFans
+{% endblock %}
+
+
+{% block extra_css %}
+
+<style>
+    /*
+    ========================================================
+    PAGE
+    ========================================================
+    */
+
+    .profile-edit-page {
+        width: min(1120px, 100%);
+    }
+
+    .profile-edit-layout {
+        display: grid;
+        grid-template-columns: 320px minmax(0, 1fr);
+        align-items: start;
+        gap: 30px;
+    }
+
+    /*
+    ========================================================
+    APERÇU DU PROFIL
+    ========================================================
+    */
+
+    .profile-preview-card {
+        position: sticky;
+        top: 88px;
+        overflow: hidden;
+        border: 1px solid #292929;
+        border-radius: 24px;
+        background:
+            radial-gradient(
+                circle at 50% 0,
+                rgba(255, 138, 0, 0.22),
+                transparent 38%
+            ),
+            #111111;
+        box-shadow: 0 25px 70px rgba(0, 0, 0, 0.25);
+    }
+
+    .profile-preview-cover {
+        height: 115px;
+        background:
+            linear-gradient(
+                135deg,
+                rgba(255, 176, 0, 0.38),
+                rgba(255, 77, 0, 0.1)
+            ),
+            #1a0d00;
+    }
+
+    .profile-preview-content {
+        padding: 0 23px 24px;
+        text-align: center;
+    }
+
+    .profile-photo-zone {
+        position: relative;
+        width: 128px;
+        height: 128px;
+        margin: -64px auto 16px;
+    }
+
+    .profile-photo-preview {
+        width: 128px;
+        height: 128px;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        border: 5px solid #111111;
+        border-radius: 50%;
+        background: linear-gradient(
+            135deg,
+            #ffb000,
+            #ff8a00,
+            #ff4d00
+        );
+        color: #ffffff;
+        font-size: 38px;
+        font-weight: 900;
+        box-shadow: 0 14px 35px rgba(0, 0, 0, 0.45);
+    }
+
+    .profile-photo-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .profile-photo-button {
+        position: absolute;
+        right: 1px;
+        bottom: 4px;
+        width: 38px;
+        height: 38px;
+        display: grid;
+        place-items: center;
+        padding: 0;
+        border: 3px solid #111111;
+        border-radius: 50%;
+        background: #ff8a00;
+        color: #050505;
+        font-size: 16px;
+        cursor: pointer;
+        transition: 0.2s ease;
+    }
+
+    .profile-photo-button:hover {
+        background: #ffb000;
+        transform: scale(1.08);
+    }
+
+    .profile-preview-name {
+        margin-bottom: 3px;
+        font-size: 21px;
+        font-weight: 900;
+    }
+
+    .profile-preview-username {
+        color: #8e8e8e;
+        font-size: 11px;
+    }
+
+    .profile-preview-type {
+        display: inline-flex;
+        margin-top: 10px;
+        padding: 6px 10px;
+        border: 1px solid rgba(255, 138, 0, 0.25);
+        border-radius: 100px;
+        background: rgba(255, 138, 0, 0.08);
+        color: #ff8a00;
+        font-size: 9px;
+        font-weight: 900;
+        text-transform: uppercase;
+    }
+
+    .profile-preview-biography {
+        margin-top: 16px;
+        color: #b0b0b0;
+        font-size: 11px;
+        line-height: 1.55;
+    }
+
+    .profile-preview-location {
+        margin-top: 13px;
+        color: #777777;
+        font-size: 10px;
+    }
+
+    .profile-preview-note {
+        margin: 18px 15px 0;
+        padding-top: 15px;
+        border-top: 1px solid #292929;
+        color: #777777;
+        font-size: 9px;
+        line-height: 1.5;
+    }
+
+    /*
+    ========================================================
+    CARTE DU FORMULAIRE
+    ========================================================
+    */
+
+    .profile-form-card {
+        width: 100%;
+        padding: 0;
+        overflow: hidden;
+    }
+
+    .profile-form-heading {
+        padding: 28px 30px;
+        border-bottom: 1px solid #292929;
+        background:
+            linear-gradient(
+                135deg,
+                rgba(255, 138, 0, 0.08),
+                transparent 48%
+            );
+    }
+
+    .profile-form-heading h1 {
+        margin: 8px 0 7px;
+        font-size: clamp(28px, 4vw, 40px);
+        font-weight: 900;
+        letter-spacing: -1.5px;
+    }
+
+    .profile-form-heading p {
+        color: #999999;
+        font-size: 12px;
+    }
+
+    .profile-form-body {
+        padding: 28px 30px;
+    }
+
+    /*
+    ========================================================
+    SECTIONS
+    ========================================================
+    */
+
+    .form-section {
+        margin-bottom: 32px;
+    }
+
+    .form-section:last-of-type {
+        margin-bottom: 0;
+    }
+
+    .form-section-heading {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        margin-bottom: 18px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #292929;
+    }
+
+    .form-section-icon {
+        width: 38px;
+        height: 38px;
+        display: grid;
+        flex: 0 0 38px;
+        place-items: center;
+        border-radius: 11px;
+        background: rgba(255, 138, 0, 0.11);
+        color: #ff8a00;
+        font-size: 17px;
+    }
+
+    .form-section-heading strong,
+    .form-section-heading small {
+        display: block;
+    }
+
+    .form-section-heading strong {
+        font-size: 13px;
+    }
+
+    .form-section-heading small {
+        margin-top: 2px;
+        color: #777777;
+        font-size: 9px;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 17px;
+    }
+
+    .form-grid .form-group {
+        margin: 0;
+    }
+
+    .form-group.full-width {
+        grid-column: 1 / -1;
+    }
+
+    /*
+    ========================================================
+    CHAMPS
+    ========================================================
+    */
+
+    .profile-form-body .form-group label {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 8px;
+        color: #dedede;
+        font-size: 11px;
+        font-weight: 800;
+    }
+
+    .optional-label {
+        color: #666666;
+        font-size: 8px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .profile-form-body input:not(
+        [type="checkbox"]
+    ),
+    .profile-form-body textarea,
+    .profile-form-body select {
+        width: 100%;
+        min-height: 48px;
+        padding: 13px 14px;
+        border: 1px solid #303030;
+        border-radius: 13px;
+        outline: none;
+        background: #171717;
+        color: #ffffff;
+        font-size: 12px;
+        transition:
+            border-color 0.2s ease,
+            box-shadow 0.2s ease,
+            background 0.2s ease;
+    }
+
+    .profile-form-body textarea {
+        min-height: 115px;
+        resize: vertical;
+        line-height: 1.5;
+    }
+
+    .profile-form-body input:focus,
+    .profile-form-body textarea:focus,
+    .profile-form-body select:focus {
+        border-color: #ff8a00;
+        background: #191919;
+        box-shadow: 0 0 0 4px rgba(255, 138, 0, 0.08);
+    }
+
+    .profile-form-body select {
+        cursor: pointer;
+    }
+
+    /*
+    ========================================================
+    PHOTO
+    ========================================================
+    */
+
+    .avatar-form-group {
+        display: none;
+    }
+
+    .avatar-upload-information {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        padding: 14px;
+        border: 1px dashed #3a3a3a;
+        border-radius: 14px;
+        background: #141414;
+    }
+
+    .avatar-upload-information span {
+        width: 40px;
+        height: 40px;
+        display: grid;
+        flex: 0 0 40px;
+        place-items: center;
+        border-radius: 11px;
+        background: rgba(255, 138, 0, 0.11);
+        color: #ff8a00;
+        font-size: 18px;
+    }
+
+    .avatar-upload-information strong,
+    .avatar-upload-information small {
+        display: block;
+    }
+
+    .avatar-upload-information strong {
+        margin-bottom: 3px;
+        font-size: 11px;
+    }
+
+    .avatar-upload-information small {
+        color: #777777;
+        font-size: 9px;
+    }
+
+    .avatar-upload-information button {
+        margin-left: auto;
+        flex-shrink: 0;
+    }
+
+    /*
+    ========================================================
+    TÉLÉPHONE PRIVÉ
+    ========================================================
+    */
+
+    .private-field-wrapper {
+        position: relative;
+    }
+
+    .private-field-wrapper input {
+        padding-left: 44px !important;
+    }
+
+    .private-field-icon {
+        position: absolute;
+        z-index: 2;
+        top: 50%;
+        left: 14px;
+        color: #ff8a00;
+        font-size: 15px;
+        transform: translateY(-50%);
+        pointer-events: none;
+    }
+
+    .security-notice {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin-top: 9px;
+        color: #777777;
+        font-size: 9px;
+        line-height: 1.45;
+    }
+
+    .security-notice span {
+        color: #ff8a00;
+        font-size: 14px;
+    }
+
+    /*
+    ========================================================
+    COMPTE CRÉATEUR
+    ========================================================
+    */
+
+    .creator-requirements {
+        display: none;
+        margin-bottom: 20px;
+        padding: 14px;
+        border: 1px solid rgba(255, 138, 0, 0.24);
+        border-radius: 14px;
+        background: rgba(255, 138, 0, 0.06);
+        color: #bdbdbd;
+        font-size: 10px;
+        line-height: 1.55;
+    }
+
+    .creator-requirements.visible {
+        display: flex;
+        gap: 10px;
+    }
+
+    .creator-requirements > span {
+        color: #ff8a00;
+        font-size: 19px;
+    }
+
+    .creator-requirements strong {
+        display: block;
+        margin-bottom: 3px;
+        color: #ff8a00;
+        font-size: 11px;
+    }
+
+    /*
+    ========================================================
+    AIDES ET ERREURS
+    ========================================================
+    */
+
+    .field-help {
+        display: block;
+        margin-top: 7px;
+        color: #696969;
+        font-size: 9px;
+        line-height: 1.45;
+    }
+
+    .field-error {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin-top: 7px;
+        color: #ff6574;
+        font-size: 10px;
+        font-weight: 700;
+    }
+
+    .field-error::before {
+        content: "!";
+        width: 15px;
+        height: 15px;
+        display: grid;
+        flex: 0 0 15px;
+        place-items: center;
+        border-radius: 50%;
+        background: rgba(255, 59, 78, 0.15);
+        font-size: 9px;
+    }
+
+    .form-errors {
+        margin-bottom: 20px;
+        padding: 14px;
+        border: 1px solid rgba(255, 59, 78, 0.35);
+        border-radius: 13px;
+        background: rgba(255, 59, 78, 0.08);
+        color: #ff8590;
+        font-size: 10px;
+    }
+
+    .character-counter {
+        display: block;
+        margin-top: 6px;
+        color: #666666;
+        font-size: 9px;
+        text-align: right;
+    }
+
+    .character-counter.warning {
+        color: #ff8a00;
+    }
+
+    /*
+    ========================================================
+    ACTIONS
+    ========================================================
+    */
+
+    .profile-form-actions {
+        position: sticky;
+        z-index: 10;
+        bottom: calc(
+            var(--navigation-height, 72px) - 1px
+        );
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+        margin: 30px -30px -28px;
+        padding: 16px 30px;
+        border-top: 1px solid #292929;
+        background: rgba(17, 17, 17, 0.96);
+        backdrop-filter: blur(18px);
+    }
+
+    .save-button {
+        min-width: 155px;
+    }
+
+    .save-button.loading {
+        cursor: wait;
+        opacity: 0.65;
+    }
+
+    /*
+    ========================================================
+    MOBILE
+    ========================================================
+    */
+
+    @media (max-width: 850px) {
+        .profile-edit-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .profile-preview-card {
+            position: static;
+        }
+
+        .profile-preview-cover {
+            height: 90px;
+        }
+
+        .profile-preview-content {
+            padding-bottom: 20px;
+        }
+    }
+
+    @media (max-width: 600px) {
+        .profile-edit-page {
+            padding-right: 12px;
+            padding-left: 12px;
+        }
+
+        .profile-form-heading,
+        .profile-form-body {
+            padding-right: 17px;
+            padding-left: 17px;
+        }
+
+        .profile-form-heading h1 {
+            font-size: 27px;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .form-group.full-width {
+            grid-column: auto;
+        }
+
+        .avatar-upload-information {
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+
+        .avatar-upload-information button {
+            width: 100%;
+            margin-left: 0;
+        }
+
+        .profile-form-actions {
+            bottom: calc(
+                var(--navigation-height, 69px) - 1px
+            );
+            margin-right: -17px;
+            margin-left: -17px;
+            padding: 13px 17px;
+        }
+
+        .profile-form-actions a,
+        .profile-form-actions button {
+            flex: 1;
+        }
+    }
+</style>
+
+{% endblock %}
+
+
+{% block content %}
+
+<section class="standard-page profile-edit-page">
+
+    <a
+        class="back-link"
+        href="{% url 'Afrons:profil_public' user.username %}"
+    >
+        ← Retour au profil
+    </a>
+
+
+    <div class="profile-edit-layout">
+
+        <!-- APERÇU DU PROFIL -->
+
+        <aside class="profile-preview-card">
+
+            <div class="profile-preview-cover"></div>
+
+            <div class="profile-preview-content">
+
+                <div class="profile-photo-zone">
+
+                    <div
+                        class="profile-photo-preview"
+                        id="profile-photo-preview"
+                    >
+
+                        {% if user.profil.avatar %}
+
+                            <img
+                                id="profile-preview-image"
+                                src="{{ user.profil.avatar.url }}"
+                                alt="{{ user.profil.nom_public }}"
+                            >
+
+                        {% else %}
+
+                            <span id="profile-preview-initial">
+                                {{ user.username|first|upper }}
+                            </span>
+
+                            <img
+                                id="profile-preview-image"
+                                src=""
+                                alt="Aperçu de la photo"
+                                hidden
+                            >
+
+                        {% endif %}
+
+                    </div>
+
+                    <button
+                        type="button"
+                        class="profile-photo-button"
+                        id="profile-photo-button"
+                        aria-label="Choisir une photo de profil"
+                        title="Modifier la photo"
+                    >
+                        📷
+                    </button>
+
+                </div>
+
+
+                <h2
+                    class="profile-preview-name"
+                    id="profile-preview-name"
+                >
+                    {{ user.profil.nom_public }}
+                </h2>
+
+                <p class="profile-preview-username">
+                    @{{ user.username }}
+                </p>
+
+                <span
+                    class="profile-preview-type"
+                    id="profile-preview-type"
+                >
+                    {{ user.profil.get_type_compte_display }}
+                </span>
+
+                <p
+                    class="profile-preview-biography"
+                    id="profile-preview-biography"
+                >
+                    {% if user.profil.biographie %}
+
+                        {{ user.profil.biographie }}
+
+                    {% else %}
+
+                        Ajoute une courte présentation
+                        pour parler de toi à la communauté.
+
+                    {% endif %}
+                </p>
+
+                <p
+                    class="profile-preview-location"
+                    id="profile-preview-location"
+                >
+                    {% if user.profil.ville or user.profil.pays %}
+
+                        ◉
+
+                        {% if user.profil.ville %}
+                            {{ user.profil.ville }}
+                        {% endif %}
+
+                        {% if user.profil.ville and user.profil.pays %}
+                            ,
+                        {% endif %}
+
+                        {{ user.profil.get_pays_display }}
+
+                    {% else %}
+
+                        ◉ Localisation non renseignée
+
+                    {% endif %}
+                </p>
+
+                <p class="profile-preview-note">
+                    Cet aperçu représente les informations
+                    visibles sur ton profil public.
+                </p>
+
+            </div>
+
+        </aside>
+
+
+        <!-- FORMULAIRE -->
+
+        <div class="form-card profile-form-card">
+
+            <div class="profile-form-heading">
+
+                <span class="page-label">
+                    Paramètres du compte
+                </span>
+
+                <h1>Modifier mon profil</h1>
+
+                <p>
+                    Personnalise ton identité et les informations
+                    visibles par la communauté AfroFans.
+                </p>
+
+            </div>
+
+
+            <div class="profile-form-body">
+
+                <form
+                    method="post"
+                    enctype="multipart/form-data"
+                    class="application-form"
+                    id="profile-edit-form"
+                    novalidate
+                >
+
+                    {% csrf_token %}
+
+
+                    {% if formulaire_utilisateur.non_field_errors %}
+
+                        <div class="form-errors">
+                            {{ formulaire_utilisateur.non_field_errors }}
+                        </div>
+
+                    {% endif %}
+
+
+                    {% if formulaire_profil.non_field_errors %}
+
+                        <div class="form-errors">
+                            {{ formulaire_profil.non_field_errors }}
+                        </div>
+
+                    {% endif %}
+
+
+                    <!-- IDENTITÉ -->
+
+                    <section class="form-section">
+
+                        <div class="form-section-heading">
+
+                            <span class="form-section-icon">
+                                👤
+                            </span>
+
+                            <div>
+                                <strong>Identité personnelle</strong>
+
+                                <small>
+                                    Tes informations principales
+                                </small>
+                            </div>
+
+                        </div>
+
+
+                        <div class="form-grid">
+
+                            {% for champ in formulaire_utilisateur %}
+
+                                <div class="form-group">
+
+                                    <label for="{{ champ.id_for_label }}">
+                                        {{ champ.label }}
+                                    </label>
+
+                                    {{ champ }}
+
+                                    {% for erreur in champ.errors %}
+                                        <small class="field-error">
+                                            {{ erreur }}
+                                        </small>
+                                    {% endfor %}
+
+                                </div>
+
+                            {% endfor %}
+
+                        </div>
+
+                    </section>
+
+
+                    <!-- PROFIL PUBLIC -->
+
+                    <section class="form-section">
+
+                        <div class="form-section-heading">
+
+                            <span class="form-section-icon">
+                                ✦
+                            </span>
+
+                            <div>
+                                <strong>Profil public</strong>
+
+                                <small>
+                                    Informations visibles par la communauté
+                                </small>
+                            </div>
+
+                        </div>
+
+
+                        <div class="form-grid">
+
+                            {% for champ in formulaire_profil %}
+
+                                {% if champ.name == "avatar" %}
+
+                                    <div class="avatar-form-group">
+                                        {{ champ }}
+                                    </div>
+
+                                {% elif champ.name == "numero_telephone" %}
+
+                                    {# Le téléphone sera affiché plus bas. #}
+
+                                {% elif champ.name == "type_compte" %}
+
+                                    <div class="form-group full-width">
+
+                                        <label for="{{ champ.id_for_label }}">
+                                            {{ champ.label }}
+                                        </label>
+
+                                        {{ champ }}
+
+                                        {% if champ.help_text %}
+                                            <small class="field-help">
+                                                {{ champ.help_text }}
+                                            </small>
+                                        {% endif %}
+
+                                        {% for erreur in champ.errors %}
+                                            <small class="field-error">
+                                                {{ erreur }}
+                                            </small>
+                                        {% endfor %}
+
+                                    </div>
+
+                                {% else %}
+
+                                    <div
+                                        class="form-group
+                                        {% if champ.name == 'biographie' %}
+                                            full-width
+                                        {% endif %}
+                                        "
+                                    >
+
+                                        <label for="{{ champ.id_for_label }}">
+
+                                            {{ champ.label }}
+
+                                            {% if champ.name == "ville" %}
+
+                                                <span class="optional-label">
+                                                    Facultatif
+                                                </span>
+
+                                            {% endif %}
+
+                                        </label>
+
+                                        {{ champ }}
+
+                                        {% if champ.name == "biographie" %}
+
+                                            <small
+                                                class="character-counter"
+                                                id="biography-counter"
+                                            >
+                                                0 / 250
+                                            </small>
+
+                                        {% endif %}
+
+                                        {% if champ.help_text %}
+                                            <small class="field-help">
+                                                {{ champ.help_text }}
+                                            </small>
+                                        {% endif %}
+
+                                        {% for erreur in champ.errors %}
+                                            <small class="field-error">
+                                                {{ erreur }}
+                                            </small>
+                                        {% endfor %}
+
+                                    </div>
+
+                                {% endif %}
+
+                            {% endfor %}
+
+                        </div>
+
+
+                        <div class="avatar-upload-information">
+
+                            <span>📷</span>
+
+                            <div>
+                                <strong>
+                                    Photo de profil
+                                </strong>
+
+                                <small>
+                                    JPG, PNG ou WebP, maximum 5 Mo.
+                                </small>
+                            </div>
+
+                            <button
+                                type="button"
+                                class="secondary-button"
+                                id="avatar-select-button"
+                            >
+                                Choisir une photo
+                            </button>
+
+                        </div>
+
+                    </section>
+
+
+                    <!-- INFORMATIONS PRIVÉES -->
+
+                    <section class="form-section">
+
+                        <div class="form-section-heading">
+
+                            <span class="form-section-icon">
+                                🔒
+                            </span>
+
+                            <div>
+                                <strong>Informations privées</strong>
+
+                                <small>
+                                    Protégées et invisibles publiquement
+                                </small>
+                            </div>
+
+                        </div>
+
+
+                        <div
+                            class="creator-requirements"
+                            id="creator-requirements"
+                        >
+                            <span>!</span>
+
+                            <div>
+                                <strong>
+                                    Compte Créateur
+                                </strong>
+
+                                Le nom de scène, le pays et le numéro
+                                de téléphone sont obligatoires pour
+                                conserver un compte Créateur.
+                            </div>
+                        </div>
+
+
+                        <div class="form-grid">
+
+                            {% for champ in formulaire_profil %}
+
+                                {% if champ.name == "numero_telephone" %}
+
+                                    <div class="form-group full-width">
+
+                                        <label for="{{ champ.id_for_label }}">
+                                            {{ champ.label }}
+                                        </label>
+
+                                        <div class="private-field-wrapper">
+
+                                            <span class="private-field-icon">
+                                                ☎
+                                            </span>
+
+                                            {{ champ }}
+
+                                        </div>
+
+                                        {% if champ.help_text %}
+                                            <small class="field-help">
+                                                {{ champ.help_text }}
+                                            </small>
+                                        {% endif %}
+
+                                        {% for erreur in champ.errors %}
+                                            <small class="field-error">
+                                                {{ erreur }}
+                                            </small>
+                                        {% endfor %}
+
+                                        <p class="security-notice">
+                                            <span>🔒</span>
+
+                                            Vos renseignements personnels
+                                            sont protégés et demeurent
+                                            confidentiels — Sécurité HexaQuébec.
+                                        </p>
+
+                                    </div>
+
+                                {% endif %}
+
+                            {% endfor %}
+
+                        </div>
+
+                    </section>
+
+
+                    <div class="profile-form-actions">
+
+                        <a
+                            class="secondary-button"
+                            href="{% url 'Afrons:profil_public' user.username %}"
+                        >
+                            Annuler
+                        </a>
+
+                        <button
+                            type="submit"
+                            class="primary-button save-button"
+                            id="profile-save-button"
+                        >
+                            Enregistrer les modifications
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}
+
+
+{% block extra_js %}
+
+<script>
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+            const profileForm =
+                document.getElementById(
+                    "profile-edit-form"
+                );
+
+            const avatarInput =
+                document.getElementById(
+                    "id_avatar"
+                );
+
+            const avatarSelectButton =
+                document.getElementById(
+                    "avatar-select-button"
+                );
+
+            const profilePhotoButton =
+                document.getElementById(
+                    "profile-photo-button"
+                );
+
+            const previewImage =
+                document.getElementById(
+                    "profile-preview-image"
+                );
+
+            const previewInitial =
+                document.getElementById(
+                    "profile-preview-initial"
+                );
+
+            const nameInput =
+                document.getElementById(
+                    "id_nom_scene"
+                );
+
+            const biographyInput =
+                document.getElementById(
+                    "id_biographie"
+                );
+
+            const cityInput =
+                document.getElementById(
+                    "id_ville"
+                );
+
+            const countryInput =
+                document.getElementById(
+                    "id_pays"
+                );
+
+            const accountTypeInput =
+                document.getElementById(
+                    "id_type_compte"
+                );
+
+            const previewName =
+                document.getElementById(
+                    "profile-preview-name"
+                );
+
+            const previewBiography =
+                document.getElementById(
+                    "profile-preview-biography"
+                );
+
+            const previewLocation =
+                document.getElementById(
+                    "profile-preview-location"
+                );
+
+            const previewType =
+                document.getElementById(
+                    "profile-preview-type"
+                );
+
+            const biographyCounter =
+                document.getElementById(
+                    "biography-counter"
+                );
+
+            const creatorRequirements =
+                document.getElementById(
+                    "creator-requirements"
+                );
+
+            const saveButton =
+                document.getElementById(
+                    "profile-save-button"
+                );
+
+
+            /*
+            ================================================
+            OUVRIR LE SÉLECTEUR DE PHOTO
+            ================================================
+            */
+
+            function openAvatarSelector() {
+                if (avatarInput) {
+                    avatarInput.click();
+                }
+            }
+
+
+            if (avatarSelectButton) {
+                avatarSelectButton.addEventListener(
+                    "click",
+                    openAvatarSelector
+                );
+            }
+
+
+            if (profilePhotoButton) {
+                profilePhotoButton.addEventListener(
+                    "click",
+                    openAvatarSelector
+                );
+            }
+
+
+            /*
+            ================================================
+            APERÇU DE LA PHOTO
+            ================================================
+            */
+
+            if (avatarInput) {
+                avatarInput.addEventListener(
+                    "change",
+                    function () {
+                        const file =
+                            avatarInput.files[0];
+
+                        if (!file) {
+                            return;
+                        }
+
+                        const acceptedTypes = [
+                            "image/jpeg",
+                            "image/png",
+                            "image/webp"
+                        ];
+
+                        if (
+                            !acceptedTypes.includes(
+                                file.type
+                            )
+                        ) {
+                            window.alert(
+                                "Utilise une image JPG, "
+                                + "PNG ou WebP."
+                            );
+
+                            avatarInput.value = "";
+
+                            return;
+                        }
+
+                        if (
+                            file.size
+                            > 5 * 1024 * 1024
+                        ) {
+                            window.alert(
+                                "La photo ne doit pas "
+                                + "dépasser 5 Mo."
+                            );
+
+                            avatarInput.value = "";
+
+                            return;
+                        }
+
+                        const imageUrl =
+                            URL.createObjectURL(file);
+
+                        previewImage.src = imageUrl;
+
+                        previewImage.hidden = false;
+
+                        if (previewInitial) {
+                            previewInitial.hidden = true;
+                        }
+                    }
+                );
+            }
+
+
+            /*
+            ================================================
+            APERÇU DU NOM
+            ================================================
+            */
+
+            function updatePreviewName() {
+                if (!nameInput || !previewName) {
+                    return;
+                }
+
+                const value =
+                    nameInput.value.trim();
+
+                previewName.textContent =
+                    value
+                    || "{{ user.get_full_name|default:user.username|escapejs }}";
+            }
+
+
+            if (nameInput) {
+                nameInput.addEventListener(
+                    "input",
+                    updatePreviewName
+                );
+            }
+
+
+            /*
+            ================================================
+            BIOGRAPHIE ET COMPTEUR
+            ================================================
+            */
+
+            function updateBiography() {
+                if (!biographyInput) {
+                    return;
+                }
+
+                const biography =
+                    biographyInput.value;
+
+                if (previewBiography) {
+                    previewBiography.textContent =
+                        biography.trim()
+                        || (
+                            "Ajoute une courte présentation "
+                            + "pour parler de toi à la "
+                            + "communauté."
+                        );
+                }
+
+                if (biographyCounter) {
+                    biographyCounter.textContent =
+                        biography.length
+                        + " / 250";
+
+                    biographyCounter.classList.toggle(
+                        "warning",
+                        biography.length >= 225
+                    );
+                }
+            }
+
+
+            if (biographyInput) {
+                biographyInput.addEventListener(
+                    "input",
+                    updateBiography
+                );
+
+                updateBiography();
+            }
+
+
+            /*
+            ================================================
+            LOCALISATION
+            ================================================
+            */
+
+            function updateLocation() {
+                if (!previewLocation) {
+                    return;
+                }
+
+                const city =
+                    cityInput
+                    ? cityInput.value.trim()
+                    : "";
+
+                let country = "";
+
+                if (
+                    countryInput
+                    && countryInput.selectedIndex >= 0
+                ) {
+                    country =
+                        countryInput.options[
+                            countryInput.selectedIndex
+                        ].text;
+
+                    if (
+                        !countryInput.value
+                        || country.toLowerCase()
+                            .includes("sélection")
+                    ) {
+                        country = "";
+                    }
+                }
+
+                const location = [
+                    city,
+                    country
+                ].filter(Boolean).join(", ");
+
+                previewLocation.textContent =
+                    location
+                    ? "◉ " + location
+                    : "◉ Localisation non renseignée";
+            }
+
+
+            if (cityInput) {
+                cityInput.addEventListener(
+                    "input",
+                    updateLocation
+                );
+            }
+
+
+            if (countryInput) {
+                countryInput.addEventListener(
+                    "change",
+                    updateLocation
+                );
+            }
+
+
+            /*
+            ================================================
+            TYPE DE COMPTE
+            ================================================
+            */
+
+            function updateAccountType() {
+                if (!accountTypeInput) {
+                    return;
+                }
+
+                const selectedOption =
+                    accountTypeInput.options[
+                        accountTypeInput.selectedIndex
+                    ];
+
+                const label =
+                    selectedOption
+                    ? selectedOption.text
+                    : "";
+
+                if (previewType) {
+                    previewType.textContent =
+                        label;
+                }
+
+                if (creatorRequirements) {
+                    creatorRequirements.classList.toggle(
+                        "visible",
+                        accountTypeInput.value
+                        === "createur"
+                    );
+                }
+            }
+
+
+            if (accountTypeInput) {
+                accountTypeInput.addEventListener(
+                    "change",
+                    updateAccountType
+                );
+
+                updateAccountType();
+            }
+
+
+            /*
+            ================================================
+            ÉTAT DU BOUTON PENDANT L’ENVOI
+            ================================================
+            */
+
+            if (profileForm && saveButton) {
+                profileForm.addEventListener(
+                    "submit",
+                    function () {
+                        if (
+                            !profileForm.checkValidity()
+                        ) {
+                            return;
+                        }
+
+                        saveButton.disabled = true;
+
+                        saveButton.classList.add(
+                            "loading"
+                        );
+
+                        saveButton.textContent =
+                            "Enregistrement...";
+                    }
+                );
+            }
+
+
+            updatePreviewName();
+
+            updateLocation();
+        }
+    );
+</script>
+
+{% endblock %}

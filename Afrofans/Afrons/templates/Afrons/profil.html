@@ -1,0 +1,4638 @@
+
+{% extends "Afrons/base.html" %}
+
+{% block title %}
+{{ personne.profil.nom_public|default:personne.username }} | AfroFans
+{% endblock %}
+
+{% block body_class %}af-profile-body{% endblock %}
+
+{% block extra_css %}
+<style>
+/* =====================================================
+   AFROFANS — PROFIL PREMIUM FAN / TALENT
+   Identité personnelle • Dons • Finances • Billetterie
+===================================================== */
+
+body.af-profile-body {
+    background: #090a0e;
+    color: #f6f6f8;
+}
+
+.af-page {
+    --af-orange: #ff900d;
+    --af-gold: #ffc36d;
+    --af-ink: #090a0e;
+    --af-line: #30323b;
+    --af-muted: #9da1ac;
+    --af-green: #70e0af;
+
+    width: min(1180px, 100%);
+    margin: 0 auto;
+    padding: 86px 20px 100px;
+    color: #f6f6f8;
+}
+
+.af-page *,
+.af-page *::before,
+.af-page *::after,
+.af-modal *,
+.af-modal *::before,
+.af-modal *::after {
+    box-sizing: border-box;
+}
+
+.af-page a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.af-page button,
+.af-page input,
+.af-page select,
+.af-modal button,
+.af-modal input,
+.af-modal select {
+    font: inherit;
+}
+
+.af-page button,
+.af-modal button {
+    cursor: pointer;
+}
+
+.af-icon {
+    width: 18px;
+    height: 18px;
+    flex: none;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.85;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vertical-align: middle;
+}
+
+.af-muted {
+    color: var(--af-muted);
+}
+
+.af-kicker {
+    display: inline-block;
+    color: var(--af-gold);
+    font-size: 10px;
+    font-weight: 850;
+    text-transform: uppercase;
+    letter-spacing: 1.55px;
+}
+
+.af-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    min-height: 42px;
+    padding: 10px 15px;
+
+    border: 1px solid #41444e;
+    border-radius: 10px;
+
+    background: #20232b;
+    color: #fff !important;
+
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1.35;
+    transition: background .2s, transform .2s, border-color .2s;
+}
+
+.af-btn:hover {
+    transform: translateY(-1px);
+    border-color: var(--af-orange);
+}
+
+.af-btn.primary {
+    background: linear-gradient(110deg, #ffc36b, #ff8900);
+    border-color: #ff990e;
+    color: #221407 !important;
+}
+
+.af-btn.outline {
+    background: transparent;
+}
+
+.af-btn.danger {
+    color: #ffb1bd !important;
+    border-color: #74424b;
+}
+
+.af-btn:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
+/* =====================================================
+   ENTÊTE AFROFANS
+===================================================== */
+
+.af-platform {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+
+    padding-bottom: 19px;
+    border-bottom: 1px solid var(--af-line);
+}
+
+.af-logo-text {
+    font-size: 25px;
+    font-weight: 950;
+    letter-spacing: -1.1px;
+}
+
+.af-logo-text span {
+    color: var(--af-orange);
+}
+
+.af-platform-kind {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: #c4c5cf;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .6px;
+}
+
+/* =====================================================
+   IDENTITÉ DU MEMBRE
+===================================================== */
+
+.af-identity {
+    display: grid;
+    grid-template-columns: 125px minmax(0, 1fr);
+    align-items: start;
+    gap: 28px;
+    padding: 30px 0;
+    border-bottom: 1px solid var(--af-line);
+}
+
+.af-avatar-group {
+    text-align: center;
+}
+
+.af-avatar {
+    display: grid;
+    place-items: center;
+    width: 122px;
+    height: 122px;
+    overflow: hidden;
+    border: 3px solid var(--af-orange);
+    border-radius: 50%;
+
+    background: linear-gradient(135deg, #ffd080, #ff8200);
+    color: #1b1208;
+    font-size: 42px;
+    font-weight: 900;
+}
+
+.af-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.af-photo-link {
+    display: inline-block;
+    margin-top: 9px;
+    color: var(--af-gold) !important;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.af-identity-main {
+    min-width: 0;
+}
+
+.af-identity-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 15px;
+}
+
+.af-name {
+    margin: 0;
+    font-size: clamp(25px, 3vw, 37px);
+    font-weight: 900;
+    letter-spacing: -.9px;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+
+.af-username {
+    margin-top: 5px;
+    font-size: 12px;
+    color: #989ca8;
+}
+
+.af-label-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 11px;
+}
+
+.af-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 7px;
+
+    background: #2c2118;
+    color: #ffd194;
+
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.af-status.verified {
+    background: #152b23;
+    color: var(--af-green);
+}
+
+.af-bio {
+    max-width: 740px;
+    margin: 15px 0 10px;
+    font-size: 13px;
+    line-height: 1.75;
+    color: #d3d4da;
+}
+
+.af-location {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 9px;
+    color: #a4a6b1;
+    font-size: 12px;
+}
+
+.af-profile-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 13px 25px;
+    margin: 19px 0;
+}
+
+.af-profile-stats a,
+.af-profile-stats span {
+    font-size: 12px;
+    color: #afb2bd;
+}
+
+.af-profile-stats strong {
+    margin-right: 5px;
+    font-size: 18px;
+    color: #fff;
+}
+
+.af-profile-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 9px;
+}
+
+/* =====================================================
+   MENU PARAMÈTRES
+===================================================== */
+
+.af-settings-wrap {
+    position: relative;
+    flex: none;
+}
+
+.af-settings-menu {
+    display: none;
+    position: absolute;
+    top: 48px;
+    right: 0;
+    z-index: 40;
+    width: min(300px, 85vw);
+
+    padding: 8px;
+    background: #1c1e26;
+    border: 1px solid #474954;
+    border-radius: 13px;
+    box-shadow: 0 20px 55px #000b;
+}
+
+.af-settings-menu.open {
+    display: block;
+}
+
+.af-settings-menu a,
+.af-settings-menu button {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    width: 100%;
+    padding: 11px 12px;
+
+    background: transparent;
+    color: #e8e8ec;
+    border: 0;
+    border-radius: 8px;
+
+    text-align: left;
+    font-size: 12px;
+}
+
+.af-settings-menu a:hover,
+.af-settings-menu button:hover {
+    background: #33271d;
+}
+
+/* =====================================================
+   VÉRIFICATION TALENT — SANS GROSSE CARTE
+===================================================== */
+
+.af-verification {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 18px;
+
+    padding: 23px 0;
+    border-bottom: 1px solid var(--af-line);
+    scroll-margin-top: 100px;
+}
+
+.af-verify-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.af-round-icon {
+    width: 43px;
+    height: 43px;
+
+    display: grid;
+    place-items: center;
+
+    border: 1px solid #a97437;
+    border-radius: 50%;
+    color: var(--af-gold);
+}
+
+.af-verification h2 {
+    margin: 4px 0 0;
+    font-size: 19px;
+}
+
+.af-verification p {
+    max-width: 670px;
+    margin: 11px 0 0;
+    color: #adafbb;
+    font-size: 12px;
+    line-height: 1.75;
+}
+
+.af-verify-action {
+    text-align: right;
+}
+
+.af-verify-action strong {
+    display: block;
+    color: var(--af-gold);
+    font-size: 22px;
+}
+
+.af-verify-action small {
+    display: block;
+    max-width: 260px;
+    margin: 7px 0 12px;
+    color: #a9abb5;
+    font-size: 11px;
+    line-height: 1.6;
+}
+
+/* =====================================================
+   OUTILS TALENT
+===================================================== */
+
+.af-tools-area {
+    padding: 21px 0;
+    border-bottom: 1px solid var(--af-line);
+}
+
+.af-tools-area h2 {
+    margin: 7px 0 10px;
+    font-size: 18px;
+}
+
+.af-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 25px;
+}
+
+.af-tool {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 0;
+
+    background: none;
+    border: 0;
+    border-bottom: 1px solid transparent;
+    color: #e4e4e9;
+
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.af-tool .af-icon {
+    color: var(--af-orange);
+}
+
+.af-tool:hover {
+    border-bottom-color: var(--af-orange);
+}
+
+/* =====================================================
+   ONGLETS
+===================================================== */
+
+.af-tabs {
+    display: flex;
+    gap: 9px;
+    align-items: center;
+    margin-top: 22px;
+
+    overflow-x: auto;
+    border-bottom: 1px solid #343640;
+    scrollbar-width: thin;
+}
+
+.af-tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+
+    padding: 15px 13px;
+    border: 0;
+    border-bottom: 3px solid transparent;
+
+    background: transparent;
+    color: #9da1ab;
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.af-tab[aria-selected="true"] {
+    border-bottom-color: var(--af-orange);
+    color: var(--af-gold);
+}
+
+.af-panel {
+    display: none;
+    padding-top: 22px;
+}
+
+.af-panel.active {
+    display: block;
+}
+
+.af-panel-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 21px;
+}
+
+.af-panel-top h2 {
+    margin: 0;
+    font-size: 21px;
+}
+
+.af-panel-top small {
+    color: #a1a4b0;
+    font-size: 11px;
+}
+
+.af-empty {
+    padding: 31px 0;
+    color: #9ea0ac;
+    font-size: 12px;
+}
+
+/* =====================================================
+   VIDÉOS COMPACTES — 6 PAR RANGÉE
+===================================================== */
+
+.af-video-grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 20px 13px;
+}
+
+.af-video-item {
+    display: block;
+    min-width: 0;
+}
+
+.af-video-preview {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    position: relative;
+    overflow: hidden;
+
+    background: #202128;
+    border-radius: 8px;
+}
+
+.af-video-preview img,
+.af-video-preview video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.af-play-circle {
+    position: absolute;
+    right: 7px;
+    bottom: 7px;
+
+    display: grid;
+    place-items: center;
+
+    width: 28px;
+    height: 28px;
+
+    border-radius: 50%;
+    background: #080808bd;
+}
+
+.af-play-circle .af-icon {
+    width: 14px;
+    height: 14px;
+}
+
+.af-video-item:hover .af-video-preview {
+    outline: 1px solid var(--af-orange);
+}
+
+.af-video-text {
+    padding: 8px 2px 0;
+}
+
+.af-video-text strong {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+
+    overflow: hidden;
+    margin-bottom: 5px;
+
+    font-size: 11px;
+    font-weight: 750;
+    line-height: 1.4;
+}
+
+.af-video-text small {
+    color: #9296a3;
+    font-size: 10px;
+}
+
+/* =====================================================
+   ENVOYER UN DON
+===================================================== */
+
+.af-donation-intro {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+
+    padding: 20px 0 26px;
+    border-bottom: 1px solid var(--af-line);
+}
+
+.af-donation-intro h2 {
+    margin: 6px 0 10px;
+    font-size: clamp(22px, 3vw, 30px);
+}
+
+.af-donation-intro p {
+    max-width: 660px;
+    color: #b4b5c0;
+    font-size: 12px;
+    line-height: 1.75;
+}
+
+.af-donation-symbol {
+    display: grid;
+    place-items: center;
+    flex: none;
+
+    width: 65px;
+    height: 65px;
+
+    color: #ffc26f;
+    background: radial-gradient(
+        circle,
+        #ff8b002a,
+        #ff8b0008
+    );
+    border: 1px solid #654227;
+    border-radius: 50%;
+}
+
+.af-donation-symbol .af-icon {
+    width: 29px;
+    height: 29px;
+}
+
+.af-donation-person {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--af-line);
+}
+
+.af-donation-avatar {
+    width: 49px;
+    height: 49px;
+    flex: none;
+    overflow: hidden;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ffca75, #ff8b00);
+    color: #241608;
+    font-weight: 900;
+}
+
+.af-donation-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.af-donation-person-info {
+    min-width: 0;
+    flex: 1;
+}
+
+.af-donation-person-info strong {
+    display: block;
+    font-size: 13px;
+}
+
+.af-donation-person-info small {
+    display: block;
+    margin-top: 5px;
+    color: #a5a7b1;
+    font-size: 11px;
+}
+
+.af-donation-note {
+    margin-top: 20px;
+    color: #aeb0b9;
+    font-size: 11px;
+    line-height: 1.8;
+}
+
+/* =====================================================
+   BILLETTERIE AFROFANS
+===================================================== */
+
+.af-ticket-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.af-ticket {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+
+    background: #181a21;
+    border: 1px solid #4e4441;
+    border-radius: 17px;
+}
+
+.af-ticket-band {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 14px 16px;
+
+    background: linear-gradient(110deg, #ffc56d, #ff8900);
+    color: #241609;
+}
+
+.af-ticket-band strong {
+    font-size: 21px;
+    font-weight: 950;
+    letter-spacing: -1px;
+}
+
+.af-ticket-band strong span {
+    color: #fff;
+}
+
+.af-ticket-band small {
+    font-size: 9px;
+    font-weight: 900;
+}
+
+.af-ticket-body {
+    flex: 1;
+    padding: 20px 17px;
+}
+
+.af-ticket-body h3 {
+    margin: 12px 0 15px;
+    font-size: 20px;
+    line-height: 1.3;
+}
+
+.af-ticket-line {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 9px 0;
+    color: #d4d5db;
+    font-size: 12px;
+}
+
+.af-ticket-line .af-icon {
+    width: 15px;
+    height: 15px;
+    color: var(--af-orange);
+}
+
+.af-ticket-description {
+    color: #abadb8;
+    font-size: 11px;
+    line-height: 1.7;
+    margin: 15px 0 0;
+}
+
+.af-ticket-cut {
+    position: relative;
+    height: 11px;
+    border-top: 2px dashed #6a6063;
+}
+
+.af-ticket-cut::before,
+.af-ticket-cut::after {
+    content: "";
+    position: absolute;
+    top: -11px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #090a0e;
+}
+
+.af-ticket-cut::before { left: -11px; }
+.af-ticket-cut::after { right: -11px; }
+
+.af-ticket-price {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 15px 13px;
+}
+
+.af-ticket-price strong {
+    color: var(--af-gold);
+    font-size: 18px;
+}
+
+.af-ticket-price small {
+    color: #aaaeb8;
+    font-size: 10px;
+}
+
+.af-ticket .af-btn {
+    margin: 0 13px 13px;
+}
+
+/* =====================================================
+   TABLEAU DE BORD FINANCIER PREMIUM
+===================================================== */
+
+.af-finance-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin-bottom: 20px;
+}
+
+.af-finance-heading h2 {
+    margin: 7px 0;
+    font-size: clamp(23px, 3vw, 31px);
+    letter-spacing: -.4px;
+}
+
+.af-finance-heading p {
+    margin: 0;
+    color: #aeb0ba;
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+.af-wallet-hero {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+    gap: 20px;
+
+    min-height: 235px;
+    padding: 30px 33px;
+
+    background: linear-gradient(
+        115deg,
+        #302015,
+        #1c1d26 60%,
+        #11141c
+    );
+
+    border: 1px solid #765338;
+    border-radius: 22px;
+    box-shadow: 0 22px 60px #0005;
+}
+
+.af-wallet-hero::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+
+    width: 380px;
+    height: 380px;
+    right: -100px;
+    top: -195px;
+
+    border-radius: 50%;
+    background: radial-gradient(
+        circle,
+        #ff82107a,
+        transparent 70%
+    );
+}
+
+.af-wallet-hero::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+
+    width: 300px;
+    height: 300px;
+    right: 80px;
+    bottom: -230px;
+
+    border: 1px solid #ffb15b33;
+    border-radius: 50%;
+    box-shadow:
+        0 0 0 36px #ffb15b0a,
+        0 0 0 76px #ffb15b08;
+}
+
+.af-wallet-content {
+    min-width: 0;
+}
+
+.af-wallet-brand {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+
+    color: #ffe7cc;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.af-wallet-brand .af-icon {
+    color: var(--af-gold);
+}
+
+.af-wallet-caption {
+    display: block;
+    margin-top: 38px;
+    color: #c2b4a5;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.4px;
+}
+
+.af-wallet-amount {
+    display: block;
+    margin: 7px 0;
+
+    color: #fff;
+    font-size: clamp(35px, 5vw, 55px);
+    font-weight: 950;
+    letter-spacing: -2px;
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+    font-variant-numeric: tabular-nums;
+}
+
+.af-wallet-amount small {
+    margin-left: 8px;
+    color: var(--af-gold);
+    font-size: .36em;
+    letter-spacing: 0;
+}
+
+.af-wallet-help {
+    margin-top: 8px;
+    color: #c3b4a5;
+    font-size: 11px;
+    line-height: 1.65;
+}
+
+.af-wallet-side {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.af-wallet-emblem {
+    display: grid;
+    place-items: center;
+
+    width: 58px;
+    height: 58px;
+
+    border: 1px solid #ffb8605c;
+    border-radius: 16px;
+    color: var(--af-gold);
+    background: #ff9a1716;
+}
+
+.af-wallet-emblem .af-icon {
+    width: 27px;
+    height: 27px;
+}
+
+/* =====================================================
+   INDICATEURS FINANCIERS
+===================================================== */
+
+.af-finance-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 28px;
+
+    padding: 27px 0;
+    border-bottom: 1px solid var(--af-line);
+}
+
+.af-metric {
+    min-width: 0;
+}
+
+.af-metric-label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: #aaacb7;
+    font-size: 11px;
+}
+
+.af-metric-label .af-icon {
+    color: var(--af-gold);
+}
+
+.af-metric strong {
+    display: block;
+    margin-top: 11px;
+    font-size: clamp(20px, 2.6vw, 28px);
+    font-weight: 900;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+    font-variant-numeric: tabular-nums;
+}
+
+.af-metric strong small {
+    font-size: 11px;
+    font-weight: 700;
+    color: #d2ad7f;
+}
+
+.af-metric-note {
+    display: block;
+    margin-top: 8px;
+    color: #818590;
+    font-size: 10px;
+}
+
+/* =====================================================
+   REVENUS ET DONS - GRANDES VALEURS
+===================================================== */
+
+.af-finance-total {
+    padding: 27px 0 25px;
+    border-bottom: 1px solid var(--af-line);
+}
+
+.af-finance-total label {
+    display: block;
+    font-size: 12px;
+    color: #aaaeb9;
+}
+
+.af-finance-total strong {
+    display: block;
+    margin-top: 7px;
+    color: #fff;
+    font-size: clamp(35px, 5vw, 55px);
+    font-weight: 950;
+    letter-spacing: -1.5px;
+    overflow-wrap: anywhere;
+    font-variant-numeric: tabular-nums;
+}
+
+.af-finance-total strong small {
+    color: var(--af-gold);
+    font-size: .36em;
+    letter-spacing: 0;
+}
+
+.af-finance-total p {
+    color: #979aa6;
+    font-size: 11px;
+    line-height: 1.7;
+}
+
+.af-finance-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    padding: 25px 0;
+}
+
+.af-finance-split small {
+    display: block;
+    color: #969aa5;
+    font-size: 11px;
+}
+
+.af-finance-split strong {
+    display: block;
+    margin: 8px 0;
+    font-size: 25px;
+    font-weight: 900;
+    overflow-wrap: anywhere;
+}
+
+/* =====================================================
+   HISTORIQUE FINANCIER
+===================================================== */
+
+.af-ledger {
+    margin-top: 13px;
+    border-top: 1px solid var(--af-line);
+}
+
+.af-ledger-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+
+    margin-top: 28px;
+    margin-bottom: 15px;
+}
+
+.af-ledger-heading h3 {
+    margin: 0;
+    font-size: 17px;
+}
+
+.af-ledger-heading small {
+    color: #999ca7;
+    font-size: 11px;
+}
+
+.af-transaction {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+
+    padding: 17px 0;
+    border-bottom: 1px solid var(--af-line);
+}
+
+.af-transaction-icon {
+    display: grid;
+    place-items: center;
+    flex: none;
+
+    width: 43px;
+    height: 43px;
+    border-radius: 13px;
+
+    background: #2e251c;
+    color: var(--af-gold);
+}
+
+.af-transaction-icon.credit {
+    background: #163025;
+    color: #71e0ac;
+}
+
+.af-transaction-info {
+    min-width: 0;
+    flex: 1;
+}
+
+.af-transaction-info strong {
+    display: block;
+    font-size: 12px;
+}
+
+.af-transaction-info small {
+    display: block;
+    margin-top: 5px;
+    font-size: 10px;
+    line-height: 1.6;
+    color: #969aa6;
+}
+
+.af-transaction-amount {
+    max-width: 40%;
+    text-align: right;
+    font-size: 14px;
+    font-weight: 850;
+    overflow-wrap: anywhere;
+    font-variant-numeric: tabular-nums;
+}
+
+.af-transaction-amount.credit {
+    color: var(--af-green);
+}
+
+.af-transaction-amount small {
+    display: block;
+    margin-top: 5px;
+    color: #989ba7;
+    font-size: 10px;
+    font-weight: 500;
+}
+
+.af-finance-empty {
+    padding: 30px 0;
+    color: #979aa6;
+    font-size: 12px;
+}
+
+.af-finance-empty .af-icon {
+    color: var(--af-gold);
+}
+
+/* =====================================================
+   BILLETS ACHETÉS / NOTIFICATIONS
+===================================================== */
+
+.af-list {
+    border-top: 1px solid var(--af-line);
+}
+
+.af-list-item {
+    padding: 18px 0;
+    border-bottom: 1px solid var(--af-line);
+}
+
+.af-list-item h3 {
+    margin: 0 0 8px;
+    font-size: 15px;
+}
+
+.af-list-item p {
+    margin: 7px 0;
+    color: #b8bac3;
+    font-size: 12px;
+    line-height: 1.75;
+}
+
+.af-list-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+    margin-top: 12px;
+}
+
+.af-official-message {
+    border-left: 3px solid var(--af-orange);
+    padding-left: 16px;
+}
+
+/* =====================================================
+   FENÊTRES MODALES
+===================================================== */
+
+.af-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 110;
+    padding: 20px;
+
+    background: #000d;
+    align-items: center;
+    justify-content: center;
+    overflow-y: auto;
+}
+
+.af-modal.open {
+    display: flex;
+}
+
+.af-modal-dialog {
+    width: min(490px, 100%);
+    max-height: 90vh;
+    overflow-y: auto;
+
+    padding: 25px;
+    border: 1px solid #474a55;
+    border-radius: 19px;
+    background: #1a1c25;
+    color: white;
+}
+
+.af-modal-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+
+.af-modal-heading h2 {
+    margin: 0;
+    font-size: 21px;
+}
+
+.af-modal-dialog p {
+    color: #b9bcc7;
+    font-size: 12px;
+    line-height: 1.8;
+}
+
+.af-form-field {
+    margin: 15px 0;
+}
+
+.af-form-field label {
+    display: block;
+    margin-bottom: 7px;
+    color: #d8d9df;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.af-form-field input,
+.af-form-field select {
+    display: block;
+    width: 100%;
+    min-height: 43px;
+    padding: 10px 12px;
+
+    border: 1px solid #494b57;
+    border-radius: 9px;
+    background: #252832;
+    color: white;
+}
+
+.af-form-field input[type="checkbox"] {
+    display: inline;
+    width: auto;
+    min-height: auto;
+    margin-right: 8px;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+@media (max-width: 1060px) {
+    .af-video-grid {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 900px) {
+    .af-video-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .af-ticket-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 650px) {
+    .af-page {
+        padding: 72px 12px 75px;
+    }
+
+    .af-identity {
+        grid-template-columns: 78px minmax(0, 1fr);
+        gap: 14px;
+        padding: 22px 0;
+    }
+
+    .af-avatar {
+        width: 78px;
+        height: 78px;
+        font-size: 28px;
+    }
+
+    .af-name {
+        font-size: 24px;
+    }
+
+    .af-profile-stats {
+        gap: 10px 15px;
+    }
+
+    .af-profile-stats strong {
+        font-size: 15px;
+    }
+
+    .af-video-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px 9px;
+    }
+
+    .af-video-text strong {
+        font-size: 10px;
+    }
+
+    .af-ticket-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .af-verification {
+        align-items: flex-start;
+    }
+
+    .af-verify-action {
+        text-align: left;
+    }
+
+    .af-wallet-hero {
+        flex-direction: column;
+        min-height: 0;
+        padding: 24px 22px;
+    }
+
+    .af-wallet-caption {
+        margin-top: 25px;
+    }
+
+    .af-wallet-amount {
+        font-size: 36px;
+    }
+
+    .af-wallet-side {
+        align-items: flex-start;
+    }
+
+    .af-wallet-emblem {
+        display: none;
+    }
+
+    .af-finance-metrics {
+        gap: 13px;
+    }
+
+    .af-metric strong {
+        font-size: 18px;
+    }
+
+    .af-finance-split strong {
+        font-size: 21px;
+    }
+
+    .af-transaction {
+        gap: 10px;
+    }
+
+    .af-transaction-amount {
+        font-size: 12px;
+    }
+
+    .af-settings-menu {
+        position: fixed;
+        top: 65px;
+        right: 12px;
+    }
+}
+
+@media (max-width: 390px) {
+    .af-finance-metrics {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .af-donation-person {
+        flex-wrap: wrap;
+    }
+
+    .af-donation-person .af-btn {
+        margin-left: 62px;
+    }
+}
+
+
+
+/* =====================================================
+   AFROFANS — INDICATEUR EN PRÉSENCE
+   CERCLE ROUGE SUR PHOTO DU TALENT
+===================================================== */
+
+.af-avatar-live {
+    position: relative;
+    overflow: visible;
+    border: 4px solid #ff2449;
+    cursor: pointer;
+    text-decoration: none;
+    box-shadow: 0 0 0 4px rgba(255,36,73,.12);
+    animation: af-presence-pulse 2s infinite;
+    transition: transform .2s ease;
+}
+
+.af-avatar-live:hover {
+    transform: scale(1.05);
+}
+
+.af-avatar-live img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    overflow: hidden;
+}
+
+.af-avatar-live-badge {
+    position: absolute;
+    z-index: 5;
+    bottom: -14px;
+    left: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 6px 9px;
+    border: 2px solid #090a0e;
+    border-radius: 7px;
+    background: #f32243;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: .25px;
+    white-space: nowrap;
+    transform: translateX(-50%);
+}
+
+.af-live-dot {
+    width: 7px;
+    height: 7px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #fff;
+    animation: af-live-dot-blink 1.3s infinite;
+}
+
+@keyframes af-presence-pulse {
+    0%, 100% {
+        box-shadow: 0 0 0 4px rgba(255,36,73,.12);
+    }
+
+    50% {
+        box-shadow: 0 0 0 9px rgba(255,36,73,.05),
+                    0 0 24px rgba(255,36,73,.35);
+    }
+}
+
+@keyframes af-live-dot-blink {
+    50% {
+        opacity: .3;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .af-avatar-live,
+    .af-live-dot {
+        animation: none;
+    }
+}
+
+</style>
+{% endblock %}
+
+
+{% block content %}
+
+<!-- =====================================================
+     ICÔNES AFROFANS
+===================================================== -->
+
+<svg width="0" height="0"
+     aria-hidden="true"
+     style="position:absolute;overflow:hidden">
+<defs>
+
+<symbol id="afi-video" viewBox="0 0 24 24">
+    <rect x="3" y="4" width="18" height="16" rx="3"/>
+    <path d="m10 9 6 3-6 3z"/>
+</symbol>
+
+<symbol id="afi-play" viewBox="0 0 24 24">
+    <path d="m8 5 11 7-11 7z"/>
+</symbol>
+
+<symbol id="afi-heart" viewBox="0 0 24 24">
+    <path d="M12 21 3 12C-2 6 6-1 12 6c6-7 14 0 9 6z"/>
+</symbol>
+
+<symbol id="afi-shield" viewBox="0 0 24 24">
+    <path d="m12 2 9 4v6c0 6-4 9-9 10-5-1-9-4-9-10V6zM8 12l3 3 5-5"/>
+</symbol>
+
+<symbol id="afi-check" viewBox="0 0 24 24">
+    <path d="m4 12 5 5L20 6"/>
+</symbol>
+
+<symbol id="afi-wallet" viewBox="0 0 24 24">
+    <rect x="2" y="6" width="20" height="15" rx="3"/>
+    <path d="M2 10h20m-5 5h1"/>
+</symbol>
+
+<symbol id="afi-calendar" viewBox="0 0 24 24">
+    <rect x="3" y="5" width="18" height="16" rx="2"/>
+    <path d="M8 3v4m8-4v4M3 10h18"/>
+</symbol>
+
+<symbol id="afi-ticket" viewBox="0 0 24 24">
+    <path d="M3 5h18v4a3 3 0 0 0 0 6v4H3v-4a3 3 0 0 0 0-6zM13 5v3m0 4v1m0 4v2"/>
+</symbol>
+
+<symbol id="afi-pin" viewBox="0 0 24 24">
+    <path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0z"/>
+    <circle cx="12" cy="10" r="2.5"/>
+</symbol>
+
+<symbol id="afi-bell" viewBox="0 0 24 24">
+    <path d="M6 9a6 6 0 0 1 12 0c0 7 3 7 3 9H3c0-2 3-2 3-9zm4 12h4"/>
+</symbol>
+
+<symbol id="afi-settings" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="4"/>
+    <path d="M12 2v4m0 12v4M2 12h4m12 0h4M5 5l3 3m8 8 3 3M19 5l-3 3m-8 8-3 3"/>
+</symbol>
+
+<symbol id="afi-arrow" viewBox="0 0 24 24">
+    <path d="M5 12h14m-7-7 7 7-7 7"/>
+</symbol>
+
+</defs>
+</svg>
+
+
+<main class="af-page">
+
+    {% if user.is_authenticated %}
+    <form id="af-csrf-form" hidden>
+        {% csrf_token %}
+    </form>
+    {% endif %}
+
+    <!-- =================================================
+         IDENTITÉ AFROFANS
+    ================================================== -->
+
+    <div class="af-platform">
+
+        <div class="af-logo-text">
+            Afro<span>Fans</span>
+        </div>
+
+        <div class="af-platform-kind">
+            {% if personne.profil.type_compte == "createur" %}
+                Espace Talent
+            {% else %}
+                Espace Fan
+            {% endif %}
+        </div>
+
+    </div>
+
+
+    <!-- =================================================
+         PROFIL PERSONNEL
+    ================================================== -->
+
+    <header class="af-identity">
+
+        <div class="af-avatar-group">
+
+            
+<!-- =====================================================
+     AFROFANS — PHOTO DE PROFIL ET PRÉSENCE ACTIVE
+===================================================== -->
+
+{% if presence_active %}
+
+<a
+    href="{% url 'Afrons:presence_detail' presence_active.pk %}"
+    class="af-avatar af-avatar-live"
+    title="Rejoindre la présence de {{ personne.profil.nom_public|default:personne.username }}"
+    aria-label="Rejoindre la présence du Talent"
+>
+
+    {% if personne.profil.avatar %}
+
+        <img
+            src="{{ personne.profil.avatar.url }}"
+            alt="{{ personne.profil.nom_public|default:personne.username }}"
+        >
+
+    {% else %}
+
+        {{ personne.username|first|upper }}
+
+    {% endif %}
+
+    <span class="af-avatar-live-badge">
+        <span class="af-live-dot"></span>
+        EN PRÉSENCE
+    </span>
+
+</a>
+
+{% else %}
+
+<div class="af-avatar">
+
+    {% if personne.profil.avatar %}
+
+        <img
+            src="{{ personne.profil.avatar.url }}"
+            alt="{{ personne.profil.nom_public|default:personne.username }}"
+        >
+
+    {% else %}
+
+        {{ personne.username|first|upper }}
+
+    {% endif %}
+
+</div>
+
+{% endif %}
+
+
+{% if presence_active %}
+
+<a
+    href="{% url 'Afrons:presence_detail' presence_active.pk %}"
+    class="af-status"
+    style="
+        margin-top:12px;
+        background:#39151e;
+        color:#ffb4c1;
+        border:1px solid #a92a43;
+    "
+>
+    🔴 Rejoindre ma présence :
+    {{ presence_active.sujet }}
+</a>
+
+{% endif %}
+
+
+
+            {% if est_proprietaire %}
+            <a class="af-photo-link"
+               href="{% url 'Afrons:modifier_profil' %}">
+                Modifier la photo
+            </a>
+            {% endif %}
+
+        </div>
+
+
+        <div class="af-identity-main">
+
+            <div class="af-identity-top">
+
+                <div>
+
+                    <h1 class="af-name">
+                        {{ personne.profil.nom_public|default:personne.username }}
+                    </h1>
+
+                    <div class="af-username">
+                        @{{ personne.username }}
+                    </div>
+
+                    <div class="af-label-row">
+
+                        {% if personne.profil.type_compte == "createur" %}
+
+                        <span class="af-status">
+                            Talent AfroFans
+                        </span>
+
+                        {% if est_certifie or personne.profil.est_certifie %}
+
+                        <span class="af-status verified">
+                            <svg class="af-icon">
+                                <use href="#afi-shield"/>
+                            </svg>
+                            Talent vérifié
+                        </span>
+
+                        {% elif est_proprietaire and certification_en_attente %}
+
+                        <span class="af-status">
+                            Vérification en cours
+                        </span>
+
+                        {% endif %}
+
+                        {% else %}
+
+                        <span class="af-status">
+                            Fan AfroFans
+                        </span>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+
+                <!-- PARAMÈTRES PERSONNELS -->
+
+                {% if est_proprietaire %}
+
+                <div class="af-settings-wrap">
+
+                    <button class="af-btn outline"
+                            type="button"
+                            id="af-settings-button"
+                            aria-controls="af-settings-menu"
+                            aria-expanded="false">
+
+                        <svg class="af-icon">
+                            <use href="#afi-settings"/>
+                        </svg>
+
+                        Paramètres
+                    </button>
+
+
+                    <div class="af-settings-menu"
+                         id="af-settings-menu">
+
+                        <a href="{% url 'Afrons:modifier_profil' %}">
+                            Modifier mon profil
+                        </a>
+
+                        <button type="button"
+                                data-open-tab="notifications">
+                            Notifications
+                        </button>
+
+                        <button type="button"
+                                data-open-tab="envoyer-don">
+                            Envoyer un don
+                        </button>
+
+
+{% if personne.profil.type_compte == "createur" %}
+
+    {% if not est_certifie and not personne.profil.est_certifie %}
+
+        <a href="{% url 'Afrons:formulaire_verification_talent' %}">
+            <i class="fa-solid fa-shield-halved"></i>
+            Vérifier mon compte Talent
+        </a>
+
+    {% endif %}
+
+    <button type="button"
+            data-open-tab="portefeuille">
+        Mon portefeuille
+    </button>
+
+    <button type="button"
+            data-open-tab="revenus">
+        Mes revenus
+    </button>
+
+    <button type="button"
+            data-open-tab="dons">
+        Dons reçus
+    </button>
+
+    <a href="{% url 'Afrons:mes_demandes_publication' %}">
+        Mes publications
+    </a>
+
+{% else %}
+
+    <button type="button"
+            data-open-tab="evenements-fan">
+        Événements disponibles
+    </button>
+
+    <button type="button"
+            data-open-tab="billets">
+        Mes billets
+    </button>
+
+    <button type="button"
+            data-open-modal="af-become-modal">
+        Devenir Talent
+    </button>
+
+{% endif %}
+
+
+                        <button type="button"
+                                data-open-modal="af-deactivate-modal">
+                            Désactiver mon compte
+                        </button>
+
+                        <button type="button"
+                                data-open-modal="af-delete-modal">
+                            Supprimer mon compte
+                        </button>
+
+                        <form method="post"
+                              action="{% url 'Afrons:deconnexion' %}">
+
+                            {% csrf_token %}
+
+                            <button type="submit">
+                                Déconnexion
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+                {% endif %}
+
+            </div>
+
+
+            <!-- BIOGRAPHIE -->
+
+            {% if personne.profil.biographie %}
+
+            <p class="af-bio">
+                {{ personne.profil.biographie }}
+            </p>
+
+            {% endif %}
+
+
+            <!-- LOCALISATION -->
+
+            {% if personne.profil.ville or personne.profil.pays %}
+
+            <div class="af-location">
+
+                <svg class="af-icon">
+                    <use href="#afi-pin"/>
+                </svg>
+
+                {{ personne.profil.ville }}
+
+                {% if personne.profil.pays %}
+                    · {{ personne.profil.get_pays_display }}
+                {% endif %}
+
+            </div>
+
+            {% endif %}
+
+
+            <!-- STATISTIQUES DU PROFIL -->
+
+            <div class="af-profile-stats">
+
+                <a href="{% url 'Afrons:liste_abonnes' personne.username %}">
+                    <strong>{{ personne.abonnes.count }}</strong>
+                    Fans
+                </a>
+
+                <a href="{% url 'Afrons:liste_abonnements' personne.username %}">
+                    <strong>{{ personne.abonnements.count }}</strong>
+                    Talents suivis
+                </a>
+
+                <span>
+                    <strong>{{ videos.count }}</strong>
+                    Vidéos
+                </span>
+
+                {% if personne.profil.type_compte == "createur" %}
+
+                <span>
+                    <strong>{{ evenements.count }}</strong>
+                    Événements
+                </span>
+
+                {% endif %}
+
+            </div>
+
+
+            <!-- ACTIONS DU PROFIL -->
+
+            <div class="af-profile-actions">
+
+                {% if est_proprietaire %}
+
+                    <a class="af-btn"
+                       href="{% url 'Afrons:modifier_profil' %}">
+                        Modifier mon profil
+                    </a>
+
+                    {% if personne.profil.type_compte == "createur" %}
+
+                        {% if est_certifie or personne.profil.est_certifie %}
+
+                        <a class="af-btn primary"
+                           href="{% url 'Afrons:creer_evenement' %}">
+                            Créer un événement
+                        </a>
+
+                        {% else %}
+
+<a class="af-btn primary"
+   href="{% url 'Afrons:formulaire_verification_talent' %}">
+    <i class="fa-solid fa-shield-halved"></i>
+    Vérifier mon compte 
+</a>
+
+
+                        {% endif %}
+
+                        <a class="af-btn"
+                           href="{% url 'Afrons:demande_publication' %}">
+                            Publier une vidéo
+                        </a>
+
+                    {% else %}
+
+                        <button class="af-btn primary"
+                                type="button"
+                                data-open-tab="evenements-fan">
+
+                            <svg class="af-icon">
+                                <use href="#afi-ticket"/>
+                            </svg>
+
+                            Voir les événements
+                        </button>
+
+                        <a class="af-btn"
+                           href="{% url 'Afrons:mes_tickets' %}">
+                            Mes billets
+                        </a>
+
+                    {% endif %}
+
+
+                    <!-- FAN ET TALENT : ENVOYER UN DON -->
+
+                    <button class="af-btn"
+                            type="button"
+                            data-open-tab="envoyer-don">
+
+                        <svg class="af-icon">
+                            <use href="#afi-heart"/>
+                        </svg>
+
+                        Envoyer un don
+                    </button>
+
+
+                {% elif personne.profil.type_compte == "createur" %}
+
+                    {% if user.is_authenticated %}
+
+                    <button type="button"
+                            class="af-btn primary"
+                            id="af-follow"
+                            data-url="{% url 'Afrons:suivre_createur' personne.username %}">
+
+                        {% if est_abonne %}
+                            ✓ Fan
+                        {% else %}
+                            + Devenir Fan
+                        {% endif %}
+
+                    </button>
+
+                    <a class="af-btn"
+                       href="{% url 'Afrons:envoyer_don' personne.username %}">
+
+                        <svg class="af-icon">
+                            <use href="#afi-heart"/>
+                        </svg>
+
+                        Envoyer un don
+                    </a>
+
+                    {% else %}
+
+                    <a class="af-btn primary"
+                       href="{% url 'Afrons:connexion' %}?next={{ request.path|urlencode }}">
+                        Se connecter pour suivre
+                    </a>
+
+                    {% endif %}
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </header>
+
+
+    <!-- =================================================
+         VÉRIFICATION DU TALENT
+    ================================================== -->
+
+    {% if personne.profil.type_compte == "createur" %}
+
+        {% if est_certifie or personne.profil.est_certifie %}
+
+        <section class="af-verification"
+                 id="af-verification">
+
+            <div>
+
+                <div class="af-verify-title">
+
+                    <span class="af-round-icon">
+                        <svg class="af-icon">
+                            <use href="#afi-shield"/>
+                        </svg>
+                    </span>
+
+                    <div>
+
+                        <span class="af-kicker">
+                            Certification AfroFans
+                        </span>
+
+                        <h2>
+                            Talent vérifié
+                        </h2>
+
+                    </div>
+
+                </div>
+
+                <p>
+                    Ce compte Talent possède une certification
+                    approuvée par HexaQuébec.
+                </p>
+
+            </div>
+
+            <span class="af-status verified">
+                <svg class="af-icon">
+                    <use href="#afi-check"/>
+                </svg>
+                Vérifié
+            </span>
+
+        </section>
+
+
+        {% elif est_proprietaire %}
+
+        <section class="af-verification"
+                 id="af-verification">
+
+            <div>
+
+                <div class="af-verify-title">
+
+                    <span class="af-round-icon">
+                        <svg class="af-icon">
+                            <use href="#afi-shield"/>
+                        </svg>
+                    </span>
+
+                    <div>
+
+                        <span class="af-kicker">
+                            Réservé aux Talents
+                        </span>
+
+                        <h2>
+                            Vérifier mon compte
+                        </h2>
+
+                    </div>
+
+                </div>
+
+                <p>
+                    Après paiement, HexaQuébec examinera
+                    votre dossier. La certification est accordée
+                    uniquement après approbation.
+                </p>
+
+            </div>
+
+
+            <div class="af-verify-action">
+
+                {% if certification_en_attente %}
+
+                <strong>
+                    En vérification
+                </strong>
+
+                <small>
+                    Votre demande attend l'approbation
+                    de l'équipe HexaQuébec.
+                </small>
+
+                {% else %}
+
+                <strong>
+                    15,00 $ CA + taxes
+                </strong>
+
+                <small>
+                    Total indicatif au Québec :
+                    17,25 $ CA.
+                    Le montant applicable est confirmé
+                    lors du paiement.
+                </small>
+
+                {% url 'Afrons:certifier_compte' as cert_url %}
+
+                {% if cert_url %}
+
+                <form method="post"
+                      action="{{ cert_url }}">
+
+                    {% csrf_token %}
+
+                    <input type="hidden"
+                           name="retour"
+                           value="{{ request.path }}">
+
+                    <button class="af-btn primary"
+                            type="submit">
+
+                        Vérifier mon compte
+                    </button>
+
+                </form>
+
+                {% else %}
+
+                <small>
+                    Service de certification indisponible.
+                </small>
+
+                {% endif %}
+
+                {% endif %}
+
+            </div>
+
+        </section>
+
+        {% endif %}
+
+    {% endif %}
+
+
+    <!-- =================================================
+         OUTILS PERSONNELS DU TALENT
+    ================================================== -->
+
+    {% if est_proprietaire and personne.profil.type_compte == "createur" %}
+
+    <section class="af-tools-area">
+
+        <span class="af-kicker">
+            Espace Talent
+        </span>
+
+        <h2>
+            Mes outils
+        </h2>
+
+        <div class="af-tools">
+
+            <a class="af-tool"
+               href="{% url 'Afrons:demande_publication' %}">
+
+                <svg class="af-icon">
+                    <use href="#afi-video"/>
+                </svg>
+
+                Publier une vidéo
+            </a>
+
+
+            {% if est_certifie or personne.profil.est_certifie %}
+
+            <a class="af-tool"
+               href="{% url 'Afrons:creer_evenement' %}">
+
+                <svg class="af-icon">
+                    <use href="#afi-calendar"/>
+                </svg>
+
+                Créer un événement
+            </a>
+
+            {% else %}
+
+<a class="af-tool"
+   href="{% url 'Afrons:formulaire_verification_talent' %}">
+
+    <svg class="af-icon">
+        <use href="#afi-shield"/>
+    </svg>
+
+    Vérifier mon compte Talent
+</a>
+
+            {% endif %}
+
+
+            <button class="af-tool"
+                    type="button"
+                    data-open-tab="portefeuille">
+
+                <svg class="af-icon">
+                    <use href="#afi-wallet"/>
+                </svg>
+
+                Portefeuille
+            </button>
+
+
+            <button class="af-tool"
+                    type="button"
+                    data-open-tab="revenus">
+
+                Mes revenus
+            </button>
+
+
+            <button class="af-tool"
+                    type="button"
+                    data-open-tab="dons">
+
+                <svg class="af-icon">
+                    <use href="#afi-heart"/>
+                </svg>
+
+                Dons reçus
+            </button>
+
+        </div>
+
+    </section>
+
+    {% endif %}
+
+
+    <!-- =================================================
+         NAVIGATION DES RUBRIQUES
+    ================================================== -->
+
+    <nav class="af-tabs"
+         aria-label="Rubriques du profil">
+
+        <button class="af-tab"
+                type="button"
+                data-tab="videos"
+                aria-selected="true">
+
+            <svg class="af-icon">
+                <use href="#afi-video"/>
+            </svg>
+
+            Vidéos
+        </button>
+
+
+        {% if personne.profil.type_compte == "createur" %}
+
+        <button class="af-tab"
+                type="button"
+                data-tab="evenements"
+                aria-selected="false">
+
+            <svg class="af-icon">
+                <use href="#afi-ticket"/>
+            </svg>
+
+            Événements
+        </button>
+
+        {% endif %}
+
+
+        {% if est_proprietaire %}
+
+        <button class="af-tab"
+                type="button"
+                data-tab="envoyer-don"
+                aria-selected="false">
+
+            <svg class="af-icon">
+                <use href="#afi-heart"/>
+            </svg>
+
+            Envoyer un don
+        </button>
+
+
+            {% if personne.profil.type_compte == "createur" %}
+
+            <button class="af-tab"
+                    type="button"
+                    data-tab="portefeuille"
+                    aria-selected="false">
+                Portefeuille
+            </button>
+
+            <button class="af-tab"
+                    type="button"
+                    data-tab="revenus"
+                    aria-selected="false">
+                Revenus
+            </button>
+
+            <button class="af-tab"
+                    type="button"
+                    data-tab="dons"
+                    aria-selected="false">
+                Dons reçus
+            </button>
+
+            {% else %}
+
+            <button class="af-tab"
+                    type="button"
+                    data-tab="evenements-fan"
+                    aria-selected="false">
+                Événements disponibles
+            </button>
+
+            <button class="af-tab"
+                    type="button"
+                    data-tab="billets"
+                    aria-selected="false">
+                Mes billets
+            </button>
+
+            {% endif %}
+
+
+            <button class="af-tab"
+                    type="button"
+                    data-tab="notifications"
+                    aria-selected="false">
+
+                <svg class="af-icon">
+                    <use href="#afi-bell"/>
+                </svg>
+
+                Notifications
+                ({{ notifications_non_lues|default:"0" }})
+            </button>
+
+        {% endif %}
+
+    </nav>
+
+
+    <!-- =================================================
+         VIDÉOS
+    ================================================== -->
+
+    <section class="af-panel active"
+             id="af-panel-videos">
+
+        <div class="af-panel-top">
+
+            <h2>
+                Vidéos de {{ personne.profil.nom_public|default:personne.username }}
+            </h2>
+
+            <small>
+                {{ videos.count }} publications
+            </small>
+
+        </div>
+
+
+        <div class="af-video-grid">
+
+            {% for video in videos %}
+
+            <a class="af-video-item"
+               href="{% url 'Afrons:detail_video' video.pk %}">
+
+                <div class="af-video-preview">
+
+                    {% if video.miniature %}
+
+                    <img src="{{ video.miniature.url }}"
+                         alt="{{ video.titre }}"
+                         loading="lazy">
+
+                    {% elif video.fichier %}
+
+                    <video src="{{ video.fichier.url }}"
+                           muted
+                           preload="metadata"></video>
+
+                    {% endif %}
+
+                    <span class="af-play-circle">
+                        <svg class="af-icon">
+                            <use href="#afi-play"/>
+                        </svg>
+                    </span>
+
+                </div>
+
+
+                <div class="af-video-text">
+
+                    <strong>
+                        {{ video.titre }}
+                    </strong>
+
+                    <small>
+                        {{ video.vues }} vues
+                    </small>
+
+                </div>
+
+            </a>
+
+            {% empty %}
+
+            <div class="af-empty">
+                Aucune vidéo publiée actuellement.
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+    </section>
+
+
+    <!-- =================================================
+         ENVOYER UN DON — FAN ET TALENT
+    ================================================== -->
+
+    {% if est_proprietaire %}
+
+    <section class="af-panel"
+             id="af-panel-envoyer-don">
+
+        <div class="af-donation-intro">
+
+            <div>
+
+                <span class="af-kicker">
+                    Soutenir les talents
+                </span>
+
+                <h2>
+                    Envoyer un don
+                </h2>
+
+                <p>
+                    Soutenez vos Talents préférés
+                    sur AfroFans. Sélectionnez un Talent
+                    que vous suivez, puis choisissez
+                    le montant de votre contribution.
+                </p>
+
+            </div>
+
+            <span class="af-donation-symbol">
+
+                <svg class="af-icon">
+                    <use href="#afi-heart"/>
+                </svg>
+
+            </span>
+
+        </div>
+
+
+        <div class="af-donation-list">
+
+            {% for abonnement in personne.abonnements.all %}
+
+                {% if abonnement.createur.pk != personne.pk and abonnement.createur.profil.type_compte == "createur" %}
+
+                <div class="af-donation-person">
+
+                    <div class="af-donation-avatar">
+
+                        {% if abonnement.createur.profil.avatar %}
+
+                        <img
+                            src="{{ abonnement.createur.profil.avatar.url }}"
+                            alt="{{ abonnement.createur.username }}"
+                            loading="lazy">
+
+                        {% else %}
+
+                        {{ abonnement.createur.username|first|upper }}
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <div class="af-donation-person-info">
+
+                        <strong>
+                            {{ abonnement.createur.profil.nom_public|default:abonnement.createur.username }}
+                        </strong>
+
+                        <small>
+                            @{{ abonnement.createur.username }}
+                            · Talent AfroFans
+                        </small>
+
+                    </div>
+
+
+                    <a class="af-btn primary"
+                       href="{% url 'Afrons:envoyer_don' abonnement.createur.username %}">
+
+                        <svg class="af-icon">
+                            <use href="#afi-heart"/>
+                        </svg>
+
+                        Donner
+                    </a>
+
+                </div>
+
+                {% endif %}
+
+            {% empty %}
+
+            <div class="af-empty">
+                Vous ne suivez encore aucun Talent.
+                Découvrez des créateurs pour pouvoir
+                les soutenir.
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+
+        <div style="margin-top:20px">
+
+            <a class="af-btn outline"
+               href="{% url 'Afrons:explorer' %}">
+
+                Découvrir des Talents
+
+                <svg class="af-icon">
+                    <use href="#afi-arrow"/>
+                </svg>
+
+            </a>
+
+        </div>
+
+
+        <p class="af-donation-note">
+
+            <svg class="af-icon">
+                <use href="#afi-shield"/>
+            </svg>
+
+            Les dons sont destinés aux comptes Talent.
+            Leur paiement doit être confirmé avant
+            d'être considéré comme encaissé.
+
+        </p>
+
+    </section>
+
+    {% endif %}
+
+
+    <!-- =================================================
+         ÉVÉNEMENTS DU TALENT
+    ================================================== -->
+
+    {% if personne.profil.type_compte == "createur" %}
+
+    <section class="af-panel"
+             id="af-panel-evenements">
+
+        <div class="af-panel-top">
+
+            <h2>
+                Événements du Talent
+            </h2>
+
+            <small>
+                {{ evenements.count }} événements
+            </small>
+
+        </div>
+
+
+        <div class="af-ticket-grid">
+
+            {% for evenement in evenements %}
+
+            <article class="af-ticket">
+
+                <div class="af-ticket-band">
+
+                    <strong>
+                        Afro<span>Fans</span>
+                    </strong>
+
+                    <small>
+                        EVENT PASS
+                    </small>
+
+                </div>
+
+
+                <div class="af-ticket-body">
+
+                    <span class="af-kicker">
+                        Billetterie officielle
+                    </span>
+
+                    <h3>
+                        {{ evenement.titre }}
+                    </h3>
+
+
+                    <div class="af-ticket-line">
+
+                        <svg class="af-icon">
+                            <use href="#afi-calendar"/>
+                        </svg>
+
+                        {{ evenement.date_evenement|date:"d M Y à H:i" }}
+
+                    </div>
+
+
+                    <div class="af-ticket-line">
+
+                        <svg class="af-icon">
+                            <use href="#afi-pin"/>
+                        </svg>
+
+                        {{ evenement.lieu }}
+                        · {{ evenement.ville }}
+
+                    </div>
+
+
+                    <p class="af-ticket-description">
+                        {{ evenement.description|truncatewords:20 }}
+                    </p>
+
+                </div>
+
+
+                <div class="af-ticket-cut"></div>
+
+
+                <div class="af-ticket-price">
+
+                    <strong>
+                        {{ evenement.prix|floatformat:2 }}
+                        {{ evenement.devise }}
+                    </strong>
+
+                    <small>
+                        {{ evenement.get_statut_display }}
+                    </small>
+
+                </div>
+
+
+                <a class="af-btn primary"
+                   href="{% url 'Afrons:detail_evenement' evenement.pk %}">
+
+                    {% if est_proprietaire %}
+                        Gérer l'événement
+                    {% else %}
+                        Voir et acheter un billet
+                    {% endif %}
+                </a>
+
+
+                {% if est_proprietaire and not evenement.frais_billetterie_payes %}
+
+                <p style="padding:0 14px;color:#f7bc6c;font-size:11px">
+                    Frais de billetterie en attente.
+                </p>
+
+                {% endif %}
+
+            </article>
+
+            {% empty %}
+
+            <div class="af-empty">
+                Aucun événement disponible actuellement.
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+    </section>
+
+    {% endif %}
+
+
+    <!-- =================================================
+         ÉVÉNEMENTS POUR LE FAN
+    ================================================== -->
+
+    {% if est_proprietaire and personne.profil.type_compte == "fan" %}
+
+    <section class="af-panel"
+             id="af-panel-evenements-fan">
+
+        <div class="af-panel-top">
+
+            <h2>
+                Événements disponibles
+            </h2>
+
+            <small>
+                Billetterie AfroFans
+            </small>
+
+        </div>
+
+
+        <div class="af-ticket-grid">
+
+            {% for evenement in evenements_disponibles %}
+
+            <article class="af-ticket">
+
+                <div class="af-ticket-band">
+
+                    <strong>
+                        Afro<span>Fans</span>
+                    </strong>
+
+                    <small>
+                        BILLETS OUVERTS
+                    </small>
+
+                </div>
+
+
+                <div class="af-ticket-body">
+
+                    <span class="af-kicker">
+                        {{ evenement.createur.profil.nom_public|default:evenement.createur.username }}
+                    </span>
+
+                    <h3>
+                        {{ evenement.titre }}
+                    </h3>
+
+
+                    <div class="af-ticket-line">
+
+                        <svg class="af-icon">
+                            <use href="#afi-calendar"/>
+                        </svg>
+
+                        {{ evenement.date_evenement|date:"d M Y à H:i" }}
+
+                    </div>
+
+
+                    <div class="af-ticket-line">
+
+                        <svg class="af-icon">
+                            <use href="#afi-pin"/>
+                        </svg>
+
+                        {{ evenement.lieu }}
+                        · {{ evenement.ville }}
+
+                    </div>
+
+
+                    <p class="af-ticket-description">
+                        {{ evenement.description|truncatewords:20 }}
+                    </p>
+
+                </div>
+
+
+                <div class="af-ticket-cut"></div>
+
+
+                <div class="af-ticket-price">
+
+                    <strong>
+                        {{ evenement.prix|floatformat:2 }}
+                        {{ evenement.devise }}
+                    </strong>
+
+                    <small>
+                        Billets disponibles
+                    </small>
+
+                </div>
+
+
+                <a class="af-btn primary"
+                   href="{% url 'Afrons:detail_evenement' evenement.pk %}">
+
+                    Acheter un billet
+                </a>
+
+            </article>
+
+            {% empty %}
+
+            <div class="af-empty">
+                Aucun événement disponible pour le moment.
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+    </section>
+
+
+    <!-- =================================================
+         BILLETS ACHETÉS PAR LE FAN
+    ================================================== -->
+
+    <section class="af-panel"
+             id="af-panel-billets">
+
+        <div class="af-panel-top">
+
+            <h2>
+                Mes billets
+            </h2>
+
+            <small>
+                {{ achats_billets.count }} achats
+            </small>
+
+        </div>
+
+
+        <div class="af-list">
+
+            {% for achat in achats_billets %}
+
+            <article class="af-list-item">
+
+                <h3>
+                    {{ achat.evenement.titre }}
+                </h3>
+
+                <p>
+                    {{ achat.evenement.date_evenement|date:"d M Y à H:i" }}
+                    · {{ achat.quantite }} billet(s)
+                </p>
+
+                <p>
+
+                    <strong>
+                        {{ achat.montant_total|floatformat:2 }}
+                        {{ achat.evenement.devise }}
+                    </strong>
+
+                    · {{ achat.get_statut_display }}
+
+                </p>
+
+
+                <div class="af-list-actions">
+
+                    <a class="af-btn"
+                       href="{% url 'Afrons:confirmation_billet' achat.code_billet %}">
+
+                        Voir mon achat
+                    </a>
+
+
+                    {% if achat.statut == "paye" %}
+
+                    <a class="af-btn primary"
+                       href="{% url 'Afrons:mes_tickets' %}">
+
+                        Afficher mes QR codes
+                    </a>
+
+                    {% endif %}
+
+                </div>
+
+            </article>
+
+            {% empty %}
+
+            <div class="af-empty">
+                Vous n'avez pas encore acheté de billet.
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+    </section>
+
+    {% endif %}
+
+
+    <!-- =================================================
+         ESPACE FINANCIER RÉSERVÉ AU TALENT
+    ================================================== -->
+
+    {% if est_proprietaire and personne.profil.type_compte == "createur" %}
+
+
+    <!-- =============================================
+         PORTEFEUILLE TALENT
+    ============================================== -->
+
+    <section class="af-panel"
+             id="af-panel-portefeuille">
+
+        <div class="af-finance-heading">
+
+            <div>
+
+                <span class="af-kicker">
+                    Finances AfroFans
+                </span>
+
+                <h2>
+                    Mon portefeuille
+                </h2>
+
+                <p>
+                    Gérez vos revenus,
+                    vos retraits et vos opérations.
+                </p>
+
+            </div>
+
+            <span class="af-status">
+                Espace financier privé
+            </span>
+
+        </div>
+
+
+        <!-- SOLDE PRINCIPAL -->
+
+        <div class="af-wallet-hero">
+
+            <div class="af-wallet-content">
+
+                <div class="af-wallet-brand">
+
+                    <svg class="af-icon">
+                        <use href="#afi-wallet"/>
+                    </svg>
+
+                    AfroFans Wallet
+                </div>
+
+                <span class="af-wallet-caption">
+                    Solde disponible au retrait
+                </span>
+
+
+                <strong class="af-wallet-amount">
+
+                    {% if portefeuille %}
+
+                    {{ portefeuille.solde_disponible|default_if_none:"0"|floatformat:2 }}
+
+                    {% else %}
+
+                    —
+
+                    {% endif %}
+
+                    <small>
+                        {{ portefeuille.devise|default:"XOF" }}
+                    </small>
+
+                </strong>
+
+
+                <div class="af-wallet-help">
+
+                    {% if portefeuille %}
+
+                    Argent disponible selon votre portefeuille AfroFans.
+
+                    {% else %}
+
+                    Solde indisponible.
+                    Les données financières doivent être
+                    fournies par la vue Django.
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+
+            <div class="af-wallet-side">
+
+                <span class="af-wallet-emblem">
+
+                    <svg class="af-icon">
+                        <use href="#afi-shield"/>
+                    </svg>
+
+                </span>
+
+
+                {% if portefeuille %}
+
+                <button class="af-btn primary"
+                        type="button"
+                        data-open-modal="af-withdraw-modal">
+
+                    <svg class="af-icon">
+                        <use href="#afi-wallet"/>
+                    </svg>
+
+                    Demander un retrait
+                </button>
+
+                {% else %}
+
+                <span class="af-btn"
+                      style="opacity:.55;cursor:not-allowed">
+
+                    Retrait indisponible
+                </span>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+
+        <!-- INDICATEURS FINANCIERS -->
+
+        <div class="af-finance-metrics">
+
+            <div class="af-metric">
+
+                <span class="af-metric-label">
+
+                    <svg class="af-icon">
+                        <use href="#afi-wallet"/>
+                    </svg>
+
+                    Revenus cumulés
+                </span>
+
+                <strong>
+
+                    {% if portefeuille %}
+
+                    {{ portefeuille.total_revenus|default_if_none:"0"|floatformat:2 }}
+
+                    {% else %}
+
+                    —
+
+                    {% endif %}
+
+                    <small>
+                        {{ portefeuille.devise|default:"XOF" }}
+                    </small>
+
+                </strong>
+
+                <span class="af-metric-note">
+                    Revenus enregistrés
+                </span>
+
+            </div>
+
+
+            <div class="af-metric">
+
+                <span class="af-metric-label">
+
+                    <svg class="af-icon">
+                        <use href="#afi-shield"/>
+                    </svg>
+
+                    Fonds bloqués
+                </span>
+
+                <strong>
+
+                    {% if portefeuille %}
+
+                    {{ portefeuille.solde_bloque|default_if_none:"0"|floatformat:2 }}
+
+                    {% else %}
+
+                    —
+
+                    {% endif %}
+
+                    <small>
+                        {{ portefeuille.devise|default:"XOF" }}
+                    </small>
+
+                </strong>
+
+                <span class="af-metric-note">
+                    Non disponibles au retrait
+                </span>
+
+            </div>
+
+
+            <div class="af-metric">
+
+                <span class="af-metric-label">
+
+                    <svg class="af-icon">
+                        <use href="#afi-check"/>
+                    </svg>
+
+                    Demandes de retrait
+                </span>
+
+                <strong>
+                    {% if portefeuille %}
+                        {{ retraits_talent.count|default:"0" }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </strong>
+
+                <span class="af-metric-note">
+                    Historique enregistré
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- HISTORIQUE DES RETRAITS -->
+
+        <div class="af-ledger-heading">
+
+            <h3>
+                Historique des retraits
+            </h3>
+
+            <small>
+                Opérations du portefeuille
+            </small>
+
+        </div>
+
+
+        <div class="af-ledger">
+
+            {% for retrait in retraits_talent %}
+
+            <div class="af-transaction">
+
+                <span class="af-transaction-icon">
+
+                    <svg class="af-icon">
+                        <use href="#afi-wallet"/>
+                    </svg>
+
+                </span>
+
+
+                <div class="af-transaction-info">
+
+                    <strong>
+                        {{ retrait.get_methode_display|default:"Retrait" }}
+                    </strong>
+
+                    <small>
+                        {{ retrait.cree_le|date:"d/m/Y à H:i" }}
+                        · {{ retrait.get_statut_display }}
+                    </small>
+
+                </div>
+
+
+                <div class="af-transaction-amount">
+
+                    −{{ retrait.montant|floatformat:2 }}
+                    {{ portefeuille.devise|default:"XOF" }}
+
+                    <small>
+                        Demande de retrait
+                    </small>
+
+                </div>
+
+            </div>
+
+            {% empty %}
+
+            <div class="af-finance-empty">
+                Aucun retrait enregistré actuellement.
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+    </section>
+
+
+    <!-- =============================================
+         STATISTIQUES DES REVENUS
+    ============================================== -->
+
+    <section class="af-panel"
+             id="af-panel-revenus">
+
+        <div class="af-finance-heading">
+
+            <div>
+
+                <span class="af-kicker">
+                    Performance financière
+                </span>
+
+                <h2>
+                    Mes revenus
+                </h2>
+
+                <p>
+                    Consultez vos gains et votre historique
+                    financier AfroFans.
+                </p>
+
+            </div>
+
+            <button class="af-btn outline"
+                    type="button"
+                    data-open-tab="portefeuille">
+
+                Retour au portefeuille
+            </button>
+
+        </div>
+
+
+        <!-- REVENU PRINCIPAL -->
+
+        <div class="af-finance-total">
+
+            <label>
+                Total des revenus enregistrés
+            </label>
+
+            <strong>
+
+                {% if portefeuille %}
+
+                {{ portefeuille.total_revenus|default_if_none:"0"|floatformat:2 }}
+
+                {% else %}
+
+                —
+
+                {% endif %}
+
+                <small>
+                    {{ portefeuille.devise|default:"XOF" }}
+                </small>
+
+            </strong>
+
+            <p>
+                Total enregistré dans votre portefeuille AfroFans.
+                Les revenus non confirmés ne doivent
+                pas être considérés comme encaissés.
+            </p>
+
+        </div>
+
+
+        <!-- RÉPARTITION -->
+
+        <div class="af-finance-split">
+
+            <div>
+
+                <small>
+                    Disponible au retrait
+                </small>
+
+                <strong>
+
+                    {% if portefeuille %}
+
+                    {{ portefeuille.solde_disponible|default_if_none:"0"|floatformat:2 }}
+
+                    {% else %}
+
+                    —
+
+                    {% endif %}
+
+                </strong>
+
+                <small>
+                    {{ portefeuille.devise|default:"XOF" }}
+                </small>
+
+            </div>
+
+
+            <div>
+
+                <small>
+                    Dons confirmés
+                </small>
+
+                <strong>
+                    {{ total_dons_payes|default:"0" }}
+                </strong>
+
+                <small>
+                    Nombre de paiements confirmés
+                </small>
+
+            </div>
+
+        </div>
+
+
+        <!-- HISTORIQUE DES REVENUS -->
+
+        <div class="af-ledger-heading">
+
+            <h3>
+                Historique des revenus
+            </h3>
+
+            <small>
+                Entrées financières
+            </small>
+
+        </div>
+
+
+        <div class="af-ledger">
+
+            {% for revenu in revenus_talent %}
+
+            <div class="af-transaction">
+
+                <span class="af-transaction-icon credit">
+
+                    <svg class="af-icon">
+                        <use href="#afi-check"/>
+                    </svg>
+
+                </span>
+
+
+                <div class="af-transaction-info">
+
+                    <strong>
+                        {{ revenu.get_source_display|default:"Revenu AfroFans" }}
+                    </strong>
+
+                    <small>
+                        {{ revenu.cree_le|date:"d/m/Y à H:i" }}
+                    </small>
+
+                </div>
+
+
+                <div class="af-transaction-amount credit">
+
+                    +{{ revenu.montant|floatformat:2 }}
+                    {{ portefeuille.devise|default:"XOF" }}
+
+                    <small>
+                        Crédit
+                    </small>
+
+                </div>
+
+            </div>
+
+            {% empty %}
+
+            <div class="af-finance-empty">
+                Aucun revenu enregistré actuellement.
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+    </section>
+
+
+    <!-- =============================================
+         DONS REÇUS PAR LE TALENT
+    ============================================== -->
+
+    <section class="af-panel"
+             id="af-panel-dons">
+
+        <div class="af-finance-heading">
+
+            <div>
+
+                <span class="af-kicker">
+                    Soutien de ma communauté
+                </span>
+
+                <h2>
+                    Dons reçus
+                </h2>
+
+                <p>
+                    Contributions de vos Fans
+                    et suivi des paiements.
+                </p>
+
+            </div>
+
+            <span class="af-status verified">
+                {{ total_dons_payes|default:"0" }}
+                don(s) confirmé(s)
+            </span>
+
+        </div>
+
+
+        <!-- RÉSUMÉ DES DONS -->
+
+        <div class="af-finance-total">
+
+            <label>
+                Contributions confirmées
+            </label>
+
+            <strong>
+
+                {{ total_dons_payes|default:"0" }}
+
+                <small>
+                    dons
+                </small>
+
+            </strong>
+
+            <p>
+                Cet indicateur représente le nombre de dons payés,
+                pas leur valeur monétaire.
+
+                Les montants ci-dessous conservent
+                leur devise originale.
+            </p>
+
+        </div>
+
+
+        <!-- LISTE DES DONS -->
+
+        <div class="af-ledger-heading">
+
+            <h3>
+                Dernières contributions
+            </h3>
+
+            <small>
+                Montant · Devise · Statut
+            </small>
+
+        </div>
+
+
+        <div class="af-ledger">
+
+            {% for don in dons_recus %}
+
+            <div class="af-transaction">
+
+                <span class="af-transaction-icon {% if don.statut == 'paye' %}credit{% endif %}">
+
+                    <svg class="af-icon">
+                        <use href="#afi-heart"/>
+                    </svg>
+
+                </span>
+
+
+                <div class="af-transaction-info">
+
+                    <strong>
+                        Don d'un Fan AfroFans
+                    </strong>
+
+                    <small>
+                        {{ don.cree_le|date:"d/m/Y à H:i" }}
+                        · {{ don.get_statut_display }}
+                    </small>
+
+                </div>
+
+
+                <div class="af-transaction-amount {% if don.statut == 'paye' %}credit{% endif %}">
+
+                    {{ don.montant|floatformat:2 }}
+                    {{ don.devise }}
+
+                    <small>
+
+                        {% if don.statut == "paye" %}
+
+                            Paiement confirmé
+
+                        {% else %}
+
+                            Paiement non confirmé
+
+                        {% endif %}
+
+                    </small>
+
+                </div>
+
+            </div>
+
+            {% empty %}
+
+            <div class="af-finance-empty">
+                Vous n'avez reçu aucun don actuellement.
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+    </section>
+
+    {% endif %}
+
+
+    <!-- =================================================
+         NOTIFICATIONS OFFICIELLES
+    ================================================== -->
+
+    {% if est_proprietaire %}
+
+    <section class="af-panel"
+             id="af-panel-notifications">
+
+        <div class="af-panel-top">
+
+            <h2>
+                Notifications AfroFans
+            </h2>
+
+            <small>
+                {{ notifications_non_lues|default:"0" }}
+                non lues
+            </small>
+
+        </div>
+
+
+        <div class="af-list">
+
+            {% for notification in notifications_officielles %}
+
+            <article class="af-list-item af-official-message">
+
+                <span class="af-kicker">
+                    Message officiel HexaQuébec
+                </span>
+
+                <h3 style="margin-top:9px">
+                    {{ notification.titre }}
+                </h3>
+
+                <p>
+                    {{ notification.contenu }}
+                </p>
+
+                <small class="af-muted">
+                    {{ notification.cree_le|date:"d/m/Y à H:i" }}
+                </small>
+
+
+                {% if notification.evenement_id %}
+
+                {% url 'Afrons:lire_notification_officielle' notification.pk as notif_url %}
+
+                <div class="af-list-actions">
+
+                    {% if notif_url %}
+
+                    <form method="post"
+                          action="{{ notif_url }}">
+
+                        {% csrf_token %}
+
+                        <button type="submit"
+                                class="af-btn primary">
+                            Voir l'événement
+                        </button>
+
+                    </form>
+
+                    {% else %}
+
+                    <a class="af-btn primary"
+                       href="{% url 'Afrons:detail_evenement' notification.evenement_id %}">
+                        Voir l'événement
+                    </a>
+
+                    {% endif %}
+
+                </div>
+
+                {% endif %}
+
+            </article>
+
+            {% endfor %}
+
+
+            {% for notification in notifications %}
+
+            <article class="af-list-item">
+
+                <h3>
+                    {{ notification.titre }}
+                </h3>
+
+                <p>
+                    {{ notification.message }}
+                </p>
+
+                <small class="af-muted">
+                    {{ notification.cree_le|date:"d/m/Y H:i" }}
+                </small>
+
+
+                {% if notification.evenement_id %}
+
+                <div class="af-list-actions">
+
+                    <a class="af-btn"
+                       href="{% url 'Afrons:detail_evenement' notification.evenement_id %}">
+                        Voir l'événement
+                    </a>
+
+                </div>
+
+                {% endif %}
+
+            </article>
+
+            {% endfor %}
+
+
+            {% if not notifications_officielles and not notifications %}
+
+            <div class="af-empty">
+                Aucune notification actuellement.
+            </div>
+
+            {% endif %}
+
+        </div>
+
+    </section>
+
+    {% endif %}
+
+</main>
+
+
+<!-- =====================================================
+     MODALES — GESTION DU COMPTE
+===================================================== -->
+
+{% if est_proprietaire %}
+
+    {% if personne.profil.type_compte == "createur" %}
+
+
+    <!-- =============================================
+         MODALE DE RETRAIT
+    ============================================== -->
+
+    <div class="af-modal"
+         id="af-withdraw-modal"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="af-withdraw-title">
+
+        <div class="af-modal-dialog">
+
+            <div class="af-modal-heading">
+
+                <h2 id="af-withdraw-title">
+                    Retirer mon argent
+                </h2>
+
+                <button type="button"
+                        class="af-btn"
+                        data-close-modal>
+                    ✕
+                </button>
+
+            </div>
+
+            <p>
+                Choisissez une méthode de retrait.
+                Le versement est soumis à vérification.
+            </p>
+
+
+            {% url 'Afrons:demander_retrait' as retrait_url %}
+
+            {% if retrait_url and portefeuille %}
+
+            <form method="post"
+                  action="{{ retrait_url }}">
+
+                {% csrf_token %}
+
+                <div class="af-form-field">
+
+                    <label for="af-montant">
+                        Montant à retirer
+                    </label>
+
+                    <input id="af-montant"
+                           name="montant"
+                           type="number"
+                           min="1"
+                           step="0.01"
+                           max="{{ portefeuille.solde_disponible|default:'0' }}"
+                           required>
+
+                </div>
+
+
+                <div class="af-form-field">
+
+                    <label for="af-retrait-methode">
+                        Méthode de retrait
+                    </label>
+
+                    <select name="methode"
+                            id="af-retrait-methode"
+                            required>
+
+                        <option value="">
+                            Sélectionner
+                        </option>
+
+                        <option value="wave">
+                            Wave
+                        </option>
+
+                        <option value="banque">
+                            Compte bancaire
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- COORDONNÉES WAVE -->
+
+                <div id="af-wave-fields" hidden>
+
+                    <div class="af-form-field">
+
+                        <label>
+                            Titulaire Wave
+                        </label>
+
+                        <input name="nom_titulaire"
+                               disabled>
+                    </div>
+
+                    <div class="af-form-field">
+
+                        <label>
+                            Téléphone Wave
+                        </label>
+
+                        <input name="telephone_wave"
+                               type="tel"
+                               disabled>
+                    </div>
+
+                </div>
+
+
+                <!-- COORDONNÉES BANCAIRES -->
+
+                <div id="af-bank-fields" hidden>
+
+                    <div class="af-form-field">
+
+                        <label>
+                            Nom de la banque
+                        </label>
+
+                        <input name="nom_banque"
+                               disabled>
+                    </div>
+
+                    <div class="af-form-field">
+
+                        <label>
+                            Titulaire du compte bancaire
+                        </label>
+
+                        <input name="titulaire_banque"
+                               disabled>
+                    </div>
+
+                    <div class="af-form-field">
+
+                        <label>
+                            Numéro de compte
+                        </label>
+
+                        <input name="numero_compte"
+                               disabled>
+                    </div>
+
+                    <div class="af-form-field">
+
+                        <label>
+                            Code banque
+                        </label>
+
+                        <input name="code_banque"
+                               disabled>
+                    </div>
+
+                </div>
+
+
+                <button class="af-btn primary"
+                        type="submit">
+
+                    Envoyer la demande
+                </button>
+
+            </form>
+
+            {% else %}
+
+            <p>
+                Le retrait n'est pas encore disponible
+                pour ce compte.
+            </p>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    {% else %}
+
+
+    <!-- =============================================
+         MODALE DEVENIR TALENT
+    ============================================== -->
+
+    <div class="af-modal"
+         id="af-become-modal"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="af-become-title">
+
+        <div class="af-modal-dialog">
+
+            <div class="af-modal-heading">
+
+                <h2 id="af-become-title">
+                    Devenir Talent AfroFans
+                </h2>
+
+                <button class="af-btn"
+                        type="button"
+                        data-close-modal>
+                    ✕
+                </button>
+
+            </div>
+
+
+            <p>
+                Transformez votre compte Fan
+                en compte Talent pour publier,
+                développer votre communauté
+                et demander une vérification.
+            </p>
+
+
+            {% url 'Afrons:devenir_talent' as devenir_url %}
+
+            {% if devenir_url %}
+
+            <form method="post"
+                  action="{{ devenir_url }}">
+
+                {% csrf_token %}
+
+                <div class="af-form-field">
+
+                    <label>
+
+                        <input type="checkbox"
+                               name="confirmation"
+                               value="oui"
+                               required>
+
+                        Je confirme vouloir devenir Talent.
+
+                    </label>
+
+                </div>
+
+                <button class="af-btn primary"
+                        type="submit">
+
+                    Devenir Talent
+                </button>
+
+            </form>
+
+            {% else %}
+
+            <p>
+                Cette fonction doit être activée
+                dans votre application.
+            </p>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+    {% endif %}
+
+
+    {% url 'Afrons:action_compte' as action_url %}
+
+
+    <!-- =============================================
+         MODALE DÉSACTIVATION
+    ============================================== -->
+
+    <div class="af-modal"
+         id="af-deactivate-modal"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="af-deactivate-title">
+
+        <div class="af-modal-dialog">
+
+            <div class="af-modal-heading">
+
+                <h2 id="af-deactivate-title">
+                    Désactiver mon compte
+                </h2>
+
+                <button class="af-btn"
+                        type="button"
+                        data-close-modal>
+                    ✕
+                </button>
+
+            </div>
+
+
+            <p>
+                La désactivation peut interrompre
+                l'accès à vos services AfroFans.
+            </p>
+
+
+            {% if action_url %}
+
+            <form method="post"
+                  action="{{ action_url }}">
+
+                {% csrf_token %}
+
+                <input type="hidden"
+                       name="action"
+                       value="desactiver">
+
+                <button class="af-btn danger"
+                        type="submit">
+
+                    Demander la désactivation
+                </button>
+
+            </form>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    <!-- =============================================
+         MODALE SUPPRESSION
+    ============================================== -->
+
+    <div class="af-modal"
+         id="af-delete-modal"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="af-delete-title">
+
+        <div class="af-modal-dialog">
+
+            <div class="af-modal-heading">
+
+                <h2 id="af-delete-title">
+                    Supprimer mon compte
+                </h2>
+
+                <button class="af-btn"
+                        type="button"
+                        data-close-modal>
+                    ✕
+                </button>
+
+            </div>
+
+
+            {% if suppression_bloquee and personne.profil.type_compte == "createur" %}
+
+            <p>
+                La suppression du compte est actuellement
+                bloquée en raison d'opérations financières
+                en cours.
+            </p>
+
+            {% elif action_url %}
+
+            <p>
+                Cette demande peut affecter
+                vos vidéos, événements,
+                achats et revenus.
+            </p>
+
+
+            <form method="post"
+                  action="{{ action_url }}">
+
+                {% csrf_token %}
+
+                <input type="hidden"
+                       name="action"
+                       value="supprimer">
+
+
+                <div class="af-form-field">
+
+                    <label>
+                        Écrivez SUPPRIMER pour confirmer
+                    </label>
+
+                    <input name="confirmation"
+                           pattern="SUPPRIMER"
+                           required>
+
+                </div>
+
+
+                <button class="af-btn danger"
+                        type="submit">
+
+                    Demander la suppression
+                </button>
+
+            </form>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+{% endif %}
+
+{% endblock %}
+
+
+{% block extra_js %}
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const root = document.querySelector(".af-page");
+
+    if (!root) return;
+
+
+    // ==========================================
+    // GESTION DES ONGLETS
+    // ==========================================
+
+    const tabs = [
+        ...root.querySelectorAll(".af-tab")
+    ];
+
+    const panels = [
+        ...root.querySelectorAll(".af-panel")
+    ];
+
+    const settingsButton = document.getElementById(
+        "af-settings-button"
+    );
+
+    const settingsMenu = document.getElementById(
+        "af-settings-menu"
+    );
+
+
+    function openTab(name, updateUrl = true) {
+
+        const panel = document.getElementById(
+            "af-panel-" + name
+        );
+
+        if (!panel) return;
+
+
+        tabs.forEach(function (tab) {
+
+            const active = tab.dataset.tab === name;
+
+            tab.setAttribute(
+                "aria-selected",
+                String(active)
+            );
+
+        });
+
+
+        panels.forEach(function (item) {
+
+            item.classList.toggle(
+                "active",
+                item === panel
+            );
+
+        });
+
+
+        settingsMenu?.classList.remove("open");
+
+        settingsButton?.setAttribute(
+            "aria-expanded",
+            "false"
+        );
+
+
+        if (updateUrl) {
+
+            history.replaceState(
+                null,
+                "",
+                "#onglet-" + name
+            );
+
+        }
+
+    }
+
+
+    tabs.forEach(function (tab) {
+
+        tab.addEventListener("click", function () {
+
+            openTab(tab.dataset.tab);
+
+        });
+
+    });
+
+
+    root.querySelectorAll("[data-open-tab]")
+        .forEach(function (button) {
+
+            button.addEventListener(
+                "click",
+                function () {
+
+                    openTab(button.dataset.openTab);
+
+                }
+            );
+
+        });
+
+
+    if (window.location.hash.startsWith("#onglet-")) {
+
+        openTab(
+            window.location.hash.replace(
+                "#onglet-",
+                ""
+            ),
+            false
+        );
+
+    }
+
+
+    // ==========================================
+    // MENU PARAMÈTRES
+    // ==========================================
+
+    settingsButton?.addEventListener(
+        "click",
+        function (event) {
+
+            event.stopPropagation();
+
+            const isOpen = settingsMenu.classList.toggle(
+                "open"
+            );
+
+            settingsButton.setAttribute(
+                "aria-expanded",
+                String(isOpen)
+            );
+
+        }
+    );
+
+
+    document.addEventListener("click", function (event) {
+
+        if (
+            settingsMenu &&
+            settingsButton &&
+            !settingsMenu.contains(event.target) &&
+            !settingsButton.contains(event.target)
+        ) {
+
+            settingsMenu.classList.remove("open");
+
+            settingsButton.setAttribute(
+                "aria-expanded",
+                "false"
+            );
+
+        }
+
+    });
+
+
+    // ==========================================
+    // OUVERTURE DES MODALES
+    // ==========================================
+
+    function openModal(id) {
+
+        const modal = document.getElementById(id);
+
+        if (!modal) return;
+
+        modal.classList.add("open");
+
+        document.body.style.overflow = "hidden";
+
+        modal.querySelector(
+            "[data-close-modal]"
+        )?.focus();
+
+    }
+
+
+    function closeModal(modal) {
+
+        modal.classList.remove("open");
+
+        document.body.style.overflow = "";
+
+    }
+
+
+    document.querySelectorAll("[data-open-modal]")
+        .forEach(function (button) {
+
+            button.addEventListener(
+                "click",
+                function () {
+
+                    openModal(button.dataset.openModal);
+
+                }
+            );
+
+        });
+
+
+    document.querySelectorAll(".af-modal")
+        .forEach(function (modal) {
+
+            modal.querySelectorAll("[data-close-modal]")
+                .forEach(function (button) {
+
+                    button.addEventListener(
+                        "click",
+                        function () {
+
+                            closeModal(modal);
+
+                        }
+                    );
+
+                });
+
+
+            modal.addEventListener(
+                "click",
+                function (event) {
+
+                    if (event.target === modal) {
+
+                        closeModal(modal);
+
+                    }
+
+                }
+            );
+
+        });
+
+
+    document.addEventListener(
+        "keydown",
+        function (event) {
+
+            if (event.key === "Escape") {
+
+                document.querySelectorAll(
+                    ".af-modal.open"
+                ).forEach(closeModal);
+
+            }
+
+        }
+    );
+
+
+    // ==========================================
+    // MÉTHODES DE RETRAIT
+    // ==========================================
+
+    const method = document.getElementById(
+        "af-retrait-methode"
+    );
+
+
+    function updateWithdrawalFields() {
+
+        if (!method) return;
+
+
+        const sections = [
+            ["af-wave-fields", "wave"],
+            ["af-bank-fields", "banque"]
+        ];
+
+
+        sections.forEach(function ([id, choice]) {
+
+            const section = document.getElementById(id);
+
+            if (!section) return;
+
+
+            const enabled = method.value === choice;
+
+            section.hidden = !enabled;
+
+
+            section.querySelectorAll("input")
+                .forEach(function (input) {
+
+                    input.disabled = !enabled;
+
+                    input.required = (
+                        enabled &&
+                        input.name !== "code_banque"
+                    );
+
+                });
+
+        });
+
+    }
+
+
+    if (method) {
+
+        method.addEventListener(
+            "change",
+            updateWithdrawalFields
+        );
+
+        updateWithdrawalFields();
+
+    }
+
+
+    // ==========================================
+    // SUIVRE OU NE PLUS SUIVRE UN TALENT
+    // ==========================================
+
+    const followButton = document.getElementById(
+        "af-follow"
+    );
+
+
+    followButton?.addEventListener(
+        "click",
+        async function () {
+
+            if (followButton.disabled) return;
+
+
+            const csrf = document.querySelector(
+                "#af-csrf-form input[name='csrfmiddlewaretoken']"
+            )?.value;
+
+
+            if (!csrf) {
+
+                alert(
+                    "Jeton de sécurité manquant. Rechargez la page."
+                );
+
+                return;
+            }
+
+
+            followButton.disabled = true;
+
+
+            try {
+
+                const response = await fetch(
+                    followButton.dataset.url,
+                    {
+                        method: "POST",
+                        credentials: "same-origin",
+
+                        headers: {
+                            "X-CSRFToken": csrf,
+                            "X-Requested-With": "XMLHttpRequest",
+                            "Accept": "application/json"
+                        }
+                    }
+                );
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        "Impossible de modifier votre abonnement."
+                    );
+
+                }
+
+
+                window.location.reload();
+
+            } catch (error) {
+
+                alert(error.message);
+
+                followButton.disabled = false;
+
+            }
+
+        }
+    );
+
+});
+</script>
+
+{% endblock %}

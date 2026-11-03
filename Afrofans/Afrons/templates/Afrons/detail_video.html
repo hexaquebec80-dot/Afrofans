@@ -1,0 +1,1327 @@
+
+{% extends "Afrons/base.html" %}
+
+{% block title %}{{ video.titre }} | AfroFans{% endblock %}
+{% block body_class %}video-detail-page{% endblock %}
+
+{% block extra_css %}
+<style>
+body.video-detail-page {
+    background: #080808;
+    color: #fff;
+}
+
+.video-detail-page *,
+.video-detail-page *::before,
+.video-detail-page *::after {
+    box-sizing: border-box;
+}
+
+.video-detail-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(350px, .8fr);
+    min-height: 100vh;
+    background: #080808;
+}
+
+.detail-player {
+    position: sticky;
+    top: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    padding: 24px;
+    background: #000;
+}
+
+.detail-player video {
+    width: 100%;
+    max-width: 900px;
+    max-height: 95vh;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 12px;
+    background: #000;
+}
+
+.video-processing {
+    max-width: 450px;
+    padding: 40px 20px;
+    text-align: center;
+}
+
+.video-processing h2 {
+    font-size: 21px;
+    color: #fff;
+}
+
+.video-processing p {
+    color: #aaa;
+    line-height: 1.7;
+}
+
+.detail-panel {
+    min-width: 0;
+    padding: 28px 24px 45px;
+    border-left: 1px solid #292929;
+    background: #111;
+}
+
+.detail-creator {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    padding-bottom: 23px;
+    border-bottom: 1px solid #292929;
+}
+
+.detail-creator-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    color: #fff;
+    text-decoration: none;
+}
+
+.detail-avatar {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+    overflow: hidden;
+    border: 2px solid #ff9100;
+    border-radius: 50%;
+    background: linear-gradient(135deg,#ffb000,#ff4d00);
+    color: #fff;
+    font-weight: 900;
+}
+
+.detail-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.detail-creator-link strong {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 15px;
+    color: #fff;
+}
+
+.detail-creator-link small {
+    display: block;
+    margin-top: 5px;
+    color: #aaa;
+    font-size: 12px;
+}
+
+.verified-badge {
+    display: inline-grid;
+    place-items: center;
+    width: 19px;
+    height: 19px;
+    border-radius: 50%;
+    background: #ff9100;
+    color: #111;
+    font-size: 12px;
+    font-style: normal;
+}
+
+.follow-button {
+    min-height: 43px;
+    padding: 11px 17px;
+    border: 1px solid #ff9100;
+    border-radius: 10px;
+    background: linear-gradient(135deg,#ffb000,#ff8a00);
+    color: #111;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.follow-button.is-fan {
+    background: #262015;
+    color: #ffc36b;
+}
+
+.detail-description {
+    padding: 23px 0;
+    border-bottom: 1px solid #292929;
+}
+
+.detail-description h1 {
+    margin: 0 0 13px;
+    font-size: clamp(20px,2.2vw,27px);
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+.detail-description p {
+    color: #ddd;
+    font-size: 14px;
+    line-height: 1.75;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
+.video-hashtags {
+    color: #ffb000 !important;
+    font-weight: 800;
+}
+
+/* STATISTIQUES ET COMPTEURS */
+
+.detail-statistics {
+    display: grid;
+    grid-template-columns: repeat(4,minmax(0,1fr));
+    gap: 8px;
+    margin-top: 20px;
+}
+
+.detail-stat {
+    padding: 12px 6px;
+    border: 1px solid #303030;
+    border-radius: 12px;
+    background: #1d1d1d;
+    text-align: center;
+}
+
+.detail-stat strong {
+    display: block;
+    color: #ffc36b;
+    font-size: 18px;
+    font-weight: 900;
+}
+
+.detail-stat small {
+    display: block;
+    margin-top: 5px;
+    color: #bbb;
+    font-size: 10px;
+}
+
+/* BOUTONS D'ACTIONS */
+
+.detail-actions {
+    display: grid;
+    grid-template-columns: repeat(3,minmax(0,1fr));
+    gap: 10px;
+    padding: 23px 0;
+    border-bottom: 1px solid #292929;
+}
+
+.secondary-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    min-height: 76px;
+    padding: 9px 6px;
+    border: 1px solid #363636;
+    border-radius: 12px;
+    background: #202020;
+    color: #fff;
+    font: inherit;
+    cursor: pointer;
+}
+
+.secondary-button > span {
+    font-size: 23px;
+}
+
+.secondary-button .action-label {
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.secondary-button .action-count {
+    font-size: 12px;
+    color: #ffc36b;
+    font-weight: 900;
+}
+
+.secondary-button.active.ajax-like {
+    color: #ff445f;
+    border-color: #ff445f;
+}
+
+.secondary-button.active.ajax-favorite {
+    color: #ffc36b;
+    border-color: #ffc36b;
+}
+
+/* TÉLÉCHARGEMENT */
+
+.af-download-section,
+.af-owner-management {
+    margin-top: 22px;
+    padding: 21px;
+    border: 1px solid #383028;
+    border-radius: 16px;
+    background: #1b1610;
+}
+
+.af-download-section h2,
+.af-owner-management h2 {
+    margin: 0 0 12px;
+    color: #fff;
+    font-size: 17px;
+}
+
+.af-download-section p,
+.af-owner-management p {
+    color: #bbb;
+    font-size: 13px;
+    line-height: 1.75;
+}
+
+.af-download-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding: 13px;
+    border-radius: 11px;
+    background: linear-gradient(135deg,#ffc36b,#ff9100);
+    color: #111;
+    font-size: 13px;
+    font-weight: 900;
+    text-align: center;
+    text-decoration: none;
+}
+
+.af-owner-label {
+    display: inline-block;
+    margin-bottom: 8px;
+    color: #ffc36b;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.af-delete-button {
+    width: 100%;
+    padding: 13px;
+    border: 1px solid #ff445f;
+    border-radius: 11px;
+    background: #ff445f12;
+    color: #ff6379;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.af-delete-button:hover {
+    background: #ff445f;
+    color: #fff;
+}
+
+/* COMMENTAIRES */
+
+.comments-section {
+    margin-top: 29px;
+}
+
+.comments-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.comments-heading h2 {
+    margin: 0;
+    font-size: 19px;
+}
+
+.comments-heading span {
+    padding: 6px 11px;
+    border-radius: 20px;
+    background: #292929;
+    color: #ffb000;
+    font-weight: 900;
+}
+
+.comment-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 22px;
+}
+
+.comment-form textarea {
+    width: 100%;
+    min-height: 95px;
+    padding: 12px;
+    border: 1px solid #454545;
+    border-radius: 10px;
+    background: #202020;
+    color: #fff;
+    font: inherit;
+    resize: vertical;
+}
+
+.comment-form button {
+    align-self: flex-end;
+    padding: 11px 20px;
+    border: 0;
+    border-radius: 9px;
+    background: #ff9100;
+    color: #111;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.comment-card {
+    display: flex;
+    gap: 12px;
+    padding: 16px 0;
+    border-bottom: 1px solid #292929;
+}
+
+.comment-avatar {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 41px;
+    height: 41px;
+    overflow: hidden;
+    border-radius: 50%;
+    background: #ff9100;
+    color: #111;
+    font-weight: 900;
+    text-decoration: none;
+}
+
+.comment-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.comment-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.comment-content a {
+    color: #ffc36b;
+    text-decoration: none;
+    font-size: 13px;
+}
+
+.comment-content p {
+    color: #e5e5e5;
+    font-size: 13px;
+    line-height: 1.65;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.comment-content small,
+.empty-comments,
+.comments-disabled,
+.login-to-comment {
+    color: #aaa;
+    font-size: 12px;
+}
+
+.empty-comments {
+    padding: 25px 0;
+    text-align: center;
+}
+
+.report-link {
+    display: inline-block;
+    margin-top: 28px;
+    color: #aaa;
+    font-size: 12px;
+}
+
+@media(max-width:1050px) {
+    .video-detail-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .detail-player {
+        position: relative;
+        height: 65vh;
+        min-height: 320px;
+        padding: 0;
+    }
+
+    .detail-panel {
+        border-left: 0;
+        padding: 22px 18px 40px;
+    }
+}
+
+@media(max-width:600px) {
+    .detail-player {
+        height: 58vh;
+        min-height: 270px;
+    }
+
+    .detail-statistics {
+        grid-template-columns: repeat(4,minmax(0,1fr));
+    }
+
+    .detail-stat strong {
+        font-size: 15px;
+    }
+
+    .detail-stat small {
+        font-size: 9px;
+    }
+
+    .detail-panel {
+        padding: 18px 13px 35px;
+    }
+}
+</style>
+{% endblock %}
+
+
+{% block content %}
+
+<section class="video-detail-layout">
+
+    <!-- LECTEUR VIDÉO -->
+
+    <div class="detail-player">
+
+        {% if traitement_en_cours %}
+
+            <div class="video-processing">
+                <h2>⏳ Vidéo en cours de traitement</h2>
+                <p>
+                    AfroFans prépare votre vidéo.
+                    Elle sera disponible après traitement.
+                </p>
+            </div>
+
+        {% elif traitement_echec %}
+
+            <div class="video-processing">
+                <h2>⚠ Traitement échoué</h2>
+                <p>
+                    Impossible de lire cette vidéo.
+                </p>
+            </div>
+
+        {% else %}
+
+            <video
+                controls
+                autoplay
+                loop
+                playsinline
+                controlsList="nodownload"
+                disablePictureInPicture
+                {% if video.miniature %}
+                    poster="{{ video.miniature.url }}"
+                {% endif %}
+            >
+
+                {% if video.fichier_diffuse %}
+                    <source
+                        src="{{ video.fichier_diffuse.url }}"
+                        type="video/mp4"
+                    >
+                {% elif video.fichier %}
+                    <source
+                        src="{{ video.fichier.url }}"
+                        type="video/mp4"
+                    >
+                {% endif %}
+
+                Votre navigateur ne prend pas
+                en charge cette vidéo.
+
+            </video>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- PANNEAU DROIT -->
+
+    <aside class="detail-panel">
+
+        <!-- PROFIL TALENT -->
+
+        <div class="detail-creator">
+
+            <a
+                class="detail-creator-link"
+                href="{% url 'Afrons:profil_public' video.auteur.username %}"
+            >
+
+                <span class="detail-avatar">
+
+                    {% if video.auteur.profil.avatar %}
+
+                        <img
+                            src="{{ video.auteur.profil.avatar.url }}"
+                            alt="{{ video.auteur.username }}"
+                        >
+
+                    {% else %}
+
+                        {{ video.auteur.username|first|upper }}
+
+                    {% endif %}
+
+                </span>
+
+                <span>
+                    <strong>
+
+                        {{ video.auteur.profil.nom_public|default:video.auteur.username }}
+
+                        {% if video.auteur.profil.est_certifie %}
+                            <i class="verified-badge">✓</i>
+                        {% endif %}
+
+                    </strong>
+
+                    <small>
+                        @{{ video.auteur.username }}
+                    </small>
+                </span>
+
+            </a>
+
+            {% if user.is_authenticated and user != video.auteur %}
+
+                <button
+                    type="button"
+                    class="follow-button ajax-follow {% if est_abonne %}is-fan{% endif %}"
+                    data-url="{% url 'Afrons:suivre_createur' video.auteur.username %}"
+                    aria-pressed="{% if est_abonne %}true{% else %}false{% endif %}"
+                >
+                    {% if est_abonne %}
+                        ✓ Fan
+                    {% else %}
+                        Devenir fan
+                    {% endif %}
+                </button>
+
+            {% endif %}
+
+        </div>
+
+
+        <!-- TITRE ET STATISTIQUES -->
+
+        <div class="detail-description">
+
+            <h1>{{ video.titre }}</h1>
+
+            {% if video.description %}
+                <p>{{ video.description }}</p>
+            {% endif %}
+
+            {% if video.hashtags %}
+                <p class="video-hashtags">
+                    {{ video.hashtags }}
+                </p>
+            {% endif %}
+
+            <div class="detail-statistics">
+
+                <div class="detail-stat">
+                    <strong>{{ video.vues|default:0 }}</strong>
+                    <small>Vues</small>
+                </div>
+
+                <div class="detail-stat">
+                    <strong id="af-total-likes">
+                        {{ nombre_jaimes|default:0 }}
+                    </strong>
+                    <small>J'aime</small>
+                </div>
+
+                <div class="detail-stat">
+                    <strong id="af-total-comments">
+                        {{ nombre_commentaires|default:0 }}
+                    </strong>
+                    <small>Commentaires</small>
+                </div>
+
+                <div class="detail-stat">
+                    <strong id="af-total-shares">
+                        {{ nombre_partages|default:0 }}
+                    </strong>
+                    <small>Partages</small>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ACTIONS AVEC COMPTEURS -->
+
+        <div class="detail-actions">
+
+            <!-- J'AIME -->
+
+            <button
+                type="button"
+                class="secondary-button ajax-like {% if utilisateur_aime %}active{% endif %}"
+                data-url="{% url 'Afrons:aimer_video' video.id %}"
+                aria-pressed="{% if utilisateur_aime %}true{% else %}false{% endif %}"
+            >
+
+                <span>♥</span>
+
+                <strong class="action-label">
+                    J'aime
+                </strong>
+
+                <span
+                    class="action-count"
+                    id="af-action-likes"
+                >
+                    {{ nombre_jaimes|default:0 }}
+                </span>
+
+            </button>
+
+
+            <!-- FAVORIS -->
+
+            <button
+                type="button"
+                class="secondary-button ajax-favorite {% if utilisateur_favori %}active{% endif %}"
+                data-url="{% url 'Afrons:ajouter_favori' video.id %}"
+                aria-pressed="{% if utilisateur_favori %}true{% else %}false{% endif %}"
+            >
+
+                <span>◆</span>
+
+                <strong class="action-label">
+                    Favori
+                </strong>
+
+                <span class="action-count">
+                    {% if utilisateur_favori %}
+                        ✓ Enregistré
+                    {% else %}
+                        Enregistrer
+                    {% endif %}
+                </span>
+
+            </button>
+
+
+            <!-- PARTAGER -->
+
+            <button
+                type="button"
+                class="secondary-button share-button"
+                data-title="{{ video.titre }}"
+                data-url="{{ request.scheme }}://{{ request.get_host }}{% url 'Afrons:detail_video' video.id %}"
+                data-record-url="{% url 'Afrons:enregistrer_partage_video' video.id %}"
+            >
+
+                <span>↗</span>
+
+                <strong class="action-label">
+                    Partager
+                </strong>
+
+                <span
+                    class="action-count"
+                    id="af-action-shares"
+                >
+                    {{ nombre_partages|default:0 }}
+                </span>
+
+            </button>
+
+        </div>
+
+
+        <!-- TÉLÉCHARGEMENT PAYANT OU GRATUIT -->
+
+        <section class="af-download-section">
+
+            <h2>↓ Téléchargement de la vidéo</h2>
+
+            {% if est_proprietaire %}
+
+                <span class="af-owner-label">
+                    ✓ Propriétaire de la vidéo
+                </span>
+
+                <p>
+                    Vous pouvez télécharger gratuitement
+                    la vidéo que vous avez publiée.
+                </p>
+
+                <a
+                    class="af-download-button"
+                    href="{% url 'Afrons:acheter_telechargement_video' video.id %}"
+                >
+                    Télécharger gratuitement
+                </a>
+
+            {% else %}
+
+                <p>
+                    Le téléchargement est payant
+                    pour les fans et les autres Talents.
+                </p>
+
+                <a
+                    class="af-download-button"
+                    href="{% url 'Afrons:acheter_telechargement_video' video.id %}"
+                >
+                    Acheter et télécharger
+                </a>
+
+            {% endif %}
+
+        </section>
+
+
+        <!-- SUPPRESSION PROPRIÉTAIRE -->
+
+        {% if est_proprietaire %}
+
+            <section class="af-owner-management">
+
+                <h2>Gestion de ma vidéo</h2>
+
+                <p>
+                    Vous êtes le seul propriétaire autorisé
+                    à supprimer cette vidéo.
+                </p>
+
+                <form
+                    method="post"
+                    action="{% url 'Afrons:supprimer_video' video.id %}"
+                    onsubmit="return confirm('Supprimer définitivement cette vidéo ?');"
+                >
+
+                    {% csrf_token %}
+
+                    <button
+                        type="submit"
+                        class="af-delete-button"
+                    >
+                        🗑 Supprimer ma vidéo
+                    </button>
+
+                </form>
+
+            </section>
+
+        {% endif %}
+
+
+        <!-- COMMENTAIRES -->
+
+        <section class="comments-section">
+
+            <div class="comments-heading">
+
+                <h2>Commentaires</h2>
+
+                <span id="af-comments-heading-count">
+                    {{ nombre_commentaires|default:0 }}
+                </span>
+
+            </div>
+
+            {% if user.is_authenticated %}
+
+                {% if video.autoriser_commentaires %}
+
+                    <form
+                        action="{% url 'Afrons:commenter_video' video.id %}"
+                        method="post"
+                        class="comment-form"
+                    >
+
+                        {% csrf_token %}
+
+                        {{ formulaire_commentaire.contenu }}
+
+                        <button type="submit">
+                            Envoyer
+                        </button>
+
+                    </form>
+
+                {% else %}
+
+                    <p class="comments-disabled">
+                        Les commentaires sont désactivés.
+                    </p>
+
+                {% endif %}
+
+            {% else %}
+
+                <p class="login-to-comment">
+
+                    <a href="{% url 'Afrons:connexion' %}">
+                        Connecte-toi
+                    </a>
+
+                    pour commenter.
+
+                </p>
+
+            {% endif %}
+
+
+            <!-- LISTE DES COMMENTAIRES -->
+
+            <div class="comments-list">
+
+                {% for commentaire in commentaires %}
+
+                    <article class="comment-card">
+
+                        <a
+                            class="comment-avatar"
+                            href="{% url 'Afrons:profil_public' commentaire.utilisateur.username %}"
+                        >
+
+                            {% if commentaire.utilisateur.profil.avatar %}
+
+                                <img
+                                    src="{{ commentaire.utilisateur.profil.avatar.url }}"
+                                    alt="{{ commentaire.utilisateur.username }}"
+                                >
+
+                            {% else %}
+
+                                {{ commentaire.utilisateur.username|first|upper }}
+
+                            {% endif %}
+
+                        </a>
+
+                        <div class="comment-content">
+
+                            <a
+                                href="{% url 'Afrons:profil_public' commentaire.utilisateur.username %}"
+                            >
+                                <strong>
+                                    @{{ commentaire.utilisateur.username }}
+                                </strong>
+                            </a>
+
+                            <p>{{ commentaire.contenu }}</p>
+
+                            <small>
+                                Il y a {{ commentaire.cree_le|timesince }}
+                            </small>
+
+                        </div>
+
+                    </article>
+
+                {% empty %}
+
+                    <div class="empty-comments">
+                        Aucun commentaire pour le moment.
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        </section>
+
+
+        <!-- SIGNALER -->
+
+        {% if user.is_authenticated and not est_proprietaire %}
+
+            <a
+                class="report-link"
+                href="{% url 'Afrons:signaler_video' video.id %}"
+            >
+                Signaler cette vidéo
+            </a>
+
+        {% endif %}
+
+    </aside>
+
+</section>
+
+{% endblock %}
+
+
+{% block extra_js %}
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    "use strict";
+
+    // ========================================================
+    // CSRF
+    // ========================================================
+
+    function csrf() {
+
+        const input = document.querySelector(
+            '[name="csrfmiddlewaretoken"]'
+        );
+
+        if (input) return input.value;
+
+        const match = document.cookie.match(
+            /(?:^|;\s*)csrftoken=([^;]+)/
+        );
+
+        return match
+            ? decodeURIComponent(match[1])
+            : "";
+    }
+
+    // ========================================================
+    // REQUÊTE AJAX
+    // ========================================================
+
+    async function post(url) {
+
+        const response = await fetch(url, {
+            method: "POST",
+            credentials: "same-origin",
+            headers: {
+                "X-CSRFToken": csrf(),
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        });
+
+        if (
+            response.status === 401 ||
+            response.status === 403 ||
+            response.redirected
+        ) {
+
+            throw new Error(
+                "Connectez-vous pour continuer."
+            );
+        }
+
+        const type = response.headers.get(
+            "content-type"
+        ) || "";
+
+        if (!type.includes("application/json")) {
+            throw new Error(
+                "Réponse serveur incorrecte."
+            );
+        }
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data.erreur || "Action impossible."
+            );
+        }
+
+        return data;
+    }
+
+    // ========================================================
+    // COMPTEURS
+    // ========================================================
+
+    function setText(id, total) {
+
+        const element = document.getElementById(id);
+
+        if (element) {
+            element.textContent = total;
+        }
+    }
+
+    // ========================================================
+    // J'AIME VIDÉO
+    // ========================================================
+
+    document.querySelectorAll(
+        ".ajax-like"
+    ).forEach(function (button) {
+
+        button.addEventListener(
+            "click",
+            async function () {
+
+                if (button.disabled) return;
+
+                button.disabled = true;
+
+                try {
+
+                    const data = await post(
+                        button.dataset.url
+                    );
+
+                    button.classList.toggle(
+                        "active",
+                        Boolean(data.actif)
+                    );
+
+                    button.setAttribute(
+                        "aria-pressed",
+                        String(Boolean(data.actif))
+                    );
+
+                    // Le total vient de Django,
+                    // jamais d'une estimation.
+
+                    if (
+                        typeof data.total === "number"
+                    ) {
+
+                        setText(
+                            "af-total-likes",
+                            data.total
+                        );
+
+                        setText(
+                            "af-action-likes",
+                            data.total
+                        );
+                    }
+
+                } catch (error) {
+
+                    console.error(error);
+                    alert(error.message);
+
+                } finally {
+
+                    button.disabled = false;
+                }
+            }
+        );
+    });
+
+    // ========================================================
+    // FAVORIS
+    // ========================================================
+
+    document.querySelectorAll(
+        ".ajax-favorite"
+    ).forEach(function (button) {
+
+        button.addEventListener(
+            "click",
+            async function () {
+
+                if (button.disabled) return;
+
+                button.disabled = true;
+
+                try {
+
+                    const data = await post(
+                        button.dataset.url
+                    );
+
+                    button.classList.toggle(
+                        "active",
+                        Boolean(data.actif)
+                    );
+
+                    button.setAttribute(
+                        "aria-pressed",
+                        String(Boolean(data.actif))
+                    );
+
+                    const label = button.querySelector(
+                        ".action-count"
+                    );
+
+                    if (label) {
+
+                        label.textContent = data.actif
+                            ? "✓ Enregistré"
+                            : "Enregistrer";
+                    }
+
+                } catch (error) {
+
+                    console.error(error);
+                    alert(error.message);
+
+                } finally {
+
+                    button.disabled = false;
+                }
+            }
+        );
+    });
+
+    // ========================================================
+    // DEVENIR FAN
+    // ========================================================
+
+    document.querySelectorAll(
+        ".ajax-follow"
+    ).forEach(function (button) {
+
+        button.addEventListener(
+            "click",
+            async function () {
+
+                if (button.disabled) return;
+
+                button.disabled = true;
+
+                try {
+
+                    const data = await post(
+                        button.dataset.url
+                    );
+
+                    if (
+                        typeof data.est_abonne === "boolean"
+                    ) {
+
+                        const fan = data.est_abonne;
+
+                        button.classList.toggle(
+                            "is-fan",
+                            fan
+                        );
+
+                        button.setAttribute(
+                            "aria-pressed",
+                            String(fan)
+                        );
+
+                        button.textContent = fan
+                            ? "✓ Fan"
+                            : "Devenir fan";
+                    }
+
+                } catch (error) {
+
+                    console.error(error);
+                    alert(error.message);
+
+                } finally {
+
+                    button.disabled = false;
+                }
+            }
+        );
+    });
+
+    // ========================================================
+    // PARTAGER AVEC COMPTEUR
+    // ========================================================
+
+    document.querySelectorAll(
+        ".share-button"
+    ).forEach(function (button) {
+
+        button.addEventListener(
+            "click",
+            async function () {
+
+                if (button.disabled) return;
+
+                const url = button.dataset.url;
+                const title = button.dataset.title;
+
+                let partageEffectue = false;
+
+                try {
+
+                    if (navigator.share) {
+
+                        await navigator.share({
+                            title: title,
+                            text: "Découvre cette vidéo sur AfroFans.",
+                            url: url
+                        });
+
+                        partageEffectue = true;
+
+                    } else if (
+                        navigator.clipboard &&
+                        navigator.clipboard.writeText
+                    ) {
+
+                        await navigator.clipboard.writeText(
+                            url
+                        );
+
+                        partageEffectue = true;
+
+                        alert("Lien de la vidéo copié.");
+
+                    } else {
+
+                        // Pas de confirmation de partage
+                        // ni de copie dans ce navigateur.
+
+                        alert(
+                            "Partage non disponible."
+                        );
+
+                        return;
+                    }
+
+                    // Après un partage ou une copie
+                    // réussie, enregistrer dans Django.
+
+                    if (partageEffectue) {
+
+                        const data = await post(
+                            button.dataset.recordUrl
+                        );
+
+                        if (
+                            typeof data.total === "number"
+                        ) {
+
+                            setText(
+                                "af-total-shares",
+                                data.total
+                            );
+
+                            setText(
+                                "af-action-shares",
+                                data.total
+                            );
+                        }
+                    }
+
+                } catch (error) {
+
+                    if (
+                        error.name !== "AbortError"
+                    ) {
+                        console.error(error);
+                    }
+                }
+            }
+        );
+    });
+
+});
+</script>
+
+{% endblock %}

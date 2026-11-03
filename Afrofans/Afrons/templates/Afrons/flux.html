@@ -1,0 +1,3625 @@
+
+{% extends "Afrons/base.html" %}
+
+{% block title %}Pour toi | AfroFans{% endblock %}
+{% block body_class %}feed-page{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ============================================================
+   AFROFANS — FLUX OFFICIEL
+   VIDÉOS + PRÉSENCES LIVEKIT
+   DESIGN NOIR • ORANGE • DORÉ
+============================================================ */
+
+body.feed-page {
+    --navigation-height: 72px;
+    margin: 0;
+    height: 100vh;
+    overflow: hidden;
+    background: #000;
+    color: #fff;
+}
+
+body.feed-page .main-header {
+    display: none !important;
+}
+
+body.feed-page .main-content {
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.feed-page *,
+.feed-page *::before,
+.feed-page *::after {
+    box-sizing: border-box;
+}
+
+.feed-page [hidden] {
+    display: none !important;
+}
+
+/* ============================================================
+   LOGO ET MENU
+============================================================ */
+
+.feed-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    color: #fff !important;
+    font-size: 21px;
+    font-weight: 900;
+    text-decoration: none;
+}
+
+.feed-logo-icon {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    background: linear-gradient(
+        135deg,
+        #ffb000,
+        #ff8a00,
+        #ff4d00
+    );
+    color: #fff;
+    font-size: 16px;
+}
+
+.feed-logo-name {
+    display: inline-flex;
+    letter-spacing: -1px;
+}
+
+.feed-logo-afro {
+    color: #fff;
+}
+
+.feed-logo-fans {
+    color: #ff9100;
+}
+
+.af-sidebar {
+    position: fixed;
+    z-index: 4000;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    width: 245px;
+    padding: 20px 14px;
+    overflow-y: auto;
+    background: #050505;
+    border-right: 1px solid #292929;
+}
+
+.af-sidebar .feed-logo {
+    padding: 0 10px;
+}
+
+.af-sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.af-sidebar-nav form {
+    margin: 0;
+}
+
+.af-sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+    padding: 13px 14px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: #fff;
+    text-align: left;
+    text-decoration: none;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.af-sidebar-link:hover,
+.af-sidebar-link.active {
+    background: rgba(255,145,0,.12);
+    color: #ff9100;
+}
+
+.af-sidebar-link svg {
+    width: 23px;
+    height: 23px;
+    flex-shrink: 0;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.af-presence-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #f32243;
+}
+
+/* ============================================================
+   DÉFILEMENT VIDÉOS ET PRÉSENCES
+============================================================ */
+
+.video-feed {
+    width: 100%;
+    height: 100svh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    background: #000;
+    scroll-behavior: smooth;
+    scroll-snap-type: y mandatory;
+    scrollbar-width: none;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+.video-feed::-webkit-scrollbar {
+    display: none;
+}
+
+.video-card {
+    position: relative;
+    width: 100%;
+    height: 100svh;
+    min-height: 100svh;
+    overflow: hidden;
+    background: #000;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+}
+
+.feed-video,
+.af-presence-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: #000;
+}
+
+.feed-video {
+    cursor: pointer;
+}
+
+.video-overlay {
+    position: absolute;
+    z-index: 2;
+    inset: 20% 0 0;
+    pointer-events: none;
+    background: linear-gradient(
+        180deg,
+        transparent,
+        rgba(0,0,0,.15) 42%,
+        rgba(0,0,0,.95)
+    );
+}
+
+.video-play-button {
+    position: absolute;
+    z-index: 20;
+    top: 50%;
+    left: 50%;
+    display: none;
+    place-items: center;
+    width: 72px;
+    height: 72px;
+    border: 1px solid #ffffff40;
+    border-radius: 50%;
+    background: #0009;
+    color: #fff;
+    font-size: 28px;
+    transform: translate(-50%,-50%);
+    cursor: pointer;
+}
+
+.video-card.paused .video-play-button {
+    display: grid;
+}
+
+.sound-button {
+    position: absolute;
+    z-index: 25;
+    top: 66px;
+    right: 16px;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 1px solid #ffffff50;
+    border-radius: 50%;
+    background: #0009;
+    color: #fff;
+    font-size: 19px;
+    cursor: pointer;
+}
+
+/* ============================================================
+   INFORMATIONS VIDÉO
+============================================================ */
+
+.video-information {
+    position: absolute;
+    z-index: 12;
+    right: 88px;
+    bottom: calc(var(--navigation-height) + 23px);
+    left: 17px;
+    color: #fff;
+    text-shadow: 0 2px 8px #000;
+}
+
+.video-creator-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 8px;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 900;
+    text-decoration: none;
+}
+
+.verified-badge {
+    display: inline-grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #ff9100;
+    color: #111;
+    font-size: 11px;
+    font-weight: 900;
+}
+
+.video-information h2 {
+    margin: 0 0 8px;
+    font-size: 16px;
+    font-weight: 800;
+}
+
+.video-information p {
+    margin: 0 0 7px;
+    color: #e6e6e6;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.video-hashtags {
+    color: #ffb000 !important;
+    font-weight: 800;
+}
+
+.video-music {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 10px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+/* ============================================================
+   ACTIONS VIDÉOS
+============================================================ */
+
+.video-actions {
+    position: absolute;
+    z-index: 15;
+    right: 9px;
+    bottom: calc(var(--navigation-height) + 23px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+}
+
+.creator-profile-action {
+    position: relative;
+    margin-bottom: 9px;
+}
+
+.creator-avatar {
+    display: grid;
+    place-items: center;
+    width: 50px;
+    height: 50px;
+    overflow: hidden;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    background: #ff9100;
+    color: #fff;
+    text-decoration: none;
+    font-weight: 900;
+}
+
+.creator-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.subscription-button {
+    position: absolute;
+    right: 50%;
+    bottom: -11px;
+    display: grid;
+    place-items: center;
+    min-width: 25px;
+    height: 25px;
+    border: 2px solid #000;
+    border-radius: 50%;
+    background: #ff9100;
+    color: #111;
+    font-weight: 900;
+    transform: translateX(50%);
+    cursor: pointer;
+}
+
+.subscription-button.subscribed {
+    background: #fff;
+}
+
+.video-action {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    min-width: 58px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #fff;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.action-icon {
+    font-size: 29px;
+    line-height: 1.1;
+}
+
+.video-action strong {
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.ajax-like.active .action-icon {
+    color: #ff334f;
+}
+
+.ajax-favorite.active .action-icon {
+    color: #ffb000;
+}
+
+.download-price {
+    padding: 4px 6px;
+    border-radius: 7px;
+    background: #ff9100;
+    color: #111;
+    font-size: 9px;
+    font-weight: 900;
+}
+
+/* ============================================================
+   PRÉSENCES LIVEKIT DANS LE FLUX
+============================================================ */
+
+.af-feed-presence {
+    background: #050505;
+}
+
+.af-presence-wait {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 25px;
+    background: radial-gradient(
+        circle,
+        #4c2a18,
+        #050505 72%
+    );
+    text-align: center;
+}
+
+.af-presence-wait img,
+.af-presence-wait-avatar {
+    display: grid;
+    place-items: center;
+    width: 120px;
+    height: 120px;
+    border: 4px solid #f32243;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #ff9100;
+    color: #111;
+    font-size: 45px;
+    font-weight: 900;
+}
+
+.af-presence-message {
+    color: #ddd;
+    font-size: 13px;
+}
+
+.af-feed-presence.has-video .af-presence-wait {
+    display: none;
+}
+
+.af-presence-badge {
+    position: absolute;
+    z-index: 14;
+    top: 68px;
+    left: 15px;
+    display: inline-flex;
+    gap: 7px;
+    align-items: center;
+    padding: 9px 12px;
+    border-radius: 8px;
+    background: #f32243;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 900;
+}
+
+.af-presence-badge::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #fff;
+    animation: af-pulse 1.5s infinite;
+}
+
+@keyframes af-pulse {
+    50% {
+        opacity: .3;
+    }
+}
+
+.af-presence-info {
+    z-index: 16;
+}
+
+.af-presence-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.af-presence-actions button,
+.af-presence-actions a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 43px;
+    padding: 11px 14px;
+    border: 0;
+    border-radius: 10px;
+    background: #ff9100;
+    color: #111;
+    font-size: 12px;
+    font-weight: 900;
+    text-decoration: none;
+    text-shadow: none;
+    cursor: pointer;
+}
+
+.af-presence-actions button {
+    border: 1px solid #ffffff70;
+    background: #000a;
+    color: #fff;
+}
+
+.af-presence-open {
+    position: absolute;
+    z-index: 17;
+    right: 15px;
+    bottom: calc(var(--navigation-height) + 25px);
+    display: grid;
+    place-items: center;
+    width: 50px;
+    height: 50px;
+    border: 1px solid #ff9100;
+    border-radius: 50%;
+    background: #0009;
+    color: #ffc36b;
+    font-size: 25px;
+    text-decoration: none;
+}
+
+/* ============================================================
+   PANNEAU COMMENTAIRES
+============================================================ */
+
+.af-side-panel {
+    position: fixed;
+    z-index: 3900;
+    top: 0;
+    bottom: 0;
+    left: 245px;
+    display: flex;
+    flex-direction: column;
+    width: min(420px, calc(100vw - 245px));
+    border-right: 1px solid #30323e;
+    background: #121319;
+    color: #fff;
+    box-shadow: 12px 0 35px #0008;
+}
+
+.af-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    min-height: 75px;
+    padding: 18px 20px;
+    border-bottom: 1px solid #30323e;
+}
+
+.af-panel-header h2 {
+    margin: 0;
+    font-size: 19px;
+}
+
+.af-panel-header small {
+    display: block;
+    margin-top: 5px;
+    color: #aaa;
+    font-size: 12px;
+}
+
+.af-panel-close {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border: 0;
+    border-radius: 50%;
+    background: #282a35;
+    color: #fff;
+    cursor: pointer;
+}
+
+.af-panel-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.af-panel-empty {
+    padding: 30px 15px;
+    color: #aaa;
+    text-align: center;
+    font-size: 13px;
+}
+
+.af-comment {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid #30323e;
+}
+
+.af-comment-reply {
+    margin-left: 25px;
+    padding-left: 12px;
+    border-left: 2px solid #ff9100;
+}
+
+.af-comment-avatar {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 38px;
+    height: 38px;
+    overflow: hidden;
+    border-radius: 50%;
+    background: #ff9100;
+    color: #111;
+    font-weight: 900;
+    text-decoration: none;
+}
+
+.af-comment-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.af-comment-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.af-comment-author {
+    color: #ffc36b;
+    font-size: 13px;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.af-comment-text {
+    margin: 6px 0;
+    color: #fff;
+    font-size: 13px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
+.af-comment-content small {
+    color: #999;
+    font-size: 11px;
+}
+
+.af-comment-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 13px;
+    margin-top: 9px;
+}
+
+.af-comment-actions button {
+    padding: 4px 0;
+    border: 0;
+    background: transparent;
+    color: #aaa;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.af-comment-actions button.active {
+    color: #ff9100;
+}
+
+.af-comment-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex-shrink: 0;
+    padding: 14px;
+    border-top: 1px solid #30323e;
+    background: #171820;
+}
+
+.af-comment-form textarea,
+.af-report-box textarea,
+.af-report-box select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #454650;
+    border-radius: 10px;
+    background: #242630;
+    color: #fff;
+    font: inherit;
+    font-size: 13px;
+    resize: vertical;
+}
+
+.af-comment-submit {
+    padding: 12px;
+    border: 0;
+    border-radius: 10px;
+    background: #ff9100;
+    color: #111;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.af-reply-indicator {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #ffc36b;
+    font-size: 12px;
+}
+
+#af-cancel-reply {
+    border: 0;
+    background: transparent;
+    color: #fff;
+    cursor: pointer;
+}
+
+.af-report-box {
+    position: absolute;
+    z-index: 30;
+    right: 12px;
+    bottom: 100px;
+    left: 12px;
+    padding: 18px;
+    border: 1px solid #555;
+    border-radius: 15px;
+    background: #20212a;
+    box-shadow: 0 10px 40px #0009;
+}
+
+.af-report-box h3 {
+    margin: 0 0 14px;
+    color: #ffc36b;
+}
+
+#af-report-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.af-report-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.af-report-actions button {
+    flex: 1;
+    padding: 11px;
+    border: 0;
+    border-radius: 9px;
+    background: #ff9100;
+    color: #111;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.af-report-actions button:last-child {
+    background: #30313b;
+    color: #fff;
+}
+
+/* ============================================================
+   ONGLETS ET COMPTE MOBILE
+============================================================ */
+
+.feed-tabs {
+    position: fixed;
+    z-index: 3100;
+    top: 9px;
+    left: 50%;
+    display: flex;
+    align-items: center;
+    gap: 27px;
+    transform: translateX(-50%);
+}
+
+.feed-tabs a {
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 44px;
+    color: #ffffff90;
+    font-size: 14px;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.feed-tabs a.active {
+    color: #fff;
+}
+
+.feed-tabs a.active::after {
+    content: "";
+    position: absolute;
+    bottom: 1px;
+    left: 50%;
+    width: 33px;
+    height: 3px;
+    border-radius: 10px;
+    background: #ff9100;
+    transform: translateX(-50%);
+}
+
+.feed-account {
+    position: fixed;
+    z-index: 3300;
+    top: 12px;
+    right: 17px;
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    color: #fff;
+    text-decoration: none;
+}
+
+.feed-account-avatar {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    overflow: hidden;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    background: #ff9100;
+    font-weight: 900;
+}
+
+.feed-account-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* ============================================================
+   FLÈCHES
+============================================================ */
+
+.feed-scroll-controls {
+    position: fixed;
+    z-index: 3500;
+    top: 50%;
+    right: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+    transform: translateY(-50%);
+}
+
+.feed-scroll-button {
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    border: 1px solid #ffffff50;
+    border-radius: 50%;
+    background: #111b;
+    color: #fff;
+    font-size: 22px;
+    cursor: pointer;
+}
+
+.feed-scroll-button:disabled {
+    opacity: .25;
+}
+
+/* ============================================================
+   ÉCRAN VIDE
+============================================================ */
+
+.empty-feed {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 100svh;
+    padding: 35px;
+    background: #050505;
+    text-align: center;
+}
+
+.empty-feed a {
+    padding: 12px 22px;
+    border-radius: 12px;
+    background: #ff9100;
+    color: #111;
+    font-weight: 900;
+    text-decoration: none;
+}
+
+/* ============================================================
+   RESPONSIVE
+============================================================ */
+
+@media (min-width: 900px) {
+    .video-feed {
+        width: 460px;
+        margin: 0 auto;
+        border-right: 1px solid #252525;
+        border-left: 1px solid #252525;
+    }
+
+    .video-card {
+        width: 460px;
+    }
+
+    .mobile-feed-logo,
+    .feed-tabs,
+    .feed-account {
+        display: none !important;
+    }
+}
+
+@media (min-width: 1200px) {
+    .af-side-panel {
+        right: 12px;
+        left: auto;
+        width: 400px;
+        border-left: 1px solid #30323e;
+        border-right: 0;
+    }
+}
+
+@media (max-width: 899px) {
+    .af-sidebar,
+    .feed-scroll-controls {
+        display: none !important;
+    }
+
+    .af-side-panel {
+        top: auto;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 58svh;
+        z-index: 5000;
+        border-radius: 18px 18px 0 0;
+    }
+
+    .mobile-feed-logo {
+        position: fixed;
+        z-index: 3200;
+        top: 11px;
+        left: 11px;
+    }
+}
+
+@media (max-width: 700px) {
+    body.feed-page {
+        --navigation-height: 69px;
+    }
+
+    .mobile-feed-logo .feed-logo-name {
+        display: none;
+    }
+
+    .feed-tabs {
+        top: 7px;
+        gap: 20px;
+    }
+
+    .feed-account {
+        right: 11px;
+        top: 10px;
+    }
+
+    .video-information {
+        right: 78px;
+        left: 13px;
+        bottom: calc(var(--navigation-height) + 17px);
+    }
+
+    .video-actions {
+        right: 5px;
+        bottom: calc(var(--navigation-height) + 17px);
+        gap: 12px;
+    }
+
+    .sound-button {
+        top: 61px;
+        right: 12px;
+    }
+
+    .af-presence-badge {
+        top: 63px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .af-presence-badge::before {
+        animation: none;
+    }
+}
+</style>
+{% endblock %}
+
+
+{% block content %}
+
+<!-- ============================================================
+     MENU LATÉRAL AFROFANS
+============================================================ -->
+
+<aside class="af-sidebar" aria-label="Navigation AfroFans">
+
+    <a
+        class="feed-logo"
+        href="{% url 'Afrons:flux' %}"
+    >
+        <span class="feed-logo-icon">▶</span>
+        <span class="feed-logo-name">
+            <span class="feed-logo-afro">Afro</span>
+            <span class="feed-logo-fans">Fans</span>
+        </span>
+    </a>
+
+    <nav class="af-sidebar-nav">
+
+        <a
+            href="{% url 'Afrons:flux' %}?onglet=pour-toi"
+            class="af-sidebar-link {% if onglet != 'talents' and onglet != 'suivis' %}active{% endif %}"
+        >
+            <svg viewBox="0 0 24 24">
+                <path d="m3 10 9-7 9 7v10H3z"/>
+                <path d="M9 20v-7h6v7"/>
+            </svg>
+            Pour toi
+        </a>
+
+        <a
+            href="{% url 'Afrons:explorer' %}"
+            class="af-sidebar-link"
+        >
+            <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="9"/>
+                <path d="m15 9-2 5-4 1 2-5z"/>
+            </svg>
+            Explorer
+        </a>
+
+        <a
+            href="{% url 'Afrons:flux' %}?onglet=talents"
+            class="af-sidebar-link {% if onglet == 'talents' or onglet == 'suivis' %}active{% endif %}"
+        >
+            <svg viewBox="0 0 24 24">
+                <circle cx="9" cy="8" r="3"/>
+                <path d="M3 20v-2a6 6 0 0 1 12 0v2"/>
+            </svg>
+            Talents
+        </a>
+
+        <a
+            href="{% url 'Afrons:presences' %}"
+            class="af-sidebar-link"
+        >
+            <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M5 5a10 10 0 0 0 0 14"/>
+                <path d="M19 5a10 10 0 0 1 0 14"/>
+            </svg>
+            En présence
+            <span class="af-presence-dot"></span>
+        </a>
+
+        <button
+            type="button"
+            id="af-open-messages"
+            class="af-sidebar-link"
+        >
+            <svg viewBox="0 0 24 24">
+                <path d="M3 5h18v12H8l-5 4z"/>
+            </svg>
+            Messages
+        </button>
+
+        {% if user.is_authenticated %}
+
+        <a
+            href="{% url 'Afrons:profil_public' user.username %}"
+            class="af-sidebar-link"
+        >
+            <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="8" r="4"/>
+                <path d="M4 21a8 8 0 0 1 16 0"/>
+            </svg>
+            Profil
+        </a>
+
+        {% url 'Afrons:deconnexion' as af_logout %}
+
+        {% if af_logout %}
+        <form method="post" action="{{ af_logout }}">
+            {% csrf_token %}
+
+            <button
+                type="submit"
+                class="af-sidebar-link"
+            >
+                <svg viewBox="0 0 24 24">
+                    <path d="M10 4H4v16h6"/>
+                    <path d="M14 8l4 4-4 4"/>
+                    <path d="M8 12h10"/>
+                </svg>
+                Déconnexion
+            </button>
+        </form>
+        {% endif %}
+
+        {% else %}
+
+        <a
+            href="{% url 'Afrons:connexion' %}"
+            class="af-sidebar-link"
+        >
+            Connexion
+        </a>
+
+        {% endif %}
+
+    </nav>
+</aside>
+
+
+<!-- ============================================================
+     PANNEAU COMMENTAIRES ET MESSAGES
+============================================================ -->
+
+<aside
+    class="af-side-panel"
+    id="af-side-panel"
+    hidden
+>
+
+    <div class="af-panel-header">
+        <div>
+            <h2 id="af-panel-title">
+                Commentaires
+            </h2>
+            <small id="af-comments-total"></small>
+        </div>
+
+        <button
+            type="button"
+            id="af-panel-close"
+            class="af-panel-close"
+        >
+            ✕
+        </button>
+    </div>
+
+    <div
+        id="af-panel-body"
+        class="af-panel-body"
+        aria-live="polite"
+    ></div>
+
+    {% if user.is_authenticated %}
+
+    <form
+        id="af-comment-form"
+        class="af-comment-form"
+    >
+        {% csrf_token %}
+
+        <div
+            id="af-reply-indicator"
+            class="af-reply-indicator"
+            hidden
+        >
+            <span id="af-reply-name"></span>
+
+            <button
+                type="button"
+                id="af-cancel-reply"
+            >
+                ✕
+            </button>
+        </div>
+
+        <textarea
+            id="af-comment-input"
+            name="contenu"
+            maxlength="500"
+            rows="2"
+            placeholder="Écrire un commentaire..."
+            required
+        ></textarea>
+
+        <button
+            type="submit"
+            class="af-comment-submit"
+        >
+            Publier
+        </button>
+    </form>
+
+    {% else %}
+
+    <div class="af-comment-form">
+        <a href="{% url 'Afrons:connexion' %}">
+            Connectez-vous pour commenter.
+        </a>
+    </div>
+
+    {% endif %}
+
+    <div
+        id="af-report-box"
+        class="af-report-box"
+        hidden
+    >
+        <h3>Signaler ce commentaire</h3>
+
+        <form id="af-report-form">
+            {% csrf_token %}
+
+            <select
+                id="af-report-reason"
+                name="motif"
+                required
+            >
+                <option value="">
+                    Choisissez un motif
+                </option>
+                <option value="violence">
+                    Violence ou menace
+                </option>
+                <option value="haine">
+                    Haine ou discrimination
+                </option>
+                <option value="harcelement">
+                    Harcèlement
+                </option>
+                <option value="spam">
+                    Spam
+                </option>
+                <option value="nudite">
+                    Contenu sexuel
+                </option>
+                <option value="arnaque">
+                    Arnaque
+                </option>
+                <option value="autre">
+                    Autre
+                </option>
+            </select>
+
+            <textarea
+                id="af-report-details"
+                name="details"
+                maxlength="500"
+                placeholder="Détails facultatifs..."
+            ></textarea>
+
+            <div class="af-report-actions">
+                <button type="submit">
+                    Signaler
+                </button>
+
+                <button
+                    type="button"
+                    id="af-report-cancel"
+                >
+                    Annuler
+                </button>
+            </div>
+        </form>
+    </div>
+
+</aside>
+
+
+<!-- ============================================================
+     LOGO MOBILE
+============================================================ -->
+
+<a
+    class="feed-logo mobile-feed-logo"
+    href="{% url 'Afrons:flux' %}"
+>
+    <span class="feed-logo-icon">▶</span>
+
+    <span class="feed-logo-name">
+        <span class="feed-logo-afro">Afro</span>
+        <span class="feed-logo-fans">Fans</span>
+    </span>
+</a>
+
+
+<!-- ============================================================
+     ONGLETS MOBILE
+============================================================ -->
+
+<div class="feed-tabs">
+
+    <a
+        href="{% url 'Afrons:flux' %}?onglet=talents"
+        class="{% if onglet == 'talents' or onglet == 'suivis' %}active{% endif %}"
+    >
+        Talents
+    </a>
+
+    <a
+        href="{% url 'Afrons:flux' %}?onglet=pour-toi"
+        class="{% if onglet != 'talents' and onglet != 'suivis' %}active{% endif %}"
+    >
+        Pour toi
+    </a>
+
+</div>
+
+
+<!-- ============================================================
+     COMPTE MOBILE
+============================================================ -->
+
+{% if user.is_authenticated %}
+
+<a
+    class="feed-account"
+    href="{% url 'Afrons:profil_public' user.username %}"
+>
+    <span class="feed-account-avatar">
+
+        {% if user.profil.avatar %}
+            <img
+                src="{{ user.profil.avatar.url }}"
+                alt="{{ user.username }}"
+            >
+        {% else %}
+            {{ user.username|first|upper }}
+        {% endif %}
+
+    </span>
+</a>
+
+{% else %}
+
+<a
+    class="feed-account"
+    href="{% url 'Afrons:connexion' %}?next={{ request.path|urlencode }}"
+>
+    <span class="feed-account-avatar">♙</span>
+</a>
+
+{% endif %}
+
+
+<!-- ============================================================
+     FLUX VIDÉOS + PRÉSENCES
+============================================================ -->
+
+<section
+    class="video-feed"
+    id="video-feed"
+>
+
+{% for element in elements_flux %}
+
+    <!-- ========================================================
+         PRÉSENCE EN DIRECT LIVEKIT
+    ========================================================= -->
+
+    {% if element.type == "presence" %}
+
+        {% with presence=element.presence %}
+
+        <article
+            class="video-card af-feed-presence"
+            data-presence-id="{{ presence.pk }}"
+            data-token-url="{% url 'Afrons:presence_livekit_token' presence.pk %}"
+        >
+
+            <!-- CAMÉRA -->
+
+            <video
+                class="af-presence-video"
+                autoplay
+                playsinline
+                muted
+            ></video>
+
+            <!-- MICROPHONE -->
+
+            <div
+                class="af-presence-audios"
+                hidden
+            ></div>
+
+            <!-- ATTENTE -->
+
+            <div class="af-presence-wait">
+
+                {% if presence.talent.profil.avatar %}
+                    <img
+                        src="{{ presence.talent.profil.avatar.url }}"
+                        alt="{{ presence.talent.username }}"
+                    >
+                {% else %}
+                    <span class="af-presence-wait-avatar">
+                        {{ presence.talent.username|first|upper }}
+                    </span>
+                {% endif %}
+
+                <p class="af-presence-message">
+                    Connexion à la présence du Talent...
+                </p>
+
+            </div>
+
+            <div class="video-overlay"></div>
+
+            <!-- BADGE -->
+
+            <span class="af-presence-badge">
+                EN PRÉSENCE
+            </span>
+
+            <!-- INFORMATIONS -->
+
+            <div class="video-information af-presence-info">
+
+                <a
+                    class="video-creator-name"
+                    href="{% url 'Afrons:profil_public' presence.talent.username %}"
+                >
+                    @{{ presence.talent.username }}
+
+                    {% if presence.talent.profil.est_certifie %}
+                        <span class="verified-badge">
+                            ✓
+                        </span>
+                    {% endif %}
+                </a>
+
+                <h2>{{ presence.sujet }}</h2>
+
+                {% if presence.description %}
+                    <p>
+                        {{ presence.description|truncatechars:160 }}
+                    </p>
+                {% endif %}
+
+                <div class="af-presence-actions">
+
+                    <button
+                        type="button"
+                        class="af-presence-sound"
+                    >
+                        🔊 Activer le son
+                    </button>
+
+                    <a
+                        href="{% url 'Afrons:presence_detail' presence.pk %}"
+                    >
+                        Rejoindre la présence →
+                    </a>
+
+                </div>
+
+            </div>
+
+            <a
+                class="af-presence-open"
+                href="{% url 'Afrons:presence_detail' presence.pk %}"
+                aria-label="Rejoindre la présence"
+            >
+                ↗
+            </a>
+
+        </article>
+
+        {% endwith %}
+
+
+    <!-- ========================================================
+         VIDÉO NORMALE
+    ========================================================= -->
+
+    {% else %}
+
+        {% with video=element.video %}
+
+        <article
+            class="video-card paused"
+            data-video-id="{{ video.id }}"
+        >
+
+            <video
+                class="feed-video"
+                playsinline
+                loop
+                preload="metadata"
+                muted
+                {% if video.miniature %}
+                    poster="{{ video.miniature.url }}"
+                {% endif %}
+            >
+                <source
+                    src="{{ video.fichier_diffuse.url }}"
+                    type="video/mp4"
+                >
+            </video>
+
+            <!-- BOUTON LECTURE -->
+
+            <button
+                type="button"
+                class="video-play-button"
+                aria-label="Lire ou mettre en pause"
+            >
+                ▶
+            </button>
+
+            <!-- SON -->
+
+            <button
+                type="button"
+                class="sound-button"
+                aria-label="Activer le son"
+            >
+                🔇
+            </button>
+
+            <div class="video-overlay"></div>
+
+            <!-- INFORMATIONS VIDÉO -->
+
+            <div class="video-information">
+
+                <a
+                    class="video-creator-name"
+                    href="{% url 'Afrons:profil_public' video.auteur.username %}"
+                >
+                    @{{ video.auteur.profil.nom_public|default:video.auteur.username }}
+
+                    {% if video.auteur.profil.est_certifie %}
+                        <span class="verified-badge">
+                            ✓
+                        </span>
+                    {% endif %}
+                </a>
+
+                <h2>{{ video.titre }}</h2>
+
+                {% if video.description %}
+                    <p>
+                        {{ video.description|truncatechars:160 }}
+                    </p>
+                {% endif %}
+
+                {% if video.hashtags %}
+                    <p class="video-hashtags">
+                        {{ video.hashtags }}
+                    </p>
+                {% endif %}
+
+                <div class="video-music">
+
+                    <span>♫</span>
+
+                    {% if video.musique %}
+                        {{ video.musique.titre }}
+                    {% else %}
+                        Son original —
+                        {{ video.auteur.profil.nom_public|default:video.auteur.username }}
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+            <!-- ACTIONS -->
+
+            <aside class="video-actions">
+
+                <!-- PROFIL -->
+
+                <div class="creator-profile-action">
+
+                    <a
+                        class="creator-avatar"
+                        href="{% url 'Afrons:profil_public' video.auteur.username %}"
+                    >
+
+                        {% if video.auteur.profil.avatar %}
+                            <img
+                                src="{{ video.auteur.profil.avatar.url }}"
+                                alt="{{ video.auteur.username }}"
+                            >
+                        {% else %}
+                            {{ video.auteur.username|first|upper }}
+                        {% endif %}
+
+                    </a>
+
+                    {% if user.is_authenticated and video.auteur != user %}
+
+                    <button
+                        type="button"
+                        class="subscription-button ajax-subscription{% if video.est_abonne %} subscribed{% endif %}"
+                        data-url="{% url 'Afrons:basculer_abonnement' video.auteur.username %}"
+                        data-creator-id="{{ video.auteur.id }}"
+                        aria-label="S'abonner au Talent"
+                    >
+                        {% if video.est_abonne %}
+                            ✓
+                        {% else %}
+                            +
+                        {% endif %}
+                    </button>
+
+                    {% endif %}
+
+                </div>
+
+                <!-- J'AIME -->
+
+                <button
+                    type="button"
+                    class="video-action ajax-like{% if video.est_aime %} active{% endif %}"
+                    data-url="{% url 'Afrons:aimer_video' video.id %}"
+                >
+                    <span class="action-icon">♥</span>
+
+                    <strong class="action-number">
+                        {{ video.nombre_jaimes }}
+                    </strong>
+                </button>
+
+                <!-- COMMENTAIRES -->
+
+                <button
+                    type="button"
+                    class="video-action af-comments-button"
+                    data-video-id="{{ video.id }}"
+                >
+                    <span class="action-icon">●</span>
+
+                    <strong>
+                        {{ video.nombre_commentaires }}
+                    </strong>
+                </button>
+
+                <!-- FAVORIS -->
+
+                <button
+                    type="button"
+                    class="video-action ajax-favorite{% if video.est_favori %} active{% endif %}"
+                    data-url="{% url 'Afrons:ajouter_favori' video.id %}"
+                >
+                    <span class="action-icon">▮</span>
+
+                    <strong class="action-number">
+                        {{ video.nombre_favoris }}
+                    </strong>
+                </button>
+
+                <!-- PARTAGER -->
+
+                <button
+                    type="button"
+                    class="video-action share-button"
+                    data-title="{{ video.titre }}"
+                    data-url="{{ request.scheme }}://{{ request.get_host }}{{ video.get_absolute_url }}"
+                >
+                    <span class="action-icon">➤</span>
+                    <strong>Partager</strong>
+                </button>
+
+                <!-- ACHAT / TÉLÉCHARGEMENT -->
+
+                <a
+                    class="video-action download-video-button"
+                    href="{% url 'Afrons:acheter_telechargement_video' video.id %}"
+                >
+                    <span class="action-icon">↓</span>
+
+                    <span class="download-price">
+                        50F · 1$ · 1€
+                    </span>
+                </a>
+
+            </aside>
+
+        </article>
+
+        {% endwith %}
+
+    {% endif %}
+
+{% empty %}
+
+    <div class="empty-feed">
+
+        <h1>Le spectacle commence bientôt</h1>
+
+        <p>
+            {% if onglet == "talents" or onglet == "suivis" %}
+                Abonne-toi à des Talents pour voir leurs vidéos
+                et leurs présences ici.
+            {% else %}
+                Découvre les vidéos et les présences
+                des Talents sur AfroFans.
+            {% endif %}
+        </p>
+
+        <a href="{% url 'Afrons:explorer' %}">
+            Explorer les Talents
+        </a>
+
+    </div>
+
+{% endfor %}
+
+</section>
+
+
+<!-- ============================================================
+     FLÈCHES DE NAVIGATION
+============================================================ -->
+
+{% if elements_flux %}
+
+<div class="feed-scroll-controls">
+
+    <button
+        type="button"
+        class="feed-scroll-button"
+        id="previous-video-button"
+        aria-label="Précédent"
+    >
+        ↑
+    </button>
+
+    <button
+        type="button"
+        class="feed-scroll-button"
+        id="next-video-button"
+        aria-label="Suivant"
+    >
+        ↓
+    </button>
+
+</div>
+
+{% endif %}
+
+{% endblock %}
+
+
+{% block extra_js %}
+
+<!-- ============================================================
+     LIVEKIT SDK
+============================================================ -->
+
+<script src="https://cdn.jsdelivr.net/npm/livekit-client@2/dist/livekit-client.umd.min.js"></script>
+
+
+<!-- ============================================================
+     SCRIPT 1 — NAVIGATION ET VIDÉOS
+============================================================ -->
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    "use strict";
+
+    const feed = document.getElementById("video-feed");
+
+    if (!feed) return;
+
+    const cards = Array.from(
+        feed.querySelectorAll(".video-card")
+    );
+
+    const previousButton = document.getElementById(
+        "previous-video-button"
+    );
+
+    const nextButton = document.getElementById(
+        "next-video-button"
+    );
+
+    let currentIndex = 0;
+    let wheelLocked = false;
+    let soundEnabled = false;
+
+    // ========================================================
+    // CSRF
+    // ========================================================
+
+    function csrf() {
+
+        const input = document.querySelector(
+            '[name="csrfmiddlewaretoken"]'
+        );
+
+        if (input) return input.value;
+
+        const match = document.cookie.match(
+            /(?:^|;\s*)csrftoken=([^;]+)/
+        );
+
+        return match
+            ? decodeURIComponent(match[1])
+            : "";
+    }
+
+    // ========================================================
+    // NAVIGATION
+    // ========================================================
+
+    function updateControls() {
+
+        if (previousButton) {
+            previousButton.disabled =
+                currentIndex <= 0;
+        }
+
+        if (nextButton) {
+            nextButton.disabled =
+                currentIndex >= cards.length - 1;
+        }
+    }
+
+    function activate(index) {
+
+        if (index < 0 || index >= cards.length) {
+            return;
+        }
+
+        currentIndex = index;
+
+        cards.forEach(function (card, i) {
+
+            const video = card.querySelector(".feed-video");
+
+            if (!video) return;
+
+            if (i === currentIndex && !document.hidden) {
+
+                video.muted = !soundEnabled;
+
+                video.play().catch(function () {});
+
+            } else {
+
+                video.pause();
+                video.muted = true;
+            }
+        });
+
+        window.dispatchEvent(
+            new CustomEvent("af:active-card", {
+                detail: {
+                    card: cards[currentIndex]
+                }
+            })
+        );
+
+        updateControls();
+    }
+
+    function goTo(index) {
+
+        if (index < 0 || index >= cards.length) {
+            return;
+        }
+
+        cards[index].scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+
+        activate(index);
+    }
+
+    if (previousButton) {
+
+        previousButton.addEventListener(
+            "click",
+            function () {
+                goTo(currentIndex - 1);
+            }
+        );
+    }
+
+    if (nextButton) {
+
+        nextButton.addEventListener(
+            "click",
+            function () {
+                goTo(currentIndex + 1);
+            }
+        );
+    }
+
+    // ========================================================
+    // DÉFILEMENT SOURIS
+    // ========================================================
+
+    feed.addEventListener(
+        "wheel",
+        function (event) {
+
+            if (Math.abs(event.deltaY) < 15) {
+                return;
+            }
+
+            event.preventDefault();
+
+            if (wheelLocked) return;
+
+            wheelLocked = true;
+
+            goTo(
+                currentIndex + (
+                    event.deltaY > 0 ? 1 : -1
+                )
+            );
+
+            setTimeout(function () {
+                wheelLocked = false;
+            }, 650);
+        },
+        {passive: false}
+    );
+
+    // ========================================================
+    // CLAVIER
+    // ========================================================
+
+    document.addEventListener(
+        "keydown",
+        function (event) {
+
+            const target = event.target;
+
+            if (
+                target.matches(
+                    "input, textarea, select"
+                ) ||
+                target.isContentEditable
+            ) {
+                return;
+            }
+
+            if (event.key === "ArrowDown") {
+                event.preventDefault();
+                goTo(currentIndex + 1);
+            }
+
+            if (event.key === "ArrowUp") {
+                event.preventDefault();
+                goTo(currentIndex - 1);
+            }
+
+            if (event.key === " ") {
+
+                const video = cards[currentIndex]
+                    ?.querySelector(".feed-video");
+
+                if (!video) return;
+
+                event.preventDefault();
+
+                if (video.paused) {
+                    video.play().catch(function () {});
+                } else {
+                    video.pause();
+                }
+            }
+        }
+    );
+
+    // ========================================================
+    // DÉFILEMENT TACTILE / INTERSECTION
+    // ========================================================
+
+    if ("IntersectionObserver" in window) {
+
+        const observer = new IntersectionObserver(
+            function (entries) {
+
+                const visible = entries
+                    .filter(entry => entry.isIntersecting)
+                    .sort(
+                        (a,b) =>
+                            b.intersectionRatio -
+                            a.intersectionRatio
+                    );
+
+                if (!visible.length) return;
+
+                const index = cards.indexOf(
+                    visible[0].target
+                );
+
+                if (
+                    index !== -1 &&
+                    index !== currentIndex
+                ) {
+                    activate(index);
+                }
+            },
+            {
+                root: feed,
+                threshold: [0.5, 0.7, 0.9]
+            }
+        );
+
+        cards.forEach(card => observer.observe(card));
+    }
+
+    // ========================================================
+    // BOUTON LECTURE
+    // ========================================================
+
+    cards.forEach(function (card) {
+
+        const video = card.querySelector(".feed-video");
+
+        if (!video) return;
+
+        const playButton = card.querySelector(
+            ".video-play-button"
+        );
+
+        function togglePlay() {
+
+            if (video.paused) {
+                video.play().catch(function () {});
+            } else {
+                video.pause();
+            }
+        }
+
+        video.addEventListener("click", togglePlay);
+
+        if (playButton) {
+            playButton.addEventListener(
+                "click",
+                togglePlay
+            );
+        }
+
+        video.addEventListener("play", function () {
+            card.classList.remove("paused");
+        });
+
+        video.addEventListener("pause", function () {
+            card.classList.add("paused");
+        });
+    });
+
+    // ========================================================
+    // SON DES VIDÉOS
+    // ========================================================
+
+    document.querySelectorAll(
+        ".sound-button"
+    ).forEach(function (button) {
+
+        button.addEventListener(
+            "click",
+            function () {
+
+                const card = button.closest(".video-card");
+
+                const video = card.querySelector(
+                    ".feed-video"
+                );
+
+                soundEnabled = !soundEnabled;
+
+                document.querySelectorAll(
+                    ".feed-video"
+                ).forEach(function (item) {
+
+                    item.muted = !(
+                        soundEnabled &&
+                        item === video
+                    );
+
+                    const soundButton = item
+                        .closest(".video-card")
+                        .querySelector(".sound-button");
+
+                    soundButton.textContent =
+                        !item.muted ? "🔊" : "🔇";
+                });
+            }
+        );
+    });
+
+    // ========================================================
+    // AJAX J'AIME / FAVORIS
+    // ========================================================
+
+    async function actionVideo(button) {
+
+        if (button.disabled) return;
+
+        button.disabled = true;
+
+        try {
+
+            const response = await fetch(
+                button.dataset.url,
+                {
+                    method: "POST",
+                    credentials: "same-origin",
+                    headers: {
+                        "X-CSRFToken": csrf(),
+                        "X-Requested-With": "XMLHttpRequest"
+                    }
+                }
+            );
+
+            if (
+                response.status === 401 ||
+                response.status === 403 ||
+                response.redirected
+            ) {
+
+                window.location.href =
+                    "{% url 'Afrons:connexion' %}";
+
+                return;
+            }
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.erreur || "Action impossible."
+                );
+            }
+
+            button.classList.toggle(
+                "active",
+                Boolean(data.actif)
+            );
+
+            const counter = button.querySelector(
+                ".action-number"
+            );
+
+            if (
+                counter &&
+                typeof data.total === "number"
+            ) {
+                counter.textContent = data.total;
+            }
+
+        } catch (error) {
+
+            console.error(error);
+
+        } finally {
+
+            button.disabled = false;
+        }
+    }
+
+    document.querySelectorAll(
+        ".ajax-like, .ajax-favorite"
+    ).forEach(function (button) {
+
+        button.addEventListener(
+            "click",
+            function () {
+                actionVideo(button);
+            }
+        );
+    });
+
+    // ========================================================
+    // ABONNEMENTS AUX TALENTS
+    // ========================================================
+
+    document.querySelectorAll(
+        ".ajax-subscription"
+    ).forEach(function (button) {
+
+        button.addEventListener(
+            "click",
+            async function () {
+
+                if (button.disabled) return;
+
+                button.disabled = true;
+
+                try {
+
+                    const response = await fetch(
+                        button.dataset.url,
+                        {
+                            method: "POST",
+                            credentials: "same-origin",
+                            headers: {
+                                "X-CSRFToken": csrf(),
+                                "X-Requested-With":
+                                    "XMLHttpRequest"
+                            }
+                        }
+                    );
+
+                    if (
+                        response.status === 401 ||
+                        response.status === 403 ||
+                        response.redirected
+                    ) {
+                        window.location.href =
+                            "{% url 'Afrons:connexion' %}";
+                        return;
+                    }
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(
+                            data.erreur || "Abonnement impossible."
+                        );
+                    }
+
+                    document.querySelectorAll(
+                        '.ajax-subscription[data-creator-id="' +
+                        button.dataset.creatorId +
+                        '"]'
+                    ).forEach(function (item) {
+
+                        item.classList.toggle(
+                            "subscribed",
+                            Boolean(data.est_abonne)
+                        );
+
+                        item.textContent =
+                            data.est_abonne ? "✓" : "+";
+                    });
+
+                } catch (error) {
+
+                    console.error(error);
+
+                } finally {
+
+                    button.disabled = false;
+                }
+            }
+        );
+    });
+
+    // ========================================================
+    // PARTAGE VIDÉOS
+    // ========================================================
+
+    document.querySelectorAll(
+        ".share-button"
+    ).forEach(function (button) {
+
+        button.addEventListener(
+            "click",
+            async function () {
+
+                const url = button.dataset.url;
+
+                try {
+
+                    if (navigator.share) {
+
+                        await navigator.share({
+                            title: button.dataset.title,
+                            url: url
+                        });
+
+                    } else {
+
+                        await navigator.clipboard.writeText(
+                            url
+                        );
+
+                        alert("Lien copié.");
+                    }
+
+                } catch (error) {
+                    console.error(error);
+                }
+            }
+        );
+    });
+
+    // ========================================================
+    // MESSAGERIE
+    // ========================================================
+
+    const messagesButton = document.getElementById(
+        "af-open-messages"
+    );
+
+    if (messagesButton) {
+
+        messagesButton.addEventListener(
+            "click",
+            function () {
+
+                const panel = document.getElementById(
+                    "af-side-panel"
+                );
+
+                const title = document.getElementById(
+                    "af-panel-title"
+                );
+
+                const body = document.getElementById(
+                    "af-panel-body"
+                );
+
+                panel.hidden = false;
+                title.textContent = "Messages";
+                body.textContent =
+                    "La messagerie doit être reliée à sa vue Django.";
+            }
+        );
+    }
+
+    // ========================================================
+    // REPRISE APRÈS CHANGEMENT D'ONGLET
+    // ========================================================
+
+    document.addEventListener(
+        "visibilitychange",
+        function () {
+
+            if (document.hidden) {
+
+                document.querySelectorAll(
+                    ".feed-video"
+                ).forEach(video => video.pause());
+
+            } else {
+
+                activate(currentIndex);
+            }
+        }
+    );
+
+    // ========================================================
+    // DÉMARRAGE
+    // ========================================================
+
+    updateControls();
+
+    if (cards.length) {
+        activate(0);
+    }
+
+});
+</script>
+
+
+<!-- ============================================================
+     SCRIPT 2 — COMMENTAIRES INTERACTIFS
+============================================================ -->
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    "use strict";
+
+    const panel = document.getElementById(
+        "af-side-panel"
+    );
+
+    const panelBody = document.getElementById(
+        "af-panel-body"
+    );
+
+    const panelTitle = document.getElementById(
+        "af-panel-title"
+    );
+
+    const panelTotal = document.getElementById(
+        "af-comments-total"
+    );
+
+    const commentForm = document.getElementById(
+        "af-comment-form"
+    );
+
+    const commentInput = document.getElementById(
+        "af-comment-input"
+    );
+
+    const replyIndicator = document.getElementById(
+        "af-reply-indicator"
+    );
+
+    const replyName = document.getElementById(
+        "af-reply-name"
+    );
+
+    const reportBox = document.getElementById(
+        "af-report-box"
+    );
+
+    const reportForm = document.getElementById(
+        "af-report-form"
+    );
+
+    let currentVideoId = null;
+    let replyToId = null;
+    let reportId = null;
+    let sequence = 0;
+
+    const urls = {
+        list:
+            "{% url 'Afrons:commentaires_video_ajax' 987654321 %}",
+        publish:
+            "{% url 'Afrons:publier_commentaire_ajax' 987654321 %}",
+        like:
+            "{% url 'Afrons:aimer_commentaire_ajax' 987654321 %}",
+        remove:
+            "{% url 'Afrons:supprimer_commentaire_ajax' 987654321 %}",
+        report:
+            "{% url 'Afrons:signaler_commentaire_ajax' 987654321 %}"
+    };
+
+    function apiUrl(type, id) {
+        return urls[type].replace(
+            "987654321",
+            encodeURIComponent(String(id))
+        );
+    }
+
+    function csrf() {
+
+        const input = document.querySelector(
+            '[name="csrfmiddlewaretoken"]'
+        );
+
+        return input ? input.value : "";
+    }
+
+    async function post(url, payload = {}) {
+
+        const response = await fetch(url, {
+            method: "POST",
+            credentials: "same-origin",
+            headers: {
+                "X-CSRFToken": csrf(),
+                "X-Requested-With": "XMLHttpRequest",
+                "Content-Type":
+                    "application/x-www-form-urlencoded"
+            },
+            body: new URLSearchParams(payload)
+        });
+
+        if (response.redirected) {
+            throw new Error(
+                "Connectez-vous pour continuer."
+            );
+        }
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data.erreur || "Action impossible."
+            );
+        }
+
+        return data;
+    }
+
+    // ========================================================
+    // CRÉER UN ÉLÉMENT SÉCURISÉ
+    // ========================================================
+
+    function el(tag, css, value) {
+
+        const node = document.createElement(tag);
+
+        if (css) node.className = css;
+
+        if (value !== undefined) {
+            node.textContent = value;
+        }
+
+        return node;
+    }
+
+    function actionButton(label, action, id) {
+
+        const button = el(
+            "button",
+            "",
+            label
+        );
+
+        button.type = "button";
+        button.dataset.action = action;
+        button.dataset.id = id;
+
+        return button;
+    }
+
+    // ========================================================
+    // PROFIL PUBLIC
+    // ========================================================
+
+    function profilUrl(comment) {
+
+        if (
+            typeof comment.profil_url === "string" &&
+            comment.profil_url.startsWith("/") &&
+            !comment.profil_url.startsWith("//")
+        ) {
+            return comment.profil_url;
+        }
+
+        return null;
+    }
+
+    // ========================================================
+    // AFFICHER COMMENTAIRE
+    // ========================================================
+
+    function afficherCommentaire(comment) {
+
+        const item = el("div", "af-comment");
+
+        item.dataset.commentId = comment.id;
+
+        if (comment.parent_id) {
+            item.classList.add("af-comment-reply");
+        }
+
+        const url = profilUrl(comment);
+
+        const avatar = el(
+            url ? "a" : "div",
+            "af-comment-avatar"
+        );
+
+        if (url) avatar.href = url;
+
+        if (comment.avatar) {
+
+            const img = el("img");
+
+            img.src = comment.avatar;
+            img.alt = comment.auteur;
+            img.loading = "lazy";
+
+            avatar.appendChild(img);
+
+        } else {
+
+            avatar.textContent = String(
+                comment.auteur || "?"
+            ).charAt(0).toUpperCase();
+        }
+
+        const content = el(
+            "div",
+            "af-comment-content"
+        );
+
+        const author = el(
+            url ? "a" : "strong",
+            "af-comment-author",
+            "@" + comment.auteur
+        );
+
+        if (url) author.href = url;
+
+        const text = el(
+            "p",
+            "af-comment-text",
+            comment.contenu || ""
+        );
+
+        const date = el(
+            "small",
+            "",
+            comment.date || ""
+        );
+
+        const actions = el(
+            "div",
+            "af-comment-actions"
+        );
+
+        const like = actionButton(
+            "♥ " + (comment.nombre_jaimes || 0),
+            "like",
+            comment.id
+        );
+
+        like.classList.toggle(
+            "active",
+            Boolean(comment.est_aime)
+        );
+
+        actions.appendChild(like);
+
+        actions.appendChild(
+            actionButton(
+                "Répondre",
+                "reply",
+                comment.id
+            )
+        );
+
+        if (comment.est_proprietaire) {
+
+            actions.appendChild(
+                actionButton(
+                    "Supprimer",
+                    "delete",
+                    comment.id
+                )
+            );
+
+        } else {
+
+            actions.appendChild(
+                actionButton(
+                    "Signaler",
+                    "report",
+                    comment.id
+                )
+            );
+        }
+
+        content.append(
+            author,
+            text,
+            date,
+            actions
+        );
+
+        item.append(
+            avatar,
+            content
+        );
+
+        return item;
+    }
+
+    // ========================================================
+    // CHARGER COMMENTAIRES
+    // ========================================================
+
+    async function chargerCommentaires() {
+
+        if (!currentVideoId) return;
+
+        const id = currentVideoId;
+        const requestId = ++sequence;
+
+        panelBody.replaceChildren(
+            el(
+                "p",
+                "af-panel-empty",
+                "Chargement des commentaires..."
+            )
+        );
+
+        try {
+
+            const response = await fetch(
+                apiUrl("list", id),
+                {
+                    credentials: "same-origin",
+                    headers: {
+                        "X-Requested-With":
+                            "XMLHttpRequest"
+                    }
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error(
+                    "Impossible de charger les commentaires."
+                );
+            }
+
+            const data = await response.json();
+
+            if (
+                requestId !== sequence ||
+                currentVideoId !== id
+            ) {
+                return;
+            }
+
+            panelBody.replaceChildren();
+
+            const comments = Array.isArray(
+                data.commentaires
+            ) ? data.commentaires : [];
+
+            if (!comments.length) {
+
+                panelBody.appendChild(
+                    el(
+                        "p",
+                        "af-panel-empty",
+                        "Aucun commentaire."
+                    )
+                );
+
+            } else {
+
+                comments.forEach(function (comment) {
+
+                    panelBody.appendChild(
+                        afficherCommentaire(comment)
+                    );
+                });
+            }
+
+            if (panelTotal) {
+                panelTotal.textContent =
+                    comments.length + " commentaires";
+            }
+
+            const counter = document.querySelector(
+                '.video-card[data-video-id="' +
+                id +
+                '"] .af-comments-button strong'
+            );
+
+            if (
+                counter &&
+                typeof data.total === "number"
+            ) {
+                counter.textContent = data.total;
+            }
+
+        } catch (error) {
+
+            panelBody.replaceChildren(
+                el(
+                    "p",
+                    "af-panel-empty",
+                    error.message
+                )
+            );
+        }
+    }
+
+    // ========================================================
+    // OUVRIR COMMENTAIRES
+    // ========================================================
+
+    document.querySelectorAll(
+        ".af-comments-button"
+    ).forEach(function (button) {
+
+        button.addEventListener(
+            "click",
+            function () {
+
+                currentVideoId =
+                    button.dataset.videoId;
+
+                replyToId = null;
+
+                panel.hidden = false;
+                panelTitle.textContent = "Commentaires";
+
+                document.body.classList.add(
+                    "af-comments-open"
+                );
+
+                if (commentForm) {
+                    commentForm.hidden = false;
+                }
+
+                chargerCommentaires();
+            }
+        );
+    });
+
+    // ========================================================
+    // FERMER PANNEAU
+    // ========================================================
+
+    document.getElementById(
+        "af-panel-close"
+    ).addEventListener(
+        "click",
+        function () {
+
+            sequence++;
+            currentVideoId = null;
+
+            panel.hidden = true;
+
+            document.body.classList.remove(
+                "af-comments-open"
+            );
+
+            reportBox.hidden = true;
+
+            if (commentForm) {
+                commentForm.hidden = false;
+            }
+        }
+    );
+
+    // ========================================================
+    // ANNULER RÉPONSE
+    // ========================================================
+
+    const cancelReply = document.getElementById(
+        "af-cancel-reply"
+    );
+
+    if (cancelReply) {
+
+        cancelReply.addEventListener(
+            "click",
+            function () {
+
+                replyToId = null;
+                replyIndicator.hidden = true;
+
+                commentInput.placeholder =
+                    "Écrire un commentaire...";
+            }
+        );
+    }
+
+    // ========================================================
+    // ENVOYER COMMENTAIRE
+    // ========================================================
+
+    if (commentForm) {
+
+        commentForm.addEventListener(
+            "submit",
+            async function (event) {
+
+                event.preventDefault();
+
+                if (!currentVideoId) return;
+
+                const content =
+                    commentInput.value.trim();
+
+                if (!content) return;
+
+                const button = commentForm.querySelector(
+                    'button[type="submit"]'
+                );
+
+                button.disabled = true;
+
+                try {
+
+                    await post(
+                        apiUrl(
+                            "publish",
+                            currentVideoId
+                        ),
+                        {
+                            contenu: content,
+                            parent_id: replyToId || ""
+                        }
+                    );
+
+                    commentInput.value = "";
+                    replyToId = null;
+                    replyIndicator.hidden = true;
+
+                    await chargerCommentaires();
+
+                } catch (error) {
+
+                    alert(error.message);
+
+                } finally {
+
+                    button.disabled = false;
+                }
+            }
+        );
+    }
+
+    // ========================================================
+    // ACTIONS SUR COMMENTAIRES
+    // ========================================================
+
+    panelBody.addEventListener(
+        "click",
+        async function (event) {
+
+            const button = event.target.closest(
+                "button[data-action]"
+            );
+
+            if (!button) return;
+
+            const action = button.dataset.action;
+            const id = button.dataset.id;
+
+            // RÉPONDRE
+
+            if (action === "reply") {
+
+                replyToId = id;
+
+                const comment = button.closest(
+                    ".af-comment"
+                );
+
+                const author = comment.querySelector(
+                    ".af-comment-author"
+                );
+
+                replyName.textContent =
+                    "Réponse à " + author.textContent;
+
+                replyIndicator.hidden = false;
+
+                commentInput.placeholder =
+                    "Écrire une réponse...";
+
+                commentInput.focus();
+
+                return;
+            }
+
+            // J'AIME
+
+            if (action === "like") {
+
+                button.disabled = true;
+
+                try {
+
+                    const data = await post(
+                        apiUrl("like", id)
+                    );
+
+                    button.textContent =
+                        "♥ " + data.total;
+
+                    button.classList.toggle(
+                        "active",
+                        Boolean(data.actif)
+                    );
+
+                } catch (error) {
+
+                    alert(error.message);
+
+                } finally {
+
+                    button.disabled = false;
+                }
+
+                return;
+            }
+
+            // SUPPRIMER
+
+            if (action === "delete") {
+
+                if (!confirm(
+                    "Supprimer ce commentaire ?"
+                )) return;
+
+                try {
+
+                    await post(
+                        apiUrl("remove", id)
+                    );
+
+                    await chargerCommentaires();
+
+                } catch (error) {
+
+                    alert(error.message);
+                }
+
+                return;
+            }
+
+            // SIGNALER
+
+            if (action === "report") {
+
+                reportId = id;
+                reportForm.reset();
+                reportBox.hidden = false;
+            }
+        }
+    );
+
+    // ========================================================
+    // SIGNALER COMMENTAIRE
+    // ========================================================
+
+    document.getElementById(
+        "af-report-cancel"
+    ).addEventListener(
+        "click",
+        function () {
+
+            reportId = null;
+            reportBox.hidden = true;
+        }
+    );
+
+    reportForm.addEventListener(
+        "submit",
+        async function (event) {
+
+            event.preventDefault();
+
+            if (!reportId) return;
+
+            try {
+
+                const data = await post(
+                    apiUrl("report", reportId),
+                    {
+                        motif: document.getElementById(
+                            "af-report-reason"
+                        ).value,
+
+                        details: document.getElementById(
+                            "af-report-details"
+                        ).value
+                    }
+                );
+
+                reportId = null;
+                reportBox.hidden = true;
+
+                alert(
+                    data.message ||
+                    "Signalement transmis."
+                );
+
+            } catch (error) {
+
+                alert(error.message);
+            }
+        }
+    );
+
+});
+</script>
+
+
+<!-- ============================================================
+     SCRIPT 3 — LIVEKIT DANS LE DÉFILEMENT
+     SEUL LE TALENT DIFFUSE.
+     LES FANS REGARDENT ET ÉCOUTENT.
+============================================================ -->
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    "use strict";
+
+    const feed = document.getElementById("video-feed");
+
+    const liveCards = Array.from(
+        document.querySelectorAll(".af-feed-presence")
+    );
+
+    if (!feed || !liveCards.length) {
+        return;
+    }
+
+    let activeCard = null;
+    let currentConnection = null;
+    let generation = 0;
+
+    // ========================================================
+    // CSRF
+    // ========================================================
+
+    function csrf() {
+
+        const input = document.querySelector(
+            '[name="csrfmiddlewaretoken"]'
+        );
+
+        if (input) return input.value;
+
+        const match = document.cookie.match(
+            /(?:^|;\s*)csrftoken=([^;]+)/
+        );
+
+        return match
+            ? decodeURIComponent(match[1])
+            : "";
+    }
+
+    // ========================================================
+    // ARRÊTER LIVEKIT
+    // ========================================================
+
+    async function stopLive() {
+
+        generation++;
+
+        const old = currentConnection;
+
+        currentConnection = null;
+
+        if (!old) return;
+
+        old.card.classList.remove(
+            "has-video"
+        );
+
+        old.video.srcObject = null;
+
+        for (const audio of old.audios) {
+            audio.remove();
+        }
+
+        old.audios.clear();
+
+        if (old.room) {
+
+            try {
+                await old.room.disconnect();
+            } catch (error) {
+                console.warn(error);
+            }
+        }
+    }
+
+    // ========================================================
+    // DÉMARRER LECTURE D'UNE PRÉSENCE
+    // ========================================================
+
+    async function startLive(card) {
+
+        if (!card) return;
+
+        if (!window.LivekitClient) {
+
+            card.querySelector(
+                ".af-presence-message"
+            ).textContent =
+                "LiveKit n'est pas chargé.";
+
+            return;
+        }
+
+        const requestId = ++generation;
+
+        const livekit = window.LivekitClient;
+
+        const video = card.querySelector(
+            ".af-presence-video"
+        );
+
+        const audioBox = card.querySelector(
+            ".af-presence-audios"
+        );
+
+        const message = card.querySelector(
+            ".af-presence-message"
+        );
+
+        const soundButton = card.querySelector(
+            ".af-presence-sound"
+        );
+
+        const audios = new Set();
+
+        const state = {
+            card: card,
+            room: null,
+            video: video,
+            audios: audios,
+            sound: false
+        };
+
+        currentConnection = state;
+
+        message.textContent =
+            "Connexion à la présence...";
+
+        soundButton.textContent =
+            "🔊 Activer le son";
+
+        try {
+
+            // ================================================
+            // OBTENIR LE JETON LIVEKIT
+            // ================================================
+
+            const response = await fetch(
+                card.dataset.tokenUrl,
+                {
+                    method: "POST",
+                    credentials: "same-origin",
+                    headers: {
+                        "X-CSRFToken": csrf(),
+                        "X-Requested-With":
+                            "XMLHttpRequest"
+                    }
+                }
+            );
+
+            const contentType = response.headers.get(
+                "content-type"
+            ) || "";
+
+            if (
+                !contentType.includes(
+                    "application/json"
+                )
+            ) {
+                throw new Error(
+                    "Connectez-vous pour regarder la présence."
+                );
+            }
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+
+                throw new Error(
+                    data.erreur ||
+                    "Connexion à la présence impossible."
+                );
+            }
+
+            if (
+                !data.token ||
+                !data.livekit_url
+            ) {
+                throw new Error(
+                    "Configuration LiveKit incomplète."
+                );
+            }
+
+            if (
+                currentConnection !== state ||
+                requestId !== generation
+            ) {
+                return;
+            }
+
+            // ================================================
+            // CRÉER LA SALLE
+            // ================================================
+
+            const room = new livekit.Room({
+                adaptiveStream: true,
+                dynacast: true
+            });
+
+            state.room = room;
+
+            // ================================================
+            // RECEVOIR CAMÉRA ET MICROPHONE
+            // ================================================
+
+            function receiveTrack(track) {
+
+                if (
+                    currentConnection !== state
+                ) {
+                    return;
+                }
+
+                if (
+                    track.kind ===
+                    livekit.Track.Kind.Video
+                ) {
+
+                    track.attach(video);
+
+                    video.muted = true;
+
+                    card.classList.add(
+                        "has-video"
+                    );
+
+                    video.play().catch(
+                        function () {}
+                    );
+
+                } else if (
+                    track.kind ===
+                    livekit.Track.Kind.Audio
+                ) {
+
+                    const audio = track.attach();
+
+                    audio.autoplay = true;
+                    audio.muted = !state.sound;
+
+                    audioBox.appendChild(audio);
+                    audios.add(audio);
+
+                    if (state.sound) {
+
+                        audio.play().catch(
+                            function () {}
+                        );
+                    }
+                }
+            }
+
+            room.on(
+                livekit.RoomEvent.TrackSubscribed,
+                receiveTrack
+            );
+
+            // ================================================
+            // CAMÉRA ARRÊTÉE
+            // ================================================
+
+            room.on(
+                livekit.RoomEvent.TrackUnsubscribed,
+                function (track) {
+
+                    track.detach().forEach(
+                        function (element) {
+
+                            if (element === video) {
+
+                                video.srcObject = null;
+
+                                card.classList.remove(
+                                    "has-video"
+                                );
+
+                                message.textContent =
+                                    "Caméra du Talent interrompue.";
+
+                            } else {
+
+                                audios.delete(element);
+                                element.remove();
+                            }
+                        }
+                    );
+                }
+            );
+
+            // ================================================
+            // CONNEXION LIVEKIT
+            // ================================================
+
+            await room.connect(
+                data.livekit_url,
+                data.token
+            );
+
+            if (
+                currentConnection !== state ||
+                requestId !== generation
+            ) {
+
+                await room.disconnect();
+                return;
+            }
+
+            message.textContent =
+                "En attente de la caméra du Talent...";
+
+            // Vérifier les pistes déjà disponibles.
+
+            room.remoteParticipants.forEach(
+                function (participant) {
+
+                    participant.trackPublications.forEach(
+                        function (publication) {
+
+                            if (
+                                publication.isSubscribed &&
+                                publication.track
+                            ) {
+                                receiveTrack(
+                                    publication.track
+                                );
+                            }
+                        }
+                    );
+                }
+            );
+
+            // ================================================
+            // ACTIVER LE SON
+            // ================================================
+
+            soundButton.onclick = async function () {
+
+                if (
+                    currentConnection !== state
+                ) {
+                    return;
+                }
+
+                if (!state.sound) {
+
+                    try {
+                        await room.startAudio();
+                    } catch (error) {
+                        console.warn(error);
+                    }
+                }
+
+                state.sound = !state.sound;
+
+                for (const audio of audios) {
+
+                    audio.muted = !state.sound;
+
+                    if (state.sound) {
+                        audio.play().catch(
+                            function () {}
+                        );
+                    }
+                }
+
+                soundButton.textContent =
+                    state.sound
+                        ? "🔇 Couper le son"
+                        : "🔊 Activer le son";
+            };
+
+        } catch (error) {
+
+            if (
+                currentConnection === state &&
+                requestId === generation
+            ) {
+
+                message.textContent =
+                    error.message ||
+                    "Diffusion indisponible.";
+
+                console.error(
+                    "AfroFans LiveKit :",
+                    error
+                );
+
+                await stopLive();
+            }
+        }
+    }
+
+    // ========================================================
+    // SÉLECTIONNER LA CARTE ACTIVE
+    // ========================================================
+
+    async function selectCard(card) {
+
+        if (activeCard === card) {
+            return;
+        }
+
+        activeCard = card;
+
+        await stopLive();
+
+        if (activeCard !== card) {
+            return;
+        }
+
+        if (
+            card &&
+            card.classList.contains(
+                "af-feed-presence"
+            ) &&
+            !document.hidden
+        ) {
+            await startLive(card);
+        }
+    }
+
+    // ========================================================
+    // QUAND L'UTILISATEUR DÉFILE
+    // ========================================================
+
+    window.addEventListener(
+        "af:active-card",
+        function (event) {
+
+            selectCard(
+                event.detail.card
+            ).catch(console.error);
+        }
+    );
+
+    // ========================================================
+    // PREMIÈRE CARTE
+    // ========================================================
+
+    const first = feed.querySelector(
+        ".video-card"
+    );
+
+    if (
+        first &&
+        first.classList.contains(
+            "af-feed-presence"
+        )
+    ) {
+        selectCard(first).catch(
+            console.error
+        );
+    }
+
+    // ========================================================
+    // CHANGEMENT D'ONGLET
+    // ========================================================
+
+    document.addEventListener(
+        "visibilitychange",
+        function () {
+
+            if (document.hidden) {
+
+                activeCard = null;
+
+                stopLive().catch(
+                    console.error
+                );
+
+            } else {
+
+                const cards = Array.from(
+                    feed.querySelectorAll(
+                        ".video-card"
+                    )
+                );
+
+                const current = cards.find(
+                    function (card) {
+
+                        const rect =
+                            card.getBoundingClientRect();
+
+                        return (
+                            rect.top <
+                                window.innerHeight * .6 &&
+                            rect.bottom >
+                                window.innerHeight * .4
+                        );
+                    }
+                );
+
+                selectCard(
+                    current || null
+                ).catch(console.error);
+            }
+        }
+    );
+
+    // ========================================================
+    // QUITTER LA PAGE
+    // ========================================================
+
+    window.addEventListener(
+        "pagehide",
+        function () {
+
+            stopLive().catch(
+                function () {}
+            );
+        }
+    );
+
+});
+</script>
+
+{% endblock %}

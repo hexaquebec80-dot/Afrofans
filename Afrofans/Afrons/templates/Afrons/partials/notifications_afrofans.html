@@ -1,0 +1,166 @@
+{% if autorise %}
+
+<style>
+.afn-box {
+    margin: 28px 0;
+    background: #131313;
+    border: 1px solid #333;
+    border-radius: 20px;
+    padding: 25px;
+    color: #fff;
+}
+
+.afn-box * {
+    box-sizing: border-box;
+}
+
+.afn-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 22px;
+}
+
+.afn-header h2 {
+    margin: 0;
+    font-size: 23px;
+    font-weight: 900;
+    color: #fff;
+}
+
+.afn-header h2 span {
+    color: #ff8a00;
+}
+
+.afn-count {
+    background: #34210b;
+    border: 1px solid #704719;
+    border-radius: 30px;
+    padding: 8px 12px;
+    color: #ffb248;
+    font-size: 11px;
+    font-weight: 900;
+}
+
+.afn-card {
+    margin-bottom: 13px;
+    background: #1e1e1e;
+    border: 1px solid #383838;
+    border-left: 4px solid #ff8a00;
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.afn-card.read {
+    opacity: .72;
+    border-left-color: #666;
+}
+
+.afn-official {
+    color: #ffac3d;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 1.1px;
+}
+
+.afn-card h3 {
+    color: #fff;
+    margin: 11px 0;
+    font-size: 17px;
+    font-weight: 900;
+}
+
+.afn-card p {
+    color: #ccc;
+    font-size: 13px;
+    line-height: 1.85;
+    margin: 0 0 14px;
+}
+
+.afn-date {
+    display: block;
+    color: #909090;
+    font-size: 11px;
+}
+
+.afn-btn {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 17px;
+    padding: 12px 18px;
+    border: 0;
+    border-radius: 10px;
+    background: #ff8a00;
+    color: #080808;
+    font-weight: 900;
+    font-size: 12px;
+    cursor: pointer;
+}
+</style>
+
+<section class="afn-box">
+
+    <div class="afn-header">
+
+        <h2>
+            Notifications <span>AfroFans</span>
+        </h2>
+
+        {% if total_non_lues %}
+            <span class="afn-count">
+                {{ total_non_lues }}
+                notification{{ total_non_lues|pluralize }}
+            </span>
+        {% endif %}
+
+    </div>
+
+    {% for item in notifications_officielles %}
+
+        <article class="afn-card {% if item.est_lue %}read{% endif %}">
+
+            <span class="afn-official">
+                MESSAGE OFFICIEL · HEXAQUÉBEC
+            </span>
+
+            <h3>{{ item.titre }}</h3>
+
+            <p>{{ item.contenu }}</p>
+
+            <span class="afn-date">
+                {{ item.cree_le|date:"d/m/Y à H:i" }}
+            </span>
+
+            <form
+                method="post"
+                action="{% url 'Afrons:lire_notification_officielle' item.pk %}"
+            >
+                {% csrf_token %}
+
+                <button class="afn-btn" type="submit">
+
+                    {% if item.type_notification == "evenement_fan" %}
+                        Voir l'événement et acheter un billet →
+                    {% else %}
+                        Voir mon événement →
+                    {% endif %}
+
+                </button>
+            </form>
+
+        </article>
+
+    {% empty %}
+
+        <p style="color:#aaa;font-size:13px;">
+            Aucune notification officielle pour le moment.
+        </p>
+
+    {% endfor %}
+
+</section>
+
+{% endif %}

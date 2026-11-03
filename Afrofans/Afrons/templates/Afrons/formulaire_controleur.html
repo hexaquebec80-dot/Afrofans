@@ -1,0 +1,145 @@
+
+{% extends "Afrons/base.html" %}
+
+{% block title %}
+Inviter un contrôleur | AfroFans
+{% endblock %}
+
+{% block content %}
+
+<style>
+.af-controller-page {
+    max-width: 650px;
+    margin: auto;
+    padding: 110px 18px 90px;
+    color: #fff;
+}
+
+.af-controller-card {
+    padding: 30px;
+    border: 1px solid #333;
+    border-radius: 22px;
+    background: #151515;
+}
+
+.af-controller-page h1 {
+    font-size: 32px;
+}
+
+.af-controller-page p {
+    color: #aaa;
+    line-height: 1.6;
+}
+
+.af-controller-field {
+    margin: 18px 0;
+}
+
+.af-controller-field label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 700;
+    font-size: 13px;
+}
+
+.af-controller-field input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 14px;
+    border: 1px solid #444;
+    border-radius: 11px;
+    background: #222;
+    color: #fff;
+}
+
+.af-controller-btn {
+    width: 100%;
+    padding: 15px;
+    border: 0;
+    border-radius: 11px;
+    background: #ff8a00;
+    color: #111;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.af-controller-error {
+    color: #ff788e;
+    font-size: 12px;
+}
+</style>
+
+<main class="af-controller-page">
+
+    <a
+        href="{% url 'Afrons:tableau_presence' evenement.id %}"
+        style="color:#ff9000"
+    >
+        ← Retour à l'événement
+    </a>
+
+    <h1>Créer un contrôleur</h1>
+
+    <p>
+        Événement :
+        <strong>{{ evenement.titre }}</strong>
+    </p>
+
+    <div class="af-controller-card">
+
+        <p>
+            Renseigne le nom, le prénom,
+            le pays et l'adresse courriel
+            du contrôleur.
+        </p>
+
+        <p>
+            AfroFans lui enverra un lien personnel.
+            Tu devras lui communiquer séparément
+            le code unique de l'événement.
+        </p>
+
+        <form method="post">
+
+            {% csrf_token %}
+
+            {% for champ in formulaire %}
+
+            <div class="af-controller-field">
+
+                <label for="{{ champ.id_for_label }}">
+                    {{ champ.label }}
+                </label>
+
+                {{ champ }}
+
+                {% for erreur in champ.errors %}
+                <div class="af-controller-error">
+                    {{ erreur }}
+                </div>
+                {% endfor %}
+
+            </div>
+
+            {% endfor %}
+
+            {% for erreur in formulaire.non_field_errors %}
+            <div class="af-controller-error">
+                {{ erreur }}
+            </div>
+            {% endfor %}
+
+            <button
+                type="submit"
+                class="af-controller-btn"
+            >
+                Créer et envoyer l'invitation
+            </button>
+
+        </form>
+
+    </div>
+
+</main>
+
+{% endblock %}

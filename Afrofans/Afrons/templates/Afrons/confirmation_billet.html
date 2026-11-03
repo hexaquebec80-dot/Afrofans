@@ -1,0 +1,256 @@
+
+{% extends "Afrons/base.html" %}
+
+{% block title %}
+Mes billets | AfroFans
+{% endblock %}
+
+{% block content %}
+
+<style>
+.af-billets-page {
+    max-width: 950px;
+    margin: auto;
+    padding: 110px 20px 90px;
+    color: #fff;
+}
+
+.af-billets-page h1 {
+    font-size: 34px;
+}
+
+.af-billets-card {
+    background: #151515;
+    border: 1px solid #343434;
+    border-radius: 20px;
+    padding: 25px;
+    margin-top: 20px;
+}
+
+.af-billets-card p {
+    color: #aaa;
+    line-height: 1.7;
+}
+
+.af-billets-grid {
+    display: grid;
+    grid-template-columns: repeat(
+        auto-fit,
+        minmax(260px, 1fr)
+    );
+    gap: 20px;
+}
+
+.af-qr-image {
+    width: 190px;
+    height: 190px;
+    background: #fff;
+    padding: 12px;
+    border-radius: 12px;
+    display: block;
+    margin: 20px auto;
+}
+
+.af-billets-field {
+    display: block;
+    margin-top: 12px;
+    font-size: 13px;
+}
+
+.af-billets-field input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px;
+    border: 1px solid #444;
+    border-radius: 10px;
+    background: #222;
+    color: #fff;
+    margin-top: 7px;
+}
+
+.af-billets-button {
+    margin-top: 15px;
+    padding: 12px 17px;
+    border: 0;
+    border-radius: 10px;
+    background: #ff8a00;
+    color: #111;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.af-billets-status {
+    color: #58d69c;
+}
+</style>
+
+<main class="af-billets-page">
+
+    <small style="color:#ff8a00">
+        AFROFANS — MES BILLETS
+    </small>
+
+    <h1>{{ billet.evenement.titre }}</h1>
+
+    <div class="af-billets-card">
+
+        <p>
+            Référence :
+            <strong>{{ billet.code_billet }}</strong>
+        </p>
+
+        <p>
+            Nombre de places :
+            <strong>{{ billet.quantite }}</strong>
+        </p>
+
+        <p>
+            Montant :
+            <strong>
+                {{ billet.montant_total }}
+                {{ billet.devise }}
+            </strong>
+        </p>
+
+        <p>
+            Statut :
+            <strong>
+                {{ billet.get_statut_display }}
+            </strong>
+        </p>
+
+        {% if billet.statut == "en_attente" %}
+
+        <h2>Paiement en attente</h2>
+
+        <p>
+            Ta réservation n'est pas encore payée.
+        </p>
+
+        {% if blocage %}
+        <p>
+            Expiration :
+            {{ blocage.expire_le|date:"d/m/Y H:i:s" }}
+        </p>
+        {% endif %}
+
+        <p>
+            Termine ton paiement pour recevoir
+            tes billets électroniques.
+        </p>
+
+        <p>
+            Le bouton de paiement de ton prestataire
+            doit être intégré ici.
+        </p>
+
+        {% endif %}
+
+    </div>
+
+    {% if billet.statut == "paye" %}
+
+    <h2 class="af-billets-status">
+        Paiement confirmé
+    </h2>
+
+    <p>
+        Chaque billet possède son propre QR code.
+        Indique le nom et le prénom de chaque
+        participant avant de présenter les billets.
+    </p>
+
+    <div class="af-billets-grid">
+
+        {% for ticket in billets_qr %}
+
+        <section class="af-billets-card">
+
+            <h3>
+                Billet numéro {{ forloop.counter }}
+            </h3>
+
+            <p>
+                Participant :
+                <strong>
+                    {{ ticket.nom_affiche }}
+                </strong>
+            </p>
+
+            <p>
+                Statut :
+                {{ ticket.get_statut_display }}
+            </p>
+
+            {% if ticket.statut != "annule" and ticket.prenom_participant and ticket.nom_participant %}
+
+            <img
+                src="{% url 'Afrons:image_qr_billet' ticket.id %}"
+                alt="QR du billet"
+                class="af-qr-image"
+            >
+
+            {% endif %}
+
+            {% if ticket.statut == "actif" %}
+
+            <form
+                method="post"
+                action="{% url 'Afrons:nommer_participant' ticket.id %}"
+            >
+
+                {% csrf_token %}
+
+                <label class="af-billets-field">
+                    Prénom
+
+                    <input
+                        type="text"
+                        name="prenom"
+                        value="{{ ticket.prenom_participant }}"
+                        maxlength="100"
+                        required
+                    >
+                </label>
+
+                <label class="af-billets-field">
+                    Nom
+
+                    <input
+                        type="text"
+                        name="nom"
+                        value="{{ ticket.nom_participant }}"
+                        maxlength="100"
+                        required
+                    >
+                </label>
+
+                <button
+                    type="submit"
+                    class="af-billets-button"
+                >
+                    Enregistrer le participant
+                </button>
+
+            </form>
+
+            {% endif %}
+
+        </section>
+
+        {% empty %}
+
+        <p>
+            Aucun QR code généré.
+            Vérifie la confirmation du paiement.
+        </p>
+
+        {% endfor %}
+
+    </div>
+
+    {% endif %}
+
+</main>
+
+{% endblock %}

@@ -1,0 +1,2737 @@
+
+{% extends "Afrons/base.html" %}
+
+{% block title %}
+{{ presence.sujet }} | En présence AfroFans
+{% endblock %}
+
+{% block body_class %}af-presence-body{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ============================================================
+   AFROFANS — PRÉSENCE EN DIRECT
+   TALENT : CAMÉRA + MICROPHONE
+   FANS : VIDÉO + AUDIO + INTERACTIONS
+============================================================ */
+
+body.af-presence-body {
+    margin: 0;
+    background: #050506;
+    color: #fff;
+}
+
+.af-live-page {
+    --orange: #ff9100;
+    --gold: #ffc36b;
+    --red: #f32243;
+    --line: #30303b;
+    min-height: 100svh;
+    display: flex;
+    justify-content: center;
+    background: #050506;
+    color: #fff;
+}
+
+.af-live-page *,
+.af-live-page *::before,
+.af-live-page *::after {
+    box-sizing: border-box;
+}
+
+.af-live-page [hidden] {
+    display: none !important;
+}
+
+.af-live-page button,
+.af-live-page input {
+    font: inherit;
+}
+
+.af-live-page button {
+    cursor: pointer;
+}
+
+.af-live-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 460px) minmax(0, 345px);
+    gap: 16px;
+    width: min(100%, 850px);
+    height: 100svh;
+    padding: 0 10px;
+}
+
+.af-live-stage {
+    position: relative;
+    min-width: 0;
+    height: 100%;
+    overflow: hidden;
+    background: #000;
+}
+
+.af-live-media {
+    position: absolute;
+    inset: 0;
+    background: #000;
+}
+
+.af-live-video {
+    display: block;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: #000;
+}
+
+.af-live-waiting {
+    position: absolute;
+    z-index: 2;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 35px;
+    text-align: center;
+    background: radial-gradient(
+        circle at 50% 42%,
+        #4d2613,
+        #111014 55%,
+        #050506
+    );
+}
+
+.af-live-media.is-streaming .af-live-waiting {
+    display: none;
+}
+
+.af-live-camera-icon {
+    display: grid;
+    place-items: center;
+    width: 95px;
+    height: 95px;
+    border: 1px solid #9a6235;
+    border-radius: 50%;
+    background: #ff910019;
+    box-shadow: 0 0 0 14px #ff91000b;
+    color: var(--gold);
+}
+
+.af-live-camera-icon svg {
+    width: 44px;
+    height: 44px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.af-live-waiting strong {
+    font-size: 21px;
+    font-weight: 900;
+}
+
+.af-live-waiting p {
+    max-width: 320px;
+    color: #c2c0c7;
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+.af-live-start-camera {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 47px;
+    max-width: 100%;
+    padding: 12px 18px;
+    border: 0;
+    border-radius: 12px;
+    background: linear-gradient(110deg, #ffc36b, #ff8700);
+    color: #251506;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.af-live-start-camera:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
+.af-live-gradient {
+    position: absolute;
+    z-index: 3;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+        180deg,
+        #000b,
+        transparent 35%,
+        transparent 60%,
+        #000d
+    );
+}
+
+.af-live-header {
+    position: absolute;
+    z-index: 6;
+    top: 17px;
+    left: 12px;
+    right: 12px;
+    display: flex;
+    gap: 9px;
+    align-items: flex-start;
+}
+
+.af-live-host {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 6px 9px;
+    border: 1px solid #ffffff30;
+    border-radius: 30px;
+    background: #000b;
+    backdrop-filter: blur(14px);
+}
+
+.af-live-host-avatar {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    overflow: hidden;
+    border: 3px solid var(--red);
+    border-radius: 50%;
+    background: var(--orange);
+    color: #111;
+    font-weight: 900;
+    text-decoration: none;
+}
+
+.af-live-host-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.af-live-host-name {
+    flex: 1;
+    min-width: 0;
+    color: #fff;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 900;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.af-live-host-name small {
+    display: block;
+    margin-top: 4px;
+    color: var(--gold);
+    font-size: 10px;
+}
+
+.af-live-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+    padding: 7px;
+    border-radius: 7px;
+    background: var(--red);
+    font-size: 9px;
+    font-weight: 900;
+}
+
+.af-live-status::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #fff;
+    animation: af-blink 1.3s infinite;
+}
+
+@keyframes af-blink {
+    50% { opacity: .3; }
+}
+
+.af-live-exit {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #000c;
+    color: #fff;
+    text-decoration: none;
+    font-size: 21px;
+}
+
+.af-live-subheader {
+    position: absolute;
+    z-index: 5;
+    top: 94px;
+    left: 15px;
+    right: 15px;
+}
+
+.af-live-subheader h1 {
+    margin: 0 0 9px;
+    font-size: 17px;
+    line-height: 1.4;
+    text-shadow: 0 2px 8px #000;
+}
+
+.af-live-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 12px;
+    border-radius: 25px;
+    background: #000b;
+    font-size: 12px;
+}
+
+.af-live-stage-actions {
+    position: absolute;
+    z-index: 8;
+    right: 12px;
+    bottom: 100px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 17px;
+}
+
+.af-live-action {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.af-live-action .symbol {
+    display: grid;
+    place-items: center;
+    width: 49px;
+    height: 49px;
+    border: 1px solid #ffffff40;
+    border-radius: 50%;
+    background: #0009;
+    font-size: 25px;
+}
+
+.af-live-action.active .symbol {
+    color: #ff3755;
+}
+
+.af-live-action:disabled {
+    opacity: .4;
+}
+
+.af-live-topic {
+    position: absolute;
+    z-index: 5;
+    bottom: 27px;
+    left: 17px;
+    right: 83px;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.af-live-topic strong {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--gold);
+}
+
+.af-live-more {
+    position: absolute;
+    z-index: 15;
+    top: 77px;
+    right: 15px;
+    width: 220px;
+    padding: 9px;
+    border: 1px solid #45454d;
+    border-radius: 13px;
+    background: #202027;
+    box-shadow: 0 16px 40px #0009;
+}
+
+.af-live-more button {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #fff;
+    text-align: left;
+    font-size: 12px;
+}
+
+.af-live-more button:hover {
+    background: #33333d;
+}
+
+.af-live-more .danger {
+    color: #ff9daf;
+}
+
+.af-live-hearts {
+    position: absolute;
+    z-index: 12;
+    right: 65px;
+    bottom: 145px;
+    pointer-events: none;
+}
+
+.af-live-floating-heart {
+    position: absolute;
+    bottom: 0;
+    color: #ff3755;
+    font-size: 30px;
+    animation: af-heart-rise 1.3s forwards;
+}
+
+@keyframes af-heart-rise {
+    to {
+        opacity: 0;
+        transform: translateY(-170px) scale(1.8);
+    }
+}
+
+/* ============================================================
+   COMMENTAIRES
+============================================================ */
+
+.af-live-chat {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
+    border: 1px solid #292934;
+    border-radius: 16px;
+    background: #131318;
+}
+
+.af-live-chat-header {
+    flex-shrink: 0;
+    padding: 18px;
+    border-bottom: 1px solid #30303a;
+}
+
+.af-live-chat-header h2 {
+    margin: 0 0 5px;
+    font-size: 17px;
+}
+
+.af-live-chat-header small {
+    color: #aaa;
+    font-size: 12px;
+}
+
+.af-live-messages {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 15px;
+}
+
+.af-live-message {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    margin-bottom: 17px;
+}
+
+.af-live-message-avatar {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    overflow: hidden;
+    border-radius: 50%;
+    background: var(--orange);
+    color: #111;
+    font-size: 13px;
+    font-weight: 900;
+    text-decoration: none;
+}
+
+.af-live-message-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.af-live-message-content {
+    flex: 1;
+    min-width: 0;
+    font-size: 13px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+.af-live-message-author {
+    margin-right: 5px;
+    color: var(--gold);
+    font-weight: 900;
+    text-decoration: none;
+}
+
+.af-live-message-sticker {
+    display: block;
+    margin-top: 4px;
+    font-size: 38px;
+}
+
+.af-live-compose {
+    flex-shrink: 0;
+    padding: 13px;
+    border-top: 1px solid #30303a;
+    background: #1b1b23;
+}
+
+.af-live-compose-form {
+    display: flex;
+    gap: 8px;
+}
+
+.af-live-compose-form input {
+    flex: 1;
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid #454550;
+    border-radius: 12px;
+    outline: none;
+    background: #292933;
+    color: #fff;
+    font-size: 13px;
+}
+
+.af-live-compose-form input:focus {
+    border-color: var(--orange);
+}
+
+.af-live-compose-form button {
+    padding: 11px 13px;
+    border: 0;
+    border-radius: 12px;
+    background: var(--orange);
+    color: #111;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.af-live-compose-actions {
+    display: flex;
+    gap: 9px;
+    margin-top: 11px;
+}
+
+.af-live-compose-actions button {
+    flex: 1;
+    padding: 11px;
+    border: 1px solid #444;
+    border-radius: 11px;
+    background: #292933;
+    color: #eee;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.af-live-compose-actions button:disabled,
+.af-live-sticker-button:disabled {
+    opacity: .4;
+    cursor: not-allowed;
+}
+
+.af-live-stickers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 12px;
+}
+
+.af-live-sticker-button {
+    width: 46px;
+    height: 46px;
+    border: 1px solid #454550;
+    border-radius: 11px;
+    background: #30303b;
+    font-size: 25px;
+}
+
+.af-live-finished {
+    position: absolute;
+    z-index: 30;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 35px;
+    background: #000e;
+    text-align: center;
+}
+
+.af-live-finished h2 {
+    margin: 0;
+    font-size: 28px;
+}
+
+.af-live-finished p {
+    color: #bbb;
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+.af-live-finished a {
+    padding: 13px 17px;
+    border-radius: 12px;
+    background: var(--orange);
+    color: #111;
+    font-weight: 900;
+    text-decoration: none;
+}
+
+/* ============================================================
+   RESPONSIVE MOBILE
+============================================================ */
+
+@media (max-width: 760px) {
+
+    .af-live-layout {
+        display: block;
+        width: 100%;
+        height: 100svh;
+        padding: 0;
+    }
+
+    .af-live-stage {
+        width: 100%;
+        height: 100%;
+    }
+
+    .af-live-chat {
+        position: fixed;
+        z-index: 9;
+        left: 10px;
+        right: 82px;
+        bottom: 12px;
+        height: 245px;
+        border: 0;
+        background: transparent;
+        pointer-events: none;
+    }
+
+    .af-live-chat-header {
+        display: none;
+    }
+
+    .af-live-messages {
+        padding: 5px;
+        pointer-events: auto;
+        scrollbar-width: none;
+        mask-image: linear-gradient(
+            transparent,
+            #000 20%
+        );
+    }
+
+    .af-live-message {
+        margin-bottom: 9px;
+        text-shadow: 0 2px 5px #000;
+    }
+
+    .af-live-compose {
+        padding: 5px 0;
+        border: 0;
+        background: transparent;
+        pointer-events: auto;
+    }
+
+    .af-live-compose-form input,
+    .af-live-compose-actions button {
+        background: #000b;
+    }
+
+    .af-live-compose-actions button {
+        padding: 8px 4px;
+        font-size: 11px;
+    }
+
+    .af-live-stickers {
+        padding: 8px;
+        border-radius: 12px;
+        background: #000e;
+    }
+
+    .af-live-topic {
+        bottom: 275px;
+    }
+
+    .af-live-stage-actions {
+        bottom: 35px;
+    }
+
+    .af-live-host {
+        padding: 5px;
+    }
+
+    .af-live-status {
+        padding: 6px;
+        font-size: 8px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .af-live-status::before,
+    .af-live-floating-heart {
+        animation: none;
+    }
+}
+
+/* =====================================================
+   AFROFANS — DONS
+===================================================== */
+
+.af-donation-panel {
+    position: fixed;
+    z-index: 9999;
+    left: 50%;
+    top: 50%;
+    width: min(360px, calc(100vw - 30px));
+    padding: 23px;
+    transform: translate(-50%, -50%);
+    border: 1px solid #805224;
+    border-radius: 17px;
+    background: #1b1b23;
+    color: white;
+    box-shadow: 0 20px 70px #000c;
+}
+
+.af-donation-panel[hidden] {
+    display: none !important;
+}
+
+.af-donation-panel h3 {
+    margin: 0 0 12px;
+    color: #ffc36b;
+}
+
+.af-donation-panel p {
+    margin: 10px 0 16px;
+    color: #c7c7c7;
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+.af-donation-amounts {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.af-donation-amounts button,
+#af-donation-close {
+    padding: 13px;
+    border: 1px solid #6c4e29;
+    border-radius: 10px;
+    background: #ff9100;
+    color: #111;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+#af-donation-close {
+    width: 100%;
+    margin-top: 15px;
+    background: #34343c;
+    color: white;
+}
+
+#af-donation-message {
+    min-height: 18px;
+    color: #ffc36b;
+}
+
+</style>
+{% endblock %}
+
+{% block content %}
+
+<main class="af-live-page">
+
+    <div
+        class="af-live-layout"
+        id="af-live-app"
+        data-presence-id="{{ presence.pk }}"
+        data-presence-active="{{ presence.est_active|yesno:'true,false' }}"
+        data-presence-sujet="{{ presence.sujet }}"
+        data-is-talent="{% if user.is_authenticated and user.pk == presence.talent.pk %}true{% else %}false{% endif %}"
+        data-is-authenticated="{{ user.is_authenticated|yesno:'true,false' }}"
+        data-token-url="{% url 'Afrons:presence_livekit_token' presence.pk %}"
+        data-etat-url="{% url 'Afrons:presence_etat' presence.pk %}"
+        data-heartbeat-url="{% url 'Afrons:presence_heartbeat' presence.pk %}"
+        data-interaction-url="{% url 'Afrons:presence_interaction' presence.pk %}"
+        data-terminer-url="{% url 'Afrons:terminer_presence' presence.pk %}"
+        data-profil-modele="{% url 'Afrons:profil_public' 'afusername123' %}"
+    >
+
+        <!-- ====================================================
+             CAMÉRA ET MICROPHONE LIVEKIT
+        ===================================================== -->
+
+        <section class="af-live-stage">
+
+            <div
+                class="af-live-media"
+                id="af-live-media"
+            >
+
+                <video
+                    id="af-live-video"
+                    class="af-live-video"
+                    autoplay
+                    playsinline
+                ></video>
+
+                <div
+                    id="af-live-audio-container"
+                    hidden
+                ></div>
+
+                <div
+                    class="af-live-waiting"
+                    id="af-live-waiting"
+                >
+
+                    <div class="af-live-camera-icon">
+
+                        <svg viewBox="0 0 24 24">
+                            <rect
+                                x="3"
+                                y="6"
+                                width="13"
+                                height="12"
+                                rx="3"
+                            />
+                            <path d="m16 10 5-3v10l-5-3"/>
+                        </svg>
+
+                    </div>
+
+                    <strong>
+                        {% if user == presence.talent %}
+                            Votre présence AfroFans
+                        {% else %}
+                            Présence de @{{ presence.talent.username }}
+                        {% endif %}
+                    </strong>
+
+                    <p id="af-live-media-message">
+                        {% if user == presence.talent %}
+                            Activez votre caméra et votre
+                            microphone pour parler à vos fans.
+                        {% else %}
+                            Connexion à la caméra du Talent...
+                        {% endif %}
+                    </p>
+
+                    {% if user == presence.talent %}
+
+                    <button
+                        type="button"
+                        id="af-live-start-camera"
+                        class="af-live-start-camera"
+                    >
+                        🎥 Activer caméra et microphone
+                    </button>
+
+                    {% else %}
+
+                    <button
+                        type="button"
+                        id="af-live-retry"
+                        class="af-live-start-camera"
+                        hidden
+                    >
+                        Réessayer la connexion
+                    </button>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+            <div class="af-live-gradient"></div>
+
+            <!-- =================================================
+                 TALENT ET PHOTO DE PROFIL
+            ================================================== -->
+
+            <div class="af-live-header">
+
+                <div class="af-live-host">
+
+                    <a
+                        class="af-live-host-avatar"
+                        href="{% url 'Afrons:profil_public' presence.talent.username %}"
+                    >
+
+                        {% if presence.talent.profil.avatar %}
+
+                        <img
+                            src="{{ presence.talent.profil.avatar.url }}"
+                            alt="{{ presence.talent.username }}"
+                        >
+
+                        {% else %}
+
+                        {{ presence.talent.username|first|upper }}
+
+                        {% endif %}
+
+                    </a>
+
+                    <a
+                        class="af-live-host-name"
+                        href="{% url 'Afrons:profil_public' presence.talent.username %}"
+                    >
+
+                        @{{ presence.talent.username }}
+
+                        <small>Talent AfroFans</small>
+
+                    </a>
+
+                    <span
+                        class="af-live-status"
+                        id="af-live-status"
+                    >
+                        EN PRÉSENCE
+                    </span>
+
+                </div>
+
+                <a
+                    class="af-live-exit"
+                    href="{% url 'Afrons:presences' %}"
+                    title="Quitter"
+                >
+                    ✕
+                </a>
+
+            </div>
+
+            <!-- =================================================
+                 SUJET ET SPECTATEURS
+            ================================================== -->
+
+            <div class="af-live-subheader">
+
+                <h1>{{ presence.sujet }}</h1>
+
+                <div class="af-live-count">
+
+                    👥
+
+                    <strong id="af-live-viewers">
+                        {{ nombre_spectateurs }}
+                    </strong>
+
+                    personnes présentes
+
+                </div>
+
+            </div>
+
+            <!-- =================================================
+                 MENU
+            ================================================== -->
+
+            <div
+                class="af-live-more"
+                id="af-live-more"
+                hidden
+            >
+
+                <button
+                    type="button"
+                    id="af-live-copy"
+                >
+                    Copier le lien
+                </button>
+
+                <button
+                    type="button"
+                    id="af-live-mute"
+                >
+                    Activer / couper le son
+                </button>
+
+                {% if user == presence.talent %}
+
+                <button
+                    type="button"
+                    id="af-live-end"
+                    class="danger"
+                >
+                    Terminer ma présence
+                </button>
+
+                {% endif %}
+
+            </div>
+
+            <!-- =================================================
+                 ACTIONS
+            ================================================== -->
+
+            <div class="af-live-stage-actions">
+
+                <button
+                    type="button"
+                    class="af-live-action"
+                    id="af-live-like"
+                    aria-label="J'aime"
+                >
+
+                    <span class="symbol">♥</span>
+
+                    <strong id="af-live-like-count">
+                        {{ nombre_jaimes }}
+                    </strong>
+
+                </button>
+
+                <button
+                    type="button"
+                    class="af-live-action"
+                    id="af-live-show-stickers"
+                >
+
+                    <span class="symbol">🎁</span>
+
+                    Stickers
+
+                </button>
+
+                <button
+                    type="button"
+                    class="af-live-action"
+                    id="af-live-share"
+                >
+
+                    <span class="symbol">➤</span>
+
+                    Partager
+
+                </button>
+
+                <button
+                    type="button"
+                    class="af-live-action"
+                    id="af-live-options"
+                >
+
+                    <span class="symbol">⋯</span>
+
+                    Menu
+
+                </button>
+
+            </div>
+
+            <div
+                class="af-live-hearts"
+                id="af-live-hearts"
+            ></div>
+
+            <div class="af-live-topic">
+
+                <strong>Sujet de la présence</strong>
+
+                {{ presence.sujet }}
+
+            </div>
+
+            <!-- =================================================
+                 PRÉSENCE TERMINÉE
+            ================================================== -->
+
+            <div
+                class="af-live-finished"
+                id="af-live-finished"
+                {% if presence.est_active %}hidden{% endif %}
+            >
+
+                <h2>Présence terminée</h2>
+
+                <p>
+                    Le Talent a terminé sa présence.
+                    Découvrez les autres présences
+                    disponibles sur AfroFans.
+                </p>
+
+                <a href="{% url 'Afrons:presences' %}">
+                    Voir les autres présences
+                </a>
+
+            </div>
+
+        </section>
+
+        <!-- =====================================================
+             COMMUNAUTÉ ET COMMENTAIRES
+        ====================================================== -->
+
+        <aside class="af-live-chat">
+
+            <header class="af-live-chat-header">
+
+                <h2>Communauté en présence</h2>
+
+                <small>
+                    Discutez avec le Talent et les fans.
+                </small>
+
+            </header>
+
+            <div
+                class="af-live-messages"
+                id="af-live-messages"
+                aria-live="polite"
+            ></div>
+
+            <div class="af-live-compose">
+
+                {% if user.is_authenticated %}
+
+                <form
+                    class="af-live-compose-form"
+                    id="af-live-comment-form"
+                >
+
+                    {% csrf_token %}
+
+                    <input
+                        type="text"
+                        id="af-live-comment"
+                        maxlength="500"
+                        placeholder="Écrire un commentaire..."
+                        autocomplete="off"
+                        required
+                    >
+
+                    <button type="submit">
+                        Envoyer
+                    </button>
+
+                </form>
+
+                {% else %}
+
+                <a
+                    href="{% url 'Afrons:connexion' %}?next={{ request.path|urlencode }}"
+                    style="color:#ff9100"
+                >
+                    Connectez-vous pour participer.
+                </a>
+
+                {% endif %}
+
+                <div class="af-live-compose-actions">
+
+                    <button
+                        type="button"
+                        id="af-live-sticker-toggle"
+                    >
+                        😊 Stickers
+                    </button>
+
+                    
+<!-- =====================================================
+     AFROFANS — PANNEAU DE DON
+===================================================== -->
+
+<div
+    id="af-donation-panel"
+    class="af-donation-panel"
+    role="dialog"
+    aria-modal="false"
+    aria-labelledby="af-donation-title"
+    hidden
+>
+
+    <h3 id="af-donation-title">
+        💛 Soutenir ce Talent
+    </h3>
+
+    <p>
+        Choisissez le montant de votre don.
+        Le paiement sécurisé sera effectué
+        avec Stripe.
+    </p>
+
+    <div class="af-donation-amounts">
+
+        <button type="button" data-montant="2">2 $</button>
+        <button type="button" data-montant="5">5 $</button>
+        <button type="button" data-montant="10">10 $</button>
+        <button type="button" data-montant="20">20 $</button>
+
+    </div>
+
+    <p id="af-donation-message" role="status"></p>
+
+    <button
+        type="button"
+        id="af-donation-close"
+    >
+        Fermer
+    </button>
+
+</div>
+
+<button
+    type="button"
+    id="af-live-donation"
+    aria-haspopup="dialog"
+    aria-controls="af-donation-panel"
+>
+    💛 Faire un don
+</button>
+                </div>
+
+<!-- =============================================
+     AFROFANS — NOUVEAUX STICKERS
+============================================= -->
+
+<div
+    class="af-live-stickers"
+    id="af-live-stickers"
+    hidden
+>
+
+    <button type="button"
+        class="af-live-sticker-button"
+        data-sticker="lion"
+        title="Lion">
+        🦁
+    </button>
+
+    <button type="button"
+        class="af-live-sticker-button"
+        data-sticker="sapin"
+        title="Sapin">
+        🌲
+    </button>
+
+    <button type="button"
+        class="af-live-sticker-button"
+        data-sticker="roi"
+        title="Roi">
+        👑
+    </button>
+
+    <button type="button"
+        class="af-live-sticker-button"
+        data-sticker="montre"
+        title="Montre">
+        ⌚
+    </button>
+
+    <button type="button"
+        class="af-live-sticker-button"
+        data-sticker="lunettes"
+        title="Lunettes">
+        🕶️
+    </button>
+
+    <button type="button"
+        class="af-live-sticker-button"
+        data-sticker="chaine"
+        title="Chaîne autour du cou">
+        📿
+    </button>
+
+    <button type="button"
+        class="af-live-sticker-button"
+        data-sticker="livre"
+        title="Livre">
+        📖
+    </button>
+
+</div>
+
+            </div>
+
+        </aside>
+
+    </div>
+
+</main>
+
+{% endblock %}
+
+{% block extra_js %}
+
+<!--
+    LIVEKIT :
+    Utiliser une version UMD du SDK LiveKit Client.
+    Ce fichier doit être disponible dans le navigateur.
+-->
+
+<script src="https://cdn.jsdelivr.net/npm/livekit-client@2/dist/livekit-client.umd.min.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    "use strict";
+
+    // ========================================================
+    // 1. ÉLÉMENTS PRINCIPAUX
+    // ========================================================
+
+    const $ = (id) => document.getElementById(id);
+
+    const app = $("af-live-app");
+    if (!app) return;
+
+    const media = $("af-live-media");
+    const video = $("af-live-video");
+    const mediaMessage = $("af-live-media-message");
+    const startCameraButton = $("af-live-start-camera");
+    const retryButton = $("af-live-retry");
+    const audioContainer = $("af-live-audio-container");
+
+    const messagesBox = $("af-live-messages");
+    const viewers = $("af-live-viewers");
+    const likeCount = $("af-live-like-count");
+    const likeButton = $("af-live-like");
+
+    const form = $("af-live-comment-form");
+    const commentInput = $("af-live-comment");
+
+    const stickers = $("af-live-stickers");
+    const finished = $("af-live-finished");
+    const more = $("af-live-more");
+    const status = $("af-live-status");
+
+    // ========================================================
+    // 2. DONS — ÉLÉMENTS
+    // ========================================================
+
+    const donationButton = $("af-live-donation");
+    const donationPanel = $("af-donation-panel");
+    const donationClose = $("af-donation-close");
+    const donationMessage = $("af-donation-message");
+
+    // ========================================================
+    // 3. CONFIGURATION
+    // ========================================================
+
+    const isTalent = app.dataset.isTalent === "true";
+
+    const isAuthenticated =
+        app.dataset.isAuthenticated === "true";
+
+    let active = app.dataset.presenceActive === "true";
+
+    let lastMessageId = 0;
+    let polling = false;
+    let heartbeatRunning = false;
+
+    let room = null;
+    let connecting = false;
+    let connected = false;
+    let audioMuted = false;
+
+    const remoteAudio = new Set();
+
+    const urls = {
+        token: app.dataset.tokenUrl,
+        etat: app.dataset.etatUrl,
+        heartbeat: app.dataset.heartbeatUrl,
+        interaction: app.dataset.interactionUrl,
+        terminer: app.dataset.terminerUrl
+    };
+
+    const modeleProfil = app.dataset.profilModele;
+
+    // ========================================================
+    // 4. CSRF
+    // ========================================================
+
+    function csrf() {
+
+        const input = document.querySelector(
+            '[name="csrfmiddlewaretoken"]'
+        );
+
+        if (input) return input.value;
+
+        const match = document.cookie.match(
+            /(?:^|;\s*)csrftoken=([^;]+)/
+        );
+
+        return match
+            ? decodeURIComponent(match[1])
+            : "";
+    }
+
+    // ========================================================
+    // 5. AJAX POST
+    // ========================================================
+
+    async function envoyer(url, data = {}) {
+
+        const response = await fetch(url, {
+            method: "POST",
+            credentials: "same-origin",
+            headers: {
+                "X-CSRFToken": csrf(),
+                "X-Requested-With": "XMLHttpRequest",
+                "Content-Type":
+                    "application/x-www-form-urlencoded"
+            },
+            body: new URLSearchParams(data).toString()
+        });
+
+        const type = response.headers.get(
+            "content-type"
+        ) || "";
+
+        if (!type.includes("application/json")) {
+
+            throw new Error(
+                "Réponse inattendue du serveur Django."
+            );
+        }
+
+        const result = await response.json();
+
+        if (!response.ok || result.success === false) {
+
+            throw new Error(
+                result.erreur ||
+                result.message ||
+                "Action impossible."
+            );
+        }
+
+        return result;
+    }
+
+    // ========================================================
+    // 6. AFFICHAGE DE LA CAMÉRA
+    // ========================================================
+
+    function afficherMessageMedia(message) {
+
+        if (mediaMessage) {
+            mediaMessage.textContent = message;
+        }
+    }
+
+    function afficherVideo() {
+
+        if (media) {
+            media.classList.add("is-streaming");
+        }
+    }
+
+    function afficherAttente() {
+
+        if (media) {
+            media.classList.remove("is-streaming");
+        }
+    }
+
+    // ========================================================
+    // 7. LIVEKIT — RÉCUPÉRER LE TOKEN
+    // ========================================================
+
+    async function obtenirToken() {
+
+        const response = await fetch(urls.token, {
+            method: "POST",
+            credentials: "same-origin",
+            headers: {
+                "X-CSRFToken": csrf(),
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        });
+
+        const type = response.headers.get(
+            "content-type"
+        ) || "";
+
+        if (!type.includes("application/json")) {
+
+            throw new Error(
+                "Connexion AfroFans requise."
+            );
+        }
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+
+            throw new Error(
+                data.erreur ||
+                "Impossible de rejoindre la présence."
+            );
+        }
+
+        if (!data.livekit_url || !data.token) {
+
+            throw new Error(
+                "Configuration LiveKit incomplète."
+            );
+        }
+
+        return data;
+    }
+
+    // ========================================================
+    // 8. RECEVOIR LES PISTES LIVEKIT
+    // ========================================================
+
+    function recevoirPiste(track) {
+
+        if (isTalent || !window.LivekitClient) return;
+
+        const livekit = window.LivekitClient;
+
+        if (track.kind === livekit.Track.Kind.Video) {
+
+            track.attach(video);
+
+            afficherVideo();
+
+            video.play().catch(function () {
+
+                afficherMessageMedia(
+                    "Touchez la vidéo pour la lancer."
+                );
+            });
+
+        } else if (
+            track.kind === livekit.Track.Kind.Audio
+        ) {
+
+            const audio = track.attach();
+
+            audio.autoplay = true;
+            audio.muted = audioMuted;
+
+            audioContainer.appendChild(audio);
+            remoteAudio.add(audio);
+
+            audio.play().catch(function () {
+
+                afficherMessageMedia(
+                    "Cliquez sur Activer le son dans le menu."
+                );
+            });
+        }
+    }
+
+    function retirerPiste(track) {
+
+        const elements = track.detach();
+
+        elements.forEach(function (element) {
+
+            if (element === video) {
+
+                video.srcObject = null;
+
+            } else {
+
+                remoteAudio.delete(element);
+                element.remove();
+            }
+        });
+
+        if (
+            !isTalent &&
+            window.LivekitClient &&
+            track.kind ===
+                window.LivekitClient.Track.Kind.Video
+        ) {
+
+            afficherAttente();
+
+            afficherMessageMedia(
+                "Caméra du Talent interrompue."
+            );
+        }
+    }
+
+    // ========================================================
+    // 9. CONNEXION À LIVEKIT
+    // ========================================================
+
+    async function connecterPresence() {
+
+        if (!active || connected || connecting) {
+            return;
+        }
+
+        if (!window.LivekitClient) {
+
+            afficherMessageMedia(
+                "Le module LiveKit est indisponible."
+            );
+
+            return;
+        }
+
+        connecting = true;
+
+        if (startCameraButton) {
+            startCameraButton.disabled = true;
+        }
+
+        if (retryButton) {
+            retryButton.hidden = true;
+        }
+
+        try {
+
+            afficherMessageMedia(
+                "Connexion à la présence AfroFans..."
+            );
+
+            const data = await obtenirToken();
+            const livekit = window.LivekitClient;
+
+            room = new livekit.Room({
+                adaptiveStream: true,
+                dynacast: true
+            });
+
+            room.on(
+                livekit.RoomEvent.TrackSubscribed,
+                recevoirPiste
+            );
+
+            room.on(
+                livekit.RoomEvent.TrackUnsubscribed,
+                retirerPiste
+            );
+
+            room.on(
+                livekit.RoomEvent.Disconnected,
+                function () {
+
+                    connected = false;
+
+                    if (active) {
+
+                        afficherAttente();
+
+                        afficherMessageMedia(
+                            "Connexion interrompue."
+                        );
+
+                        if (retryButton && !isTalent) {
+                            retryButton.hidden = false;
+                        }
+                    }
+                }
+            );
+
+            await room.connect(
+                data.livekit_url,
+                data.token
+            );
+
+            connected = true;
+
+            // TALENT : ACTIVER CAMÉRA ET MICROPHONE
+
+            if (isTalent && data.est_talent) {
+
+                afficherMessageMedia(
+                    "Activation de votre caméra et microphone..."
+                );
+
+                await room.localParticipant
+                    .enableCameraAndMicrophone();
+
+                const publication =
+                    room.localParticipant
+                        .getTrackPublication(
+                            livekit.Track.Source.Camera
+                        );
+
+                if (
+                    publication &&
+                    publication.track
+                ) {
+
+                    publication.track.attach(video);
+
+                    video.muted = true;
+
+                    await video.play().catch(
+                        function () {}
+                    );
+
+                    afficherVideo();
+                }
+
+                afficherMessageMedia(
+                    "Votre caméra est active. " +
+                    "Vos fans peuvent vous voir et vous entendre."
+                );
+
+            } else if (!isTalent) {
+
+                afficherMessageMedia(
+                    "En attente de la caméra du Talent..."
+                );
+
+                room.remoteParticipants.forEach(
+                    function (participant) {
+
+                        participant.trackPublications.forEach(
+                            function (publication) {
+
+                                if (
+                                    publication.isSubscribed &&
+                                    publication.track
+                                ) {
+
+                                    recevoirPiste(
+                                        publication.track
+                                    );
+                                }
+                            }
+                        );
+                    }
+                );
+            }
+
+        } catch (error) {
+
+            console.error(
+                "AfroFans LiveKit :",
+                error
+            );
+
+            afficherAttente();
+
+            afficherMessageMedia(
+                error.message ||
+                "Impossible de connecter la caméra."
+            );
+
+            if (room) {
+                await room.disconnect();
+                room = null;
+            }
+
+            connected = false;
+
+            if (retryButton && !isTalent) {
+                retryButton.hidden = false;
+            }
+
+        } finally {
+
+            connecting = false;
+
+            if (startCameraButton && !connected) {
+                startCameraButton.disabled = false;
+            }
+        }
+    }
+
+    // ========================================================
+    // 10. FERMER LIVEKIT
+    // ========================================================
+
+    async function fermerLiveKit() {
+
+        const ancienneRoom = room;
+
+        room = null;
+        connected = false;
+
+        if (ancienneRoom) {
+
+            if (isTalent) {
+
+                await ancienneRoom.localParticipant
+                    .setCameraEnabled(false);
+
+                await ancienneRoom.localParticipant
+                    .setMicrophoneEnabled(false);
+            }
+
+            await ancienneRoom.disconnect();
+        }
+
+        remoteAudio.forEach(function (element) {
+            element.remove();
+        });
+
+        remoteAudio.clear();
+
+        if (video) {
+            video.srcObject = null;
+        }
+
+        afficherAttente();
+    }
+
+    if (startCameraButton) {
+
+        startCameraButton.addEventListener(
+            "click",
+            connecterPresence
+        );
+    }
+
+    if (retryButton) {
+
+        retryButton.addEventListener(
+            "click",
+            connecterPresence
+        );
+    }
+
+    // ========================================================
+    // 11. ACTIVER / COUPER LE SON
+    // ========================================================
+
+    async function changerSon() {
+
+        if (!room || !window.LivekitClient) return;
+
+        const livekit = window.LivekitClient;
+
+        if (isTalent) {
+
+            const publication =
+                room.localParticipant
+                    .getTrackPublication(
+                        livekit.Track.Source.Microphone
+                    );
+
+            if (!publication || !publication.track) {
+                return;
+            }
+
+            const track = publication.track;
+
+            if (track.isMuted) {
+                await track.unmute();
+            } else {
+                await track.mute();
+            }
+
+        } else {
+
+            audioMuted = !audioMuted;
+
+            if (!audioMuted) {
+
+                await room.startAudio().catch(
+                    console.error
+                );
+            }
+
+            remoteAudio.forEach(function (audio) {
+
+                audio.muted = audioMuted;
+
+                if (!audioMuted) {
+
+                    audio.play().catch(
+                        console.error
+                    );
+                }
+            });
+        }
+    }
+
+    const muteButton = $("af-live-mute");
+
+    if (muteButton) {
+
+        muteButton.addEventListener(
+            "click",
+            async function () {
+
+                await changerSon();
+
+                if (more) {
+                    more.hidden = true;
+                }
+            }
+        );
+    }
+
+    // ========================================================
+    // 12. PROFIL PUBLIC
+    // ========================================================
+
+    function profilUrl(username) {
+
+        if (!username || !modeleProfil) return null;
+
+        return modeleProfil.replace(
+            "afusername123",
+            encodeURIComponent(username)
+        );
+    }
+
+    // ========================================================
+    // 13. AFFICHER COMMENTAIRES ET STICKERS
+    // ========================================================
+
+    function afficherMessage(message) {
+
+        if (!messagesBox) return;
+
+        const auteur = String(
+            message.auteur || ""
+        );
+
+        const url = profilUrl(auteur);
+
+        const ligne = document.createElement("div");
+        ligne.className = "af-live-message";
+
+        const avatar = document.createElement(
+            url ? "a" : "div"
+        );
+
+        avatar.className = "af-live-message-avatar";
+
+        if (url) {
+            avatar.href = url;
+        }
+
+        if (
+            typeof message.avatar === "string" &&
+            message.avatar.startsWith("/") &&
+            !message.avatar.startsWith("//")
+        ) {
+
+            const img = document.createElement("img");
+
+            img.src = message.avatar;
+            img.alt = auteur;
+            img.loading = "lazy";
+
+            avatar.appendChild(img);
+
+        } else {
+
+            avatar.textContent =
+                auteur.charAt(0).toUpperCase() || "?";
+        }
+
+        const contenu = document.createElement("div");
+
+        contenu.className = "af-live-message-content";
+
+        const nom = document.createElement(
+            url ? "a" : "strong"
+        );
+
+        nom.className = "af-live-message-author";
+
+        nom.textContent =
+            "@" + (auteur || "Utilisateur");
+
+        if (url) {
+            nom.href = url;
+        }
+
+        contenu.appendChild(nom);
+
+        if (message.type === "sticker") {
+
+            const sticker = document.createElement("span");
+
+            sticker.className = "af-live-message-sticker";
+
+            const emojis = {
+                coeur: "❤️",
+                flamme: "🔥",
+                couronne: "👑",
+                applaudissement: "👏",
+                etoile: "⭐",
+                rose: "🌹"
+            };
+
+            sticker.textContent =
+                emojis[message.sticker] ||
+                message.sticker ||
+                "🎁";
+
+            contenu.appendChild(sticker);
+
+        } else {
+
+            const texte = document.createElement("span");
+
+            texte.textContent =
+                " " + (message.contenu || "");
+
+            contenu.appendChild(texte);
+        }
+
+        ligne.appendChild(avatar);
+        ligne.appendChild(contenu);
+
+        messagesBox.appendChild(ligne);
+
+        while (messagesBox.children.length > 100) {
+            messagesBox.firstElementChild.remove();
+        }
+
+        messagesBox.scrollTop = messagesBox.scrollHeight;
+    }
+
+    // ========================================================
+    // 14. TERMINER L'AFFICHAGE
+    // ========================================================
+
+    function terminerAffichage() {
+
+        if (!active && finished && !finished.hidden) {
+            return;
+        }
+
+        active = false;
+
+        if (finished) finished.hidden = false;
+
+        if (status) {
+            status.textContent = "TERMINÉE";
+            status.style.background = "#555";
+        }
+
+        if (form) {
+
+            form.querySelectorAll(
+                "input, button"
+            ).forEach(function (element) {
+
+                element.disabled = true;
+            });
+        }
+
+        if (likeButton) {
+            likeButton.disabled = true;
+        }
+
+        if (stickers) {
+            stickers.hidden = true;
+        }
+
+        document.querySelectorAll(
+            ".af-live-sticker-button"
+        ).forEach(function (button) {
+
+            button.disabled = true;
+        });
+
+        if (donationButton) {
+            donationButton.disabled = true;
+        }
+
+        if (donationPanel) {
+            donationPanel.hidden = true;
+        }
+
+        fermerLiveKit().catch(console.error);
+    }
+
+    // ========================================================
+    // 15. ACTUALISER ÉTAT ET MESSAGES
+    // ========================================================
+
+    async function chargerEtat() {
+
+        if (polling) return;
+
+        polling = true;
+
+        try {
+
+            const response = await fetch(
+                urls.etat +
+                "?apres=" +
+                lastMessageId,
+                {
+                    credentials: "same-origin",
+                    cache: "no-store"
+                }
+            );
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Impossible de charger la présence."
+                );
+            }
+
+            const data = await response.json();
+
+            if (
+                viewers &&
+                typeof data.spectateurs === "number"
+            ) {
+                viewers.textContent = data.spectateurs;
+            }
+
+            if (
+                likeCount &&
+                typeof data.jaimes === "number"
+            ) {
+                likeCount.textContent = data.jaimes;
+            }
+
+            if (Array.isArray(data.messages)) {
+
+                for (const message of data.messages) {
+
+                    const id = Number(message.id);
+
+                    if (id > lastMessageId) {
+
+                        afficherMessage(message);
+                        lastMessageId = id;
+                    }
+                }
+            }
+
+            if (data.est_active === false && active) {
+                terminerAffichage();
+            }
+
+        } catch (error) {
+
+            console.error(error);
+
+        } finally {
+
+            polling = false;
+        }
+    }
+
+    // ========================================================
+    // 16. HEARTBEAT
+    // ========================================================
+
+    async function heartbeat() {
+
+        if (!active || heartbeatRunning) return;
+
+        heartbeatRunning = true;
+
+        try {
+
+            const data = await envoyer(
+                urls.heartbeat
+            );
+
+            if (
+                viewers &&
+                typeof data.spectateurs === "number"
+            ) {
+                viewers.textContent = data.spectateurs;
+            }
+
+            if (data.est_active === false) {
+                terminerAffichage();
+            }
+
+        } catch (error) {
+
+            console.error(error);
+
+        } finally {
+
+            heartbeatRunning = false;
+        }
+    }
+
+    // ========================================================
+    // 17. COMMENTAIRES
+    // ========================================================
+
+    if (form && commentInput) {
+
+        form.addEventListener(
+            "submit",
+            async function (event) {
+
+                event.preventDefault();
+
+                if (!active) return;
+
+                const contenu = commentInput.value.trim();
+
+                if (!contenu) return;
+
+                const button = form.querySelector(
+                    'button[type="submit"]'
+                );
+
+                if (button) button.disabled = true;
+
+                try {
+
+                    await envoyer(
+                        urls.interaction,
+                        {
+                            action: "commentaire",
+                            contenu: contenu
+                        }
+                    );
+
+                    commentInput.value = "";
+
+                    await chargerEtat();
+
+                } catch (error) {
+
+                    alert(error.message);
+
+                } finally {
+
+                    if (button) button.disabled = !active;
+                }
+            }
+        );
+    }
+
+    // ========================================================
+    // 18. STICKERS
+    // ========================================================
+
+    function toggleStickers() {
+
+        if (!active || !stickers) return;
+
+        if (!isAuthenticated) {
+
+            window.location.href =
+                "{% url 'Afrons:connexion' %}?next=" +
+                encodeURIComponent(window.location.pathname);
+
+            return;
+        }
+
+        stickers.hidden = !stickers.hidden;
+    }
+
+    const stickerToggle = $("af-live-sticker-toggle");
+    const stickerShow = $("af-live-show-stickers");
+
+    if (stickerToggle) {
+
+        stickerToggle.addEventListener(
+            "click",
+            toggleStickers
+        );
+    }
+
+    if (stickerShow) {
+
+        stickerShow.addEventListener(
+            "click",
+            toggleStickers
+        );
+    }
+
+    document.querySelectorAll(
+        ".af-live-sticker-button"
+    ).forEach(function (button) {
+
+        button.addEventListener(
+            "click",
+            async function () {
+
+                if (!active || button.disabled) return;
+
+                button.disabled = true;
+
+                try {
+
+                    await envoyer(
+                        urls.interaction,
+                        {
+                            action: "sticker",
+                            sticker: button.dataset.sticker
+                        }
+                    );
+
+                    stickers.hidden = true;
+
+                    await chargerEtat();
+
+                } catch (error) {
+
+                    alert(error.message);
+
+                } finally {
+
+                    button.disabled = !active;
+                }
+            }
+        );
+    });
+
+    // ========================================================
+    // 19. ANIMATION DES COEURS
+    // ========================================================
+
+    function afficherCoeur() {
+
+        const zone = $("af-live-hearts");
+
+        if (!zone) return;
+
+        const coeur = document.createElement("span");
+
+        coeur.className = "af-live-floating-heart";
+        coeur.textContent = "♥";
+
+        zone.appendChild(coeur);
+
+        window.setTimeout(function () {
+            coeur.remove();
+        }, 1300);
+    }
+
+    // ========================================================
+    // 20. J'AIME
+    // ========================================================
+
+    if (likeButton) {
+
+        likeButton.addEventListener(
+            "click",
+            async function () {
+
+                if (!active || likeButton.disabled) return;
+
+                if (!isAuthenticated) {
+
+                    window.location.href =
+                        "{% url 'Afrons:connexion' %}?next=" +
+                        encodeURIComponent(
+                            window.location.pathname
+                        );
+
+                    return;
+                }
+
+                likeButton.disabled = true;
+
+                try {
+
+                    const data = await envoyer(
+                        urls.interaction,
+                        {action: "jaime"}
+                    );
+
+                    if (likeCount) {
+                        likeCount.textContent = data.total;
+                    }
+
+                    likeButton.classList.toggle(
+                        "active",
+                        Boolean(data.actif)
+                    );
+
+                    if (data.actif) {
+                        afficherCoeur();
+                    }
+
+                } catch (error) {
+
+                    alert(error.message);
+
+                } finally {
+
+                    likeButton.disabled = !active;
+                }
+            }
+        );
+    }
+
+    // ========================================================
+    // 21. PARTAGER
+    // ========================================================
+
+    async function partager() {
+
+        const lien = window.location.href;
+
+        try {
+
+            if (navigator.share) {
+
+                await navigator.share({
+                    title:
+                        app.dataset.presenceSujet ||
+                        "Présence AfroFans",
+                    url: lien
+                });
+
+            } else {
+
+                await navigator.clipboard.writeText(lien);
+
+                alert("Lien copié.");
+            }
+
+        } catch (error) {
+
+            if (error.name !== "AbortError") {
+                console.error(error);
+            }
+        }
+    }
+
+    const shareButton = $("af-live-share");
+
+    if (shareButton) {
+
+        shareButton.addEventListener(
+            "click",
+            partager
+        );
+    }
+
+    // ========================================================
+    // 22. MENU OPTIONS
+    // ========================================================
+
+    const optionsButton = $("af-live-options");
+
+    if (optionsButton && more) {
+
+        optionsButton.addEventListener(
+            "click",
+            function () {
+
+                more.hidden = !more.hidden;
+            }
+        );
+    }
+
+    const copyButton = $("af-live-copy");
+
+    if (copyButton) {
+
+        copyButton.addEventListener(
+            "click",
+            async function () {
+
+                try {
+
+                    await navigator.clipboard.writeText(
+                        window.location.href
+                    );
+
+                    alert("Lien copié.");
+
+                } catch (error) {
+
+                    alert(
+                        "Impossible de copier le lien."
+                    );
+                }
+
+                if (more) more.hidden = true;
+            }
+        );
+    }
+
+    // ========================================================
+    // 23. TERMINER LA PRÉSENCE
+    // ========================================================
+
+    const endButton = $("af-live-end");
+
+    if (endButton) {
+
+        endButton.addEventListener(
+            "click",
+            async function () {
+
+                if (!active) return;
+
+                if (!confirm(
+                    "Voulez-vous terminer votre présence ?"
+                )) {
+                    return;
+                }
+
+                endButton.disabled = true;
+
+                try {
+
+                    await envoyer(
+                        urls.terminer
+                    );
+
+                    terminerAffichage();
+
+                    if (more) more.hidden = true;
+
+                } catch (error) {
+
+                    alert(error.message);
+                    endButton.disabled = false;
+                }
+            }
+        );
+    }
+
+    // ========================================================
+    // 24. DON — OUVERTURE DU PANNEAU
+    // ========================================================
+
+    function fermerPanneauDon() {
+
+        if (donationPanel) {
+            donationPanel.hidden = true;
+        }
+
+        if (donationButton) {
+            donationButton.setAttribute(
+                "aria-expanded",
+                "false"
+            );
+        }
+    }
+
+    if (donationButton && donationPanel) {
+
+        donationButton.addEventListener(
+            "click",
+            function () {
+
+                if (!isAuthenticated) {
+
+                    window.location.href =
+                        "{% url 'Afrons:connexion' %}?next=" +
+                        encodeURIComponent(
+                            window.location.pathname
+                        );
+
+                    return;
+                }
+
+                if (!active) {
+
+                    alert(
+                        "Cette présence est terminée."
+                    );
+
+                    return;
+                }
+
+                if (isTalent) {
+
+                    alert(
+                        "Vous ne pouvez pas faire un don " +
+                        "à votre propre présence."
+                    );
+
+                    return;
+                }
+
+                donationPanel.hidden = false;
+
+                donationButton.setAttribute(
+                    "aria-expanded",
+                    "true"
+                );
+
+                if (donationMessage) {
+                    donationMessage.textContent = "";
+                }
+            }
+        );
+
+        if (donationClose) {
+
+            donationClose.addEventListener(
+                "click",
+                fermerPanneauDon
+            );
+        }
+
+        donationPanel.querySelectorAll(
+            "[data-montant]"
+        ).forEach(function (button) {
+
+            button.addEventListener(
+                "click",
+                function () {
+
+                    const montant = Number(
+                        button.dataset.montant
+                    );
+
+                    if (
+                        !Number.isFinite(montant) ||
+                        montant <= 0
+                    ) {
+                        return;
+                    }
+
+                    if (donationMessage) {
+
+                        donationMessage.textContent =
+                            "Don de " + montant +
+                            " $ sélectionné. " +
+                            "Le paiement Stripe doit encore " +
+                            "être connecté pour envoyer l'argent.";
+                    }
+                }
+            );
+        });
+
+        document.addEventListener(
+            "keydown",
+            function (event) {
+
+                if (
+                    event.key === "Escape" &&
+                    !donationPanel.hidden
+                ) {
+                    fermerPanneauDon();
+                }
+            }
+        );
+    }
+
+    // ========================================================
+    // 25. DÉMARRAGE DE LA PRÉSENCE
+    // ========================================================
+
+    if (!active) {
+
+        terminerAffichage();
+
+    } else {
+
+        chargerEtat();
+
+        if (isAuthenticated) {
+            heartbeat();
+        }
+
+        // FAN : REJOINDRE LIVEKIT
+
+        if (!isTalent && isAuthenticated) {
+            connecterPresence();
+        }
+
+        if (!isTalent && !isAuthenticated) {
+
+            afficherMessageMedia(
+                "Connectez-vous à AfroFans " +
+                "pour regarder cette présence."
+            );
+        }
+
+        // MESSAGES ET COMMENTAIRES
+
+        window.setInterval(function () {
+
+            if (!document.hidden && active) {
+                chargerEtat();
+            }
+
+        }, 3000);
+
+        // SPECTATEURS
+
+        window.setInterval(function () {
+
+            if (
+                !document.hidden &&
+                active &&
+                isAuthenticated
+            ) {
+                heartbeat();
+            }
+
+        }, 15000);
+
+        document.addEventListener(
+            "visibilitychange",
+            function () {
+
+                if (!document.hidden && active) {
+
+                    chargerEtat();
+
+                    if (isAuthenticated) {
+                        heartbeat();
+                    }
+                }
+            }
+        );
+    }
+
+    // ========================================================
+    // 26. QUITTER LA PAGE
+    // ========================================================
+
+    window.addEventListener(
+        "pagehide",
+        function () {
+
+            if (room) {
+                room.disconnect();
+            }
+        }
+    );
+
+});
+</script>
+
+
+{% endblock %}

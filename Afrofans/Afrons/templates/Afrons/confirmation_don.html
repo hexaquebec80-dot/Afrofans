@@ -1,0 +1,187 @@
+{% extends "Afrons/base.html" %}
+
+{% block title %}
+    Confirmation du don | AfroFans
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .confirmation-page {
+        width: min(680px, 100%);
+    }
+
+    .confirmation-card {
+        padding: 32px;
+        border: 1px solid var(--af-border);
+        border-radius: 25px;
+        background: var(--af-card);
+        text-align: center;
+    }
+
+    .confirmation-icon {
+        width: 78px;
+        height: 78px;
+        display: grid;
+        place-items: center;
+        margin: 0 auto 20px;
+        border-radius: 50%;
+        background: rgba(255, 138, 0, 0.13);
+        color: var(--af-orange);
+        font-size: 32px;
+    }
+
+    .confirmation-card h1 {
+        margin-bottom: 8px;
+        font-size: 30px;
+    }
+
+    .confirmation-card > p {
+        color: var(--af-muted);
+        font-size: 13px;
+    }
+
+    .confirmation-details {
+        display: grid;
+        gap: 1px;
+        margin: 25px 0;
+        overflow: hidden;
+        border: 1px solid var(--af-border);
+        border-radius: 16px;
+        background: var(--af-border);
+        text-align: left;
+    }
+
+    .confirmation-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 15px;
+        padding: 14px;
+        background: #151515;
+        font-size: 12px;
+    }
+
+    .confirmation-row span {
+        color: var(--af-muted);
+    }
+
+    .confirmation-row strong {
+        text-align: right;
+        overflow-wrap: anywhere;
+    }
+
+    .status-pending {
+        color: var(--af-orange);
+    }
+
+    .confirmation-actions {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    @media (max-width: 520px) {
+        .confirmation-card {
+            padding: 24px 15px;
+        }
+
+        .confirmation-actions {
+            display: grid;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<section class="standard-page confirmation-page">
+
+    <div class="confirmation-card">
+
+        <div class="confirmation-icon">
+            ✓
+        </div>
+
+        <span class="page-label">
+            Demande enregistrée
+        </span>
+
+        <h1>Merci pour ton soutien</h1>
+
+        <p>
+            Ta demande de don a été créée avec succès.
+        </p>
+
+        <div class="confirmation-details">
+
+            <div class="confirmation-row">
+                <span>Créateur</span>
+
+                <strong>
+                    {{ don.createur.profil.nom_public }}
+                </strong>
+            </div>
+
+            <div class="confirmation-row">
+                <span>Montant</span>
+
+                <strong>
+                    {{ don.montant|floatformat:2 }}
+                    {{ don.get_devise_display }}
+                </strong>
+            </div>
+
+            <div class="confirmation-row">
+                <span>Moyen de paiement</span>
+
+                <strong>
+                    {{ don.get_methode_paiement_display }}
+                </strong>
+            </div>
+
+            <div class="confirmation-row">
+                <span>Statut</span>
+
+                <strong class="status-pending">
+                    {{ don.get_statut_display }}
+                </strong>
+            </div>
+
+            <div class="confirmation-row">
+                <span>Référence</span>
+
+                <strong>{{ don.reference }}</strong>
+            </div>
+
+            <div class="confirmation-row">
+                <span>Date</span>
+
+                <strong>
+                    {{ don.cree_le|date:"d/m/Y à H:i" }}
+                </strong>
+            </div>
+
+        </div>
+
+        <div class="confirmation-actions">
+
+            <a
+                class="primary-button"
+                href="{% url 'Afrons:profil_public' don.createur.username %}"
+            >
+                Retour au créateur
+            </a>
+
+            <a
+                class="secondary-button"
+                href="{% url 'Afrons:flux' %}"
+            >
+                Voir les vidéos
+            </a>
+
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}

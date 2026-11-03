@@ -1,0 +1,232 @@
+{% extends "Afrons/base.html" %}
+
+{% block title %}
+    {{ titre }} de {{ personne.profil.nom_public }} | AfroFans
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .members-page {
+        width: min(760px, 100%);
+    }
+
+    .members-heading {
+        margin-bottom: 25px;
+    }
+
+    .members-heading h1 {
+        margin: 12px 0 7px;
+        font-size: clamp(28px, 5vw, 44px);
+    }
+
+    .members-heading p {
+        color: var(--af-muted);
+        font-size: 13px;
+    }
+
+    .members-list {
+        display: grid;
+        gap: 10px;
+    }
+
+    .member-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        padding: 14px;
+        border: 1px solid var(--af-border);
+        border-radius: 16px;
+        background: var(--af-card);
+        transition: 0.2s ease;
+    }
+
+    .member-card:hover {
+        border-color: var(--af-orange);
+        transform: translateY(-2px);
+    }
+
+    .member-main {
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 13px;
+    }
+
+    .member-avatar {
+        width: 52px;
+        height: 52px;
+        display: grid;
+        flex: 0 0 52px;
+        place-items: center;
+        overflow: hidden;
+        border-radius: 50%;
+        background: linear-gradient(
+            135deg,
+            var(--af-orange-light),
+            var(--af-red)
+        );
+        font-size: 18px;
+        font-weight: 900;
+    }
+
+    .member-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .member-information {
+        min-width: 0;
+    }
+
+    .member-information strong,
+    .member-information small {
+        display: block;
+    }
+
+    .member-information strong {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .member-information small {
+        color: var(--af-muted);
+        font-size: 11px;
+    }
+
+    .member-type {
+        margin-top: 5px;
+        color: var(--af-orange);
+        font-size: 10px;
+        font-weight: 800;
+    }
+
+    .empty-members {
+        padding: 55px 20px;
+        border: 1px dashed var(--af-border);
+        border-radius: 18px;
+        text-align: center;
+    }
+
+    .empty-members span {
+        color: var(--af-orange);
+        font-size: 38px;
+    }
+
+    .empty-members h2 {
+        margin: 10px 0 6px;
+    }
+
+    .empty-members p {
+        color: var(--af-muted);
+        font-size: 13px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<section class="standard-page members-page">
+
+    <a
+        class="back-link"
+        href="{% url 'Afrons:profil_public' personne.username %}"
+    >
+        ← Retour au profil
+    </a>
+
+    <div class="members-heading">
+
+        <span class="page-label">
+            Communauté AfroFans
+        </span>
+
+        <h1>{{ titre }}</h1>
+
+        <p>
+            Communauté de
+            @{{ personne.username }}
+        </p>
+
+    </div>
+
+    <div class="members-list">
+
+        {% for membre in membres %}
+
+            <article class="member-card">
+
+                <a
+                    class="member-main"
+                    href="{% url 'Afrons:profil_public' membre.username %}"
+                >
+                    <span class="member-avatar">
+
+                        {% if membre.profil.avatar %}
+
+                            <img
+                                src="{{ membre.profil.avatar.url }}"
+                                alt="{{ membre.profil.nom_public }}"
+                            >
+
+                        {% else %}
+
+                            {{ membre.username|first|upper }}
+
+                        {% endif %}
+
+                    </span>
+
+                    <span class="member-information">
+
+                        <strong>
+                            {{ membre.profil.nom_public }}
+
+                            {% if membre.profil.est_certifie %}
+                                <span class="verified-badge">✓</span>
+                            {% endif %}
+                        </strong>
+
+                        <small>
+                            @{{ membre.username }}
+                        </small>
+
+                        <span class="member-type">
+                            {{ membre.profil.get_type_compte_display }}
+                        </span>
+
+                    </span>
+                </a>
+
+                <a
+                    class="secondary-button"
+                    href="{% url 'Afrons:profil_public' membre.username %}"
+                >
+                    Voir
+                </a>
+
+            </article>
+
+        {% empty %}
+
+            <div class="empty-members">
+
+                <span>♙</span>
+
+                <h2>Aucun membre</h2>
+
+                <p>
+                    Cette liste est vide pour le moment.
+                </p>
+
+            </div>
+
+        {% endfor %}
+
+    </div>
+
+</section>
+
+{% endblock %}

@@ -1,0 +1,254 @@
+{% extends "Afrons/base.html" %}
+
+{% block title %}
+    Demande de publication | AfroFans
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .publication-layout {
+        display: grid;
+        grid-template-columns: 0.8fr 1.2fr;
+        align-items: start;
+        gap: 45px;
+    }
+
+    .publication-introduction {
+        position: sticky;
+        top: 95px;
+    }
+
+    .publication-introduction h1 {
+        margin: 10px 0 16px;
+        font-size: clamp(35px, 5vw, 58px);
+        line-height: 0.98;
+        letter-spacing: -2.5px;
+    }
+
+    .publication-introduction > p {
+        color: var(--af-muted);
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    .publication-process {
+        display: grid;
+        gap: 10px;
+        margin-top: 27px;
+    }
+
+    .publication-step {
+        display: grid;
+        grid-template-columns: 35px 1fr;
+        align-items: start;
+        gap: 10px;
+        padding: 13px;
+        border: 1px solid var(--af-border);
+        border-radius: 14px;
+        background: var(--af-card);
+    }
+
+    .publication-step > span {
+        width: 31px;
+        height: 31px;
+        display: grid;
+        place-items: center;
+        border-radius: 10px;
+        background: rgba(255, 138, 0, 0.12);
+        color: var(--af-orange);
+        font-size: 11px;
+        font-weight: 900;
+    }
+
+    .publication-step strong,
+    .publication-step small {
+        display: block;
+    }
+
+    .publication-step strong {
+        margin-bottom: 3px;
+        font-size: 11px;
+    }
+
+    .publication-step small {
+        color: var(--af-muted);
+        font-size: 9px;
+        line-height: 1.45;
+    }
+
+    .publication-notice {
+        margin-bottom: 20px;
+        padding: 14px;
+        border: 1px solid rgba(255, 138, 0, 0.25);
+        border-radius: 13px;
+        background: rgba(255, 138, 0, 0.06);
+        color: #bdbdbd;
+        font-size: 11px;
+    }
+
+    @media (max-width: 760px) {
+        .publication-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .publication-introduction {
+            position: static;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<section class="standard-page">
+
+    <a
+        class="back-link"
+        href="{% url 'Afrons:profil_public' user.username %}"
+    >
+        ← Retour au profil
+    </a>
+
+    <div class="publication-layout">
+
+        <div class="publication-introduction">
+
+            <span class="page-label">
+                AfroFans Studio
+            </span>
+
+            <h1>
+                Propose ta vidéo à AfroFans.
+            </h1>
+
+            <p>
+                Envoie ton contenu à notre équipe.
+                Après vérification, la vidéo pourra être
+                publiée sur le flux officiel AfroFans.
+            </p>
+
+            <div class="publication-process">
+
+                <div class="publication-step">
+
+                    <span>01</span>
+
+                    <div>
+                        <strong>Envoie ta vidéo</strong>
+
+                        <small>
+                            MP4, WebM ou MOV, maximum 200 Mo.
+                        </small>
+                    </div>
+
+                </div>
+
+                <div class="publication-step">
+
+                    <span>02</span>
+
+                    <div>
+                        <strong>Vérification AfroFans</strong>
+
+                        <small>
+                            Notre équipe contrôle la qualité
+                            et le respect des règles.
+                        </small>
+                    </div>
+
+                </div>
+
+                <div class="publication-step">
+
+                    <span>03</span>
+
+                    <div>
+                        <strong>Publication</strong>
+
+                        <small>
+                            Une demande approuvée peut devenir
+                            une vidéo publique.
+                        </small>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="form-card">
+
+            <div class="form-card-heading">
+
+                <h1>Nouvelle demande</h1>
+
+                <p>
+                    Présente clairement ton contenu.
+                </p>
+
+            </div>
+
+            <div class="publication-notice">
+                L’envoi d’une demande ne garantit pas sa
+                publication. Le statut initial sera
+                « En attente ».
+            </div>
+
+            <form
+                method="post"
+                enctype="multipart/form-data"
+                class="application-form"
+                novalidate
+            >
+
+                {% csrf_token %}
+
+                {% if formulaire.non_field_errors %}
+                    <div class="form-errors">
+                        {{ formulaire.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                {% for champ in formulaire %}
+
+                    <div class="form-group">
+
+                        <label for="{{ champ.id_for_label }}">
+                            {{ champ.label }}
+                        </label>
+
+                        {{ champ }}
+
+                        {% if champ.help_text %}
+                            <small class="field-help">
+                                {{ champ.help_text }}
+                            </small>
+                        {% endif %}
+
+                        {% for erreur in champ.errors %}
+                            <small class="field-error">
+                                {{ erreur }}
+                            </small>
+                        {% endfor %}
+
+                    </div>
+
+                {% endfor %}
+
+                <button
+                    type="submit"
+                    class="primary-button full-button"
+                >
+                    Envoyer à AfroFans
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}

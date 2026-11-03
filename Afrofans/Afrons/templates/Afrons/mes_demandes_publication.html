@@ -1,0 +1,330 @@
+{% extends "Afrons/base.html" %}
+
+{% block title %}
+    Mes demandes de publication | AfroFans
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .requests-page {
+        width: min(900px, 100%);
+    }
+
+    .requests-header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 28px;
+    }
+
+    .requests-header h1 {
+        margin: 9px 0 5px;
+        font-size: clamp(30px, 5vw, 47px);
+    }
+
+    .requests-header p {
+        color: var(--af-muted);
+        font-size: 12px;
+    }
+
+    .requests-list {
+        display: grid;
+        gap: 13px;
+    }
+
+    .request-card {
+        display: grid;
+        grid-template-columns: 95px 1fr auto;
+        align-items: center;
+        gap: 16px;
+        padding: 13px;
+        border: 1px solid var(--af-border);
+        border-radius: 17px;
+        background: var(--af-card);
+    }
+
+    .request-media {
+        width: 95px;
+        aspect-ratio: 9 / 12;
+        overflow: hidden;
+        border-radius: 12px;
+        background: #050505;
+    }
+
+    .request-media img,
+    .request-media video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .request-placeholder {
+        width: 100%;
+        height: 100%;
+        display: grid;
+        place-items: center;
+        color: var(--af-orange);
+        font-size: 27px;
+    }
+
+    .request-information {
+        min-width: 0;
+    }
+
+    .request-information h2 {
+        margin-bottom: 6px;
+        overflow: hidden;
+        font-size: 16px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .request-information p {
+        margin-bottom: 9px;
+        color: var(--af-muted);
+        font-size: 11px;
+    }
+
+    .request-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        color: #777777;
+        font-size: 9px;
+    }
+
+    .request-status {
+        min-width: 105px;
+        padding: 9px 12px;
+        border-radius: 100px;
+        font-size: 10px;
+        font-weight: 900;
+        text-align: center;
+    }
+
+    .request-status.en_attente {
+        background: rgba(255, 138, 0, 0.12);
+        color: var(--af-orange);
+    }
+
+    .request-status.approuvee {
+        background: rgba(22, 199, 132, 0.12);
+        color: #24d994;
+    }
+
+    .request-status.refusee {
+        background: rgba(255, 59, 78, 0.12);
+        color: #ff6675;
+    }
+
+    .refusal-reason {
+        grid-column: 2 / -1;
+        padding: 11px;
+        border-radius: 11px;
+        background: rgba(255, 59, 78, 0.07);
+        color: #dd9097;
+        font-size: 10px;
+    }
+
+    .empty-requests {
+        padding: 60px 20px;
+        border: 1px dashed var(--af-border);
+        border-radius: 20px;
+        text-align: center;
+    }
+
+    .empty-requests span {
+        color: var(--af-orange);
+        font-size: 40px;
+    }
+
+    .empty-requests h2 {
+        margin: 10px 0 7px;
+    }
+
+    .empty-requests p {
+        margin-bottom: 20px;
+        color: var(--af-muted);
+        font-size: 12px;
+    }
+
+    @media (max-width: 650px) {
+        .requests-header {
+            display: block;
+        }
+
+        .requests-header .primary-button {
+            margin-top: 16px;
+        }
+
+        .request-card {
+            grid-template-columns: 72px 1fr;
+        }
+
+        .request-media {
+            width: 72px;
+        }
+
+        .request-status {
+            grid-column: 1 / -1;
+            justify-self: start;
+        }
+
+        .refusal-reason {
+            grid-column: 1 / -1;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<section class="standard-page requests-page">
+
+    <a
+        class="back-link"
+        href="{% url 'Afrons:profil_public' user.username %}"
+    >
+        ← Retour au profil
+    </a>
+
+    <div class="requests-header">
+
+        <div>
+
+            <span class="page-label">
+                AfroFans Studio
+            </span>
+
+            <h1>Mes demandes</h1>
+
+            <p>
+                Suis l’état de tes demandes de publication.
+            </p>
+
+        </div>
+
+        <a
+            class="primary-button"
+            href="{% url 'Afrons:demande_publication' %}"
+        >
+            ＋ Nouvelle demande
+        </a>
+
+    </div>
+
+    <div class="requests-list">
+
+        {% for demande in demandes %}
+
+            <article class="request-card">
+
+                <div class="request-media">
+
+                    {% if demande.miniature %}
+
+                        <img
+                            src="{{ demande.miniature.url }}"
+                            alt="{{ demande.titre }}"
+                        >
+
+                    {% elif demande.fichier %}
+
+                        <video
+                            src="{{ demande.fichier.url }}"
+                            muted
+                            preload="metadata"
+                        ></video>
+
+                    {% else %}
+
+                        <div class="request-placeholder">
+                            ▶
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+                <div class="request-information">
+
+                    <h2>{{ demande.titre }}</h2>
+
+                    <p>
+                        {{ demande.description|truncatechars:130 }}
+                    </p>
+
+                    <div class="request-meta">
+
+                        <span>
+                            {{ demande.get_categorie_display }}
+                        </span>
+
+                        <span>
+                            {{ demande.cree_le|date:"d/m/Y à H:i" }}
+                        </span>
+
+                        {% if demande.video_publiee %}
+
+                            <a
+                                href="{% url 'Afrons:detail_video' demande.video_publiee.id %}"
+                            >
+                                Voir la vidéo publiée
+                            </a>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+                <span
+                    class="request-status {{ demande.statut }}"
+                >
+                    {{ demande.get_statut_display }}
+                </span>
+
+                {% if demande.statut == "refusee" and demande.motif_refus %}
+
+                    <div class="refusal-reason">
+
+                        <strong>Motif du refus :</strong>
+
+                        {{ demande.motif_refus }}
+
+                    </div>
+
+                {% endif %}
+
+            </article>
+
+        {% empty %}
+
+            <div class="empty-requests">
+
+                <span>◈</span>
+
+                <h2>Aucune demande envoyée</h2>
+
+                <p>
+                    Envoie ta première vidéo à l’équipe
+                    AfroFans pour validation.
+                </p>
+
+                <a
+                    class="primary-button"
+                    href="{% url 'Afrons:demande_publication' %}"
+                >
+                    Faire une demande
+                </a>
+
+            </div>
+
+        {% endfor %}
+
+    </div>
+
+</section>
+
+{% endblock %}

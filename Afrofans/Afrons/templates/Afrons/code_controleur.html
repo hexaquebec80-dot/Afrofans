@@ -1,0 +1,134 @@
+
+{% extends "Afrons/base.html" %}
+
+{% block title %}
+Code événement | AfroFans
+{% endblock %}
+
+{% block content %}
+
+<style>
+.af-access-page {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 130px 18px 90px;
+    color: #fff;
+}
+
+.af-access-card {
+    padding: 30px;
+    border: 1px solid #333;
+    border-radius: 22px;
+    background: #151515;
+}
+
+.af-access-logo {
+    color: #ff9000;
+    font-size: 28px;
+    font-weight: 900;
+}
+
+.af-access-card h1 {
+    font-size: 25px;
+    margin: 20px 0 12px;
+}
+
+.af-access-card p {
+    color: #aaa;
+    line-height: 1.6;
+    font-size: 14px;
+}
+
+.af-access-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 16px;
+    background: #242424;
+    color: #fff;
+    border: 1px solid #444;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: 20px 0;
+}
+
+.af-access-btn {
+    width: 100%;
+    padding: 15px;
+    border: 0;
+    border-radius: 12px;
+    background: #ff8a00;
+    color: #111;
+    font-weight: 900;
+    cursor: pointer;
+}
+</style>
+
+<main class="af-access-page">
+
+    <div class="af-access-card">
+
+        <div class="af-access-logo">
+            ▶ AfroFans
+        </div>
+
+        <h1>Accès contrôleur</h1>
+
+        <p>
+            Bonjour
+            <strong>
+                {{ controleur.prenom }}
+                {{ controleur.nom }}
+            </strong>
+        </p>
+
+        <p>
+            Tu es invité à contrôler les billets
+            de l'événement :
+        </p>
+
+        <p>
+            <strong>
+                {{ controleur.evenement.titre }}
+            </strong>
+        </p>
+
+        <p>
+            Pour accéder au scanner,
+            saisis le code unique communiqué
+            par le talent ou l'organisateur.
+        </p>
+
+        <form method="post">
+
+            {% csrf_token %}
+
+            <label for="code_evenement">
+                Code unique de l'événement
+            </label>
+
+            <input
+                type="text"
+                id="code_evenement"
+                name="code_evenement"
+                class="af-access-input"
+                placeholder="AF-XXXXXXXXXX"
+                maxlength="20"
+                autocomplete="off"
+                required
+            >
+
+            <button
+                type="submit"
+                class="af-access-btn"
+            >
+                Accéder au scanner QR
+            </button>
+
+        </form>
+
+    </div>
+
+</main>
+
+{% endblock %}

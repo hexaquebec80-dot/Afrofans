@@ -1,0 +1,1514 @@
+
+{% extends "Afrons/base.html" %}
+
+{% block content %}
+
+<style>
+/* ============================================================
+   AFROFANS — VÉRIFICATION OFFICIELLE DES TALENTS
+   NOIR • ORANGE • DORÉ
+============================================================ */
+
+.af-verify {
+    --af-orange: #ff9100;
+    --af-gold: #ffc36b;
+    --af-bg: #090a0f;
+    --af-card: #151720;
+    --af-input: #1a1c25;
+    --af-border: #30323e;
+    --af-muted: #a5a7b3;
+
+    width: min(100% - 32px, 960px);
+    margin: 48px auto 90px;
+    color: #f8f8fa;
+    font-family: inherit;
+}
+
+.af-verify *,
+.af-verify *::before,
+.af-verify *::after {
+    box-sizing: border-box;
+}
+
+.af-verify-header {
+    text-align: center;
+    margin-bottom: 35px;
+}
+
+.af-verify-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    color: var(--af-gold);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.af-verify-kicker::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    background: var(--af-orange);
+    border-radius: 50%;
+    box-shadow: 0 0 15px rgba(255,145,0,.5);
+}
+
+.af-verify-header h1 {
+    color: #ffffff;
+    font-size: clamp(27px, 5vw, 43px);
+    font-weight: 850;
+    line-height: 1.2;
+    margin: 15px 0;
+}
+
+.af-verify-header p {
+    color: var(--af-muted);
+    max-width: 670px;
+    margin: 0 auto;
+    line-height: 1.8;
+    font-size: 14px;
+}
+
+/* ============================================================
+   ÉTAPES DYNAMIQUES
+============================================================ */
+
+.af-process {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin: 30px 0 35px;
+}
+
+.af-process-step {
+    background: var(--af-card);
+    border: 1px solid var(--af-border);
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 17px 15px;
+    color: var(--af-muted);
+    transition: .3s ease;
+}
+
+.af-process-number {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #242832;
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 13px;
+}
+
+.af-process-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+}
+
+.af-process-info strong {
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.af-process-info small {
+    font-size: 11px;
+    color: var(--af-muted);
+    line-height: 1.4;
+}
+
+/* ÉTAPE ACTIVE */
+
+.af-process-step.active {
+    background: #312219;
+    border-color: var(--af-orange);
+    color: var(--af-gold);
+}
+
+.af-process-step.active .af-process-number {
+    background: var(--af-orange);
+    color: #211307;
+}
+
+/* ÉTAPE TERMINÉE */
+
+.af-process-step.completed {
+    background: rgba(25,135,84,.12);
+    border-color: #31a66b;
+    color: #9af1bf;
+}
+
+.af-process-step.completed .af-process-number {
+    background: #31a66b;
+    color: #ffffff;
+}
+
+.af-process-step.completed .af-process-info small {
+    color: #9af1bf;
+}
+
+/* ÉTAPE REFUSÉE */
+
+.af-process-step.rejected {
+    background: rgba(220,53,69,.12);
+    border-color: #dc3545;
+    color: #ff9ca6;
+}
+
+.af-process-step.rejected .af-process-number {
+    background: #dc3545;
+    color: white;
+}
+
+/* ============================================================
+   SECTIONS DU FORMULAIRE
+============================================================ */
+
+.af-section {
+    background: var(--af-card);
+    border: 1px solid var(--af-border);
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 22px;
+}
+
+.af-section-heading {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 26px;
+}
+
+.af-section-icon {
+    width: 46px;
+    height: 46px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    border-radius: 13px;
+    background: rgba(255,145,0,.12);
+    color: var(--af-orange);
+    font-size: 19px;
+    font-weight: 800;
+}
+
+.af-section-heading h2 {
+    color: #ffffff;
+    font-size: 19px;
+    margin: 0 0 5px;
+}
+
+.af-section-heading p {
+    color: var(--af-muted);
+    font-size: 13px;
+    margin: 0;
+}
+
+.af-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0,1fr));
+    gap: 20px;
+}
+
+.af-field {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    min-width: 0;
+}
+
+.af-field.full {
+    grid-column: 1 / -1;
+}
+
+.af-field label {
+    font-size: 13px;
+    color: #f5f5f7;
+    font-weight: 700;
+}
+
+.af-required {
+    color: var(--af-orange);
+}
+
+.af-field input,
+.af-field select,
+.af-field textarea {
+    width: 100%;
+    min-height: 48px;
+    padding: 12px 14px;
+    background: var(--af-input);
+    border: 1px solid var(--af-border);
+    border-radius: 11px;
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+    transition: .2s ease;
+}
+
+.af-field textarea {
+    min-height: 130px;
+    resize: vertical;
+}
+
+.af-field input:focus,
+.af-field select:focus,
+.af-field textarea:focus {
+    border-color: var(--af-orange);
+    box-shadow: 0 0 0 3px rgba(255,145,0,.10);
+}
+
+.af-field input[type="file"] {
+    padding: 11px;
+    cursor: pointer;
+}
+
+.af-field input[type="file"]::file-selector-button {
+    margin-right: 12px;
+    padding: 9px 13px;
+    border: none;
+    border-radius: 7px;
+    color: #211307;
+    background: var(--af-gold);
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.af-field select option {
+    background: #1a1c25;
+    color: white;
+}
+
+.af-help {
+    color: var(--af-muted);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.af-error {
+    color: #ff8585;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.af-error ul {
+    margin: 0;
+    padding-left: 18px;
+}
+
+.af-file-name {
+    color: var(--af-gold);
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
+.af-notice {
+    border: 1px solid rgba(255,145,0,.25);
+    background: rgba(255,145,0,.07);
+    border-radius: 12px;
+    padding: 18px;
+    color: #e8d5b5;
+    line-height: 1.7;
+    font-size: 13px;
+}
+
+.af-notice strong {
+    color: var(--af-gold);
+}
+
+.af-notice p {
+    margin: 8px 0 0;
+}
+
+/* ============================================================
+   CONSENTEMENT
+============================================================ */
+
+.af-consent {
+    display: flex;
+    gap: 15px;
+    padding: 20px;
+    border-radius: 13px;
+    background: var(--af-input);
+    border: 1px solid var(--af-border);
+    cursor: pointer;
+}
+
+.af-consent input {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    accent-color: var(--af-orange);
+    cursor: pointer;
+}
+
+.af-consent span {
+    color: #d7d8df;
+    line-height: 1.8;
+    font-size: 13px;
+}
+
+/* ============================================================
+   SOUMISSION
+============================================================ */
+
+.af-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 22px;
+    padding: 25px;
+    border-radius: 17px;
+    background: var(--af-card);
+    border: 1px solid var(--af-border);
+}
+
+.af-price {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    font-size: 13px;
+    color: var(--af-muted);
+}
+
+.af-price strong {
+    font-size: 23px;
+    color: var(--af-gold);
+}
+
+.af-price small {
+    line-height: 1.5;
+}
+
+.af-submit {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: 13px;
+    min-height: 52px;
+    padding: 14px 25px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg,#ff9100,#ffba52);
+    color: #211307;
+    font-size: 14px;
+    font-weight: 850;
+    cursor: pointer;
+    transition: transform .2s, filter .2s;
+}
+
+.af-submit:hover {
+    filter: brightness(1.08);
+    transform: translateY(-2px);
+}
+
+/* ============================================================
+   MESSAGES DJANGO
+============================================================ */
+
+.af-alert {
+    padding: 16px 20px;
+    background: #382322;
+    border: 1px solid #89514c;
+    border-radius: 12px;
+    color: #ffe0db;
+    margin-bottom: 20px;
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+}
+
+.af-alert.success {
+    background: #153427;
+    border-color: #39795c;
+    color: #cbffe2;
+}
+
+.af-alert.warning {
+    background: #392e18;
+    border-color: #917039;
+    color: #ffe2a5;
+}
+
+/* ============================================================
+   DOSSIER ENREGISTRÉ
+============================================================ */
+
+.af-status-card {
+    text-align: center;
+    padding: 45px 30px;
+    border-radius: 22px;
+    background: var(--af-card);
+    border: 1px solid var(--af-border);
+}
+
+.af-status-icon {
+    width: 75px;
+    height: 75px;
+    display: grid;
+    place-items: center;
+    margin: 0 auto 20px;
+    border-radius: 50%;
+    background: rgba(255,145,0,.13);
+    color: var(--af-gold);
+    font-size: 34px;
+}
+
+.af-status-card h2 {
+    color: #ffffff;
+    font-size: 25px;
+    margin-bottom: 15px;
+}
+
+.af-status-card > p {
+    color: var(--af-muted);
+    line-height: 1.8;
+    overflow-wrap: anywhere;
+}
+
+.af-status-card strong {
+    color: #ffffff;
+}
+
+.af-status-badge {
+    display: inline-block;
+    padding: 9px 17px;
+    border-radius: 30px;
+    background: rgba(255,145,0,.12);
+    color: var(--af-gold);
+    font-weight: 800;
+    margin-bottom: 18px;
+}
+
+.af-status-card .af-notice {
+    text-align: left;
+    margin-top: 25px;
+}
+
+/* ============================================================
+   PAIEMENT VÉRIFICATION TALENT
+============================================================ */
+
+.af-payment-notice {
+    text-align: center !important;
+    padding: 30px 24px;
+    background: linear-gradient(145deg,#191b25,#211b17);
+    border: 1px solid rgba(255,145,0,.35);
+    border-radius: 20px;
+}
+
+.af-payment-icon {
+    font-size: 38px;
+    margin-bottom: 15px;
+}
+
+.af-payment-notice h3 {
+    color: #ffc36b;
+    font-size: 23px;
+    margin: 0 0 15px;
+}
+
+.af-payment-notice p {
+    color: #c6c7d0;
+    font-size: 14px;
+    line-height: 1.8;
+}
+
+.af-payment-price {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 25px 0;
+    padding: 20px;
+    background: #101116;
+    border: 1px solid #34343e;
+    border-radius: 14px;
+}
+
+.af-payment-price span {
+    color: #aaaab5;
+    font-size: 13px;
+}
+
+.af-payment-price strong {
+    color: #ffc36b !important;
+    font-size: 27px;
+    font-weight: 900;
+}
+
+.af-payment-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    min-height: 58px;
+    padding: 16px 24px;
+    border: none;
+    background: linear-gradient(135deg,#ff9100,#ffbd58);
+    color: #211307 !important;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 900;
+    border-radius: 13px;
+    cursor: pointer;
+    transition: .2s ease;
+}
+
+.af-payment-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(255,145,0,.25);
+}
+
+.af-payment-security {
+    margin-top: 18px;
+    font-size: 12px !important;
+    color: #a7a8b4 !important;
+}
+
+/* ============================================================
+   RESPONSIVE
+============================================================ */
+
+@media (max-width:700px) {
+
+    .af-verify {
+        margin-top: 28px;
+    }
+
+    .af-process {
+        grid-template-columns: 1fr;
+    }
+
+    .af-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .af-section {
+        padding: 22px 17px;
+    }
+
+    .af-footer {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .af-submit {
+        width: 100%;
+    }
+
+    .af-status-card {
+        padding: 30px 17px;
+    }
+
+}
+</style>
+
+<main class="af-verify">
+
+    <!-- =====================================================
+         EN-TÊTE
+    ====================================================== -->
+
+    <header class="af-verify-header">
+
+        <span class="af-verify-kicker">
+            AFROFANS — VÉRIFICATION OFFICIELLE
+        </span>
+
+        <h1>Vérifier mon compte Talent</h1>
+
+        <p>
+            Complétez votre dossier pour demander
+            la vérification officielle de votre compte AfroFans.
+
+            Cette procédure est exclusivement réservée aux Talents.
+
+            Chaque demande est examinée par notre équipe.
+        </p>
+
+    </header>
+
+    <!-- =====================================================
+         ÉTAPES DYNAMIQUES
+    ====================================================== -->
+
+    <div class="af-process">
+
+        <!-- ÉTAPE 01 -->
+
+        <div class="af-process-step
+            {% if not demande_existante %}active{% else %}completed{% endif %}">
+
+            <span class="af-process-number">
+                {% if demande_existante %}✓{% else %}01{% endif %}
+            </span>
+
+            <div class="af-process-info">
+
+                <strong>Informations du Talent</strong>
+
+                <small>
+                    {% if demande_existante %}
+                        Dossier enregistré
+                    {% else %}
+                        Étape en cours
+                    {% endif %}
+                </small>
+
+            </div>
+
+        </div>
+
+        <!-- ÉTAPE 02 -->
+
+        <div class="af-process-step
+            {% if demande_existante.statut == 'paiement_attente' %}
+                active
+            {% elif demande_existante.statut == 'en_attente' or demande_existante.statut == 'en_cours' or demande_existante.statut == 'approuvee' %}
+                completed
+            {% endif %}">
+
+            <span class="af-process-number">
+                {% if demande_existante.statut == 'en_attente' or demande_existante.statut == 'en_cours' or demande_existante.statut == 'approuvee' %}
+                    ✓
+                {% else %}
+                    02
+                {% endif %}
+            </span>
+
+            <div class="af-process-info">
+
+                <strong>Paiement des frais</strong>
+
+                <small>
+                    {% if demande_existante.statut == 'paiement_attente' %}
+                        Paiement en attente
+                    {% elif demande_existante.statut == 'en_attente' or demande_existante.statut == 'en_cours' or demande_existante.statut == 'approuvee' %}
+                        Paiement confirmé
+                    {% else %}
+                        Étape suivante
+                    {% endif %}
+                </small>
+
+            </div>
+
+        </div>
+
+        <!-- ÉTAPE 03 -->
+
+        <div class="af-process-step
+            {% if demande_existante.statut == 'en_attente' or demande_existante.statut == 'en_cours' %}
+                active
+            {% elif demande_existante.statut == 'approuvee' %}
+                completed
+            {% elif demande_existante.statut == 'refusee' %}
+                rejected
+            {% endif %}">
+
+            <span class="af-process-number">
+                {% if demande_existante.statut == 'approuvee' %}
+                    ✓
+                {% elif demande_existante.statut == 'refusee' %}
+                    !
+                {% else %}
+                    03
+                {% endif %}
+            </span>
+
+            <div class="af-process-info">
+
+                <strong>Examen du dossier</strong>
+
+                <small>
+                    {% if demande_existante.statut == 'en_attente' %}
+                        En attente d'examen
+                    {% elif demande_existante.statut == 'en_cours' %}
+                        Examen en cours
+                    {% elif demande_existante.statut == 'approuvee' %}
+                        Compte vérifié
+                    {% elif demande_existante.statut == 'refusee' %}
+                        Demande refusée
+                    {% else %}
+                        Étape suivante
+                    {% endif %}
+                </small>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- =====================================================
+         MESSAGES DJANGO
+    ====================================================== -->
+
+    {% for message in messages %}
+
+        <div
+            class="af-alert{% if message.tags == 'success' %} success{% elif message.tags == 'warning' %} warning{% endif %}"
+            role="status"
+        >
+            {{ message }}
+        </div>
+
+    {% endfor %}
+
+    <!-- =====================================================
+         DOSSIER EXISTANT
+    ====================================================== -->
+
+    {% if demande_existante %}
+
+        <div class="af-status-card">
+
+            <div class="af-status-icon">✓</div>
+
+            <h2>Votre dossier a été enregistré</h2>
+
+            <span class="af-status-badge">
+                {{ demande_existante.get_statut_display }}
+            </span>
+
+            <p>
+                Numéro de dossier :
+                <strong>{{ demande_existante.identifiant }}</strong>
+            </p>
+
+            <p>
+                Date de soumission :
+                {{ demande_existante.date_soumission|date:"d/m/Y" }}
+            </p>
+
+            <!-- ÉTAPE 02 : PAIEMENT -->
+
+            {% if demande_existante.statut == "paiement_attente" %}
+
+                <div class="af-notice af-payment-notice">
+
+                    <div class="af-payment-icon">💳</div>
+
+                    <h3>Paiement en attente</h3>
+
+                    <p>
+                        Votre dossier de vérification
+                        a été enregistré avec succès.
+                    </p>
+
+                    <p>
+                        Pour poursuivre la vérification officielle
+                        de votre compte Talent, veuillez régler
+                        les frais de vérification.
+                    </p>
+
+                    <div class="af-payment-price">
+
+                        <span>Frais de vérification AfroFans</span>
+
+                        <strong>15,00 $ CA + taxes</strong>
+
+                    </div>
+
+                    <form
+                        method="post"
+                        action="{% url 'Afrons:payer_verification_talent' demande_existante.identifiant %}"
+                    >
+
+                        {% csrf_token %}
+
+                        <button
+                            type="submit"
+                            class="af-payment-button"
+                        >
+                            💳 Payer maintenant
+                            <span aria-hidden="true">→</span>
+                        </button>
+
+                    </form>
+
+                    <p class="af-payment-security">
+                        🔒 Paiement sécurisé par Stripe
+                    </p>
+
+                </div>
+
+            <!-- ÉTAPE 03 : EN ATTENTE -->
+
+            {% elif demande_existante.statut == "en_attente" %}
+
+                <div class="af-notice">
+
+                    <strong>En attente d'examen</strong>
+
+                    <p>
+                        Votre dossier est en attente d'examen
+                        par l'équipe AfroFans.
+                    </p>
+
+                </div>
+
+            <!-- EXAMEN EN COURS -->
+
+            {% elif demande_existante.statut == "en_cours" %}
+
+                <div class="af-notice">
+
+                    <strong>Examen en cours</strong>
+
+                    <p>
+                        Notre équipe procède actuellement
+                        à l'analyse de votre dossier.
+                    </p>
+
+                </div>
+
+            <!-- APPROUVÉ -->
+
+            {% elif demande_existante.statut == "approuvee" %}
+
+                <div class="af-notice">
+
+                    <strong>Compte Talent vérifié</strong>
+
+                    <p>
+                        Félicitations ! Votre demande
+                        de vérification a été approuvée.
+                    </p>
+
+                </div>
+
+            <!-- REFUSÉ -->
+
+            {% elif demande_existante.statut == "refusee" %}
+
+                <div class="af-notice">
+
+                    <strong>Demande refusée</strong>
+
+                    <p>
+                        Votre demande de vérification
+                        n'a pas été approuvée.
+                    </p>
+
+                    {% if demande_existante.motif_refus %}
+                        <p>
+                            Motif :
+                            {{ demande_existante.motif_refus }}
+                        </p>
+                    {% endif %}
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    {% else %}
+
+    <!-- =====================================================
+         ÉTAPE 01 — FORMULAIRE
+    ====================================================== -->
+
+    <form
+        method="post"
+        enctype="multipart/form-data"
+        id="af-verification-form"
+    >
+
+        {% csrf_token %}
+
+        {% if formulaire.non_field_errors %}
+
+            <div class="af-alert" role="alert">
+                {{ formulaire.non_field_errors }}
+            </div>
+
+        {% endif %}
+
+        <!-- INFORMATIONS PERSONNELLES -->
+
+        <section class="af-section">
+
+            <div class="af-section-heading">
+                <div class="af-section-icon">01</div>
+                <div>
+                    <h2>Informations personnelles</h2>
+                    <p>Informations légales du Talent</p>
+                </div>
+            </div>
+
+            <div class="af-grid">
+
+                <div class="af-field">
+
+                    <label for="af-prenom">
+                        Prénom <span class="af-required">*</span>
+                    </label>
+
+                    <input
+                        type="text"
+                        id="af-prenom"
+                        name="prenom"
+                        value="{{ formulaire.prenom.value|default_if_none:'' }}"
+                        autocomplete="given-name"
+                        required
+                    >
+
+                    <div class="af-error">
+                        {{ formulaire.prenom.errors }}
+                    </div>
+
+                </div>
+
+                <div class="af-field">
+
+                    <label for="af-nom">
+                        Nom <span class="af-required">*</span>
+                    </label>
+
+                    <input
+                        type="text"
+                        id="af-nom"
+                        name="nom"
+                        value="{{ formulaire.nom.value|default_if_none:'' }}"
+                        autocomplete="family-name"
+                        required
+                    >
+
+                    <div class="af-error">
+                        {{ formulaire.nom.errors }}
+                    </div>
+
+                </div>
+
+                <div class="af-field">
+
+                    <label for="af-nom-scene">Nom de scène</label>
+
+                    <input
+                        type="text"
+                        id="af-nom-scene"
+                        name="nom_scene"
+                        value="{{ formulaire.nom_scene.value|default_if_none:'' }}"
+                    >
+
+                    <div class="af-error">
+                        {{ formulaire.nom_scene.errors }}
+                    </div>
+
+                </div>
+
+                <div class="af-field">
+
+                    <label for="af-naissance">
+                        Date de naissance
+                        <span class="af-required">*</span>
+                    </label>
+
+                    <input
+                        type="date"
+                        id="af-naissance"
+                        name="date_naissance"
+                        value="{{ formulaire.date_naissance.value|date:'Y-m-d' }}"
+                        required
+                    >
+
+                    <div class="af-error">
+                        {{ formulaire.date_naissance.errors }}
+                    </div>
+
+                </div>
+
+                <div class="af-field">
+
+                    <label for="af-pays">
+                        Pays <span class="af-required">*</span>
+                    </label>
+
+                    <select name="pays" id="af-pays" required>
+
+                        <option value="">Sélectionnez votre pays</option>
+
+                        {% with selected=formulaire.pays.value %}
+
+                            {% for code, libelle in formulaire.fields.pays.choices %}
+
+                                {% if code %}
+
+                                    <option
+                                        value="{{ code }}"
+                                        {% if selected == code %}selected{% endif %}
+                                    >
+                                        {{ libelle }}
+                                    </option>
+
+                                {% endif %}
+
+                            {% endfor %}
+
+                        {% endwith %}
+
+                    </select>
+
+                    <div class="af-error">
+                        {{ formulaire.pays.errors }}
+                    </div>
+
+                </div>
+
+                <div class="af-field">
+
+                    <label for="af-email">
+                        Adresse e-mail
+                        <span class="af-required">*</span>
+                    </label>
+
+                    <input
+                        type="email"
+                        id="af-email"
+                        name="email"
+                        value="{{ formulaire.email.value|default_if_none:'' }}"
+                        autocomplete="email"
+                        required
+                    >
+
+                    <div class="af-error">
+                        {{ formulaire.email.errors }}
+                    </div>
+
+                </div>
+
+                <div class="af-field full">
+
+                    <label for="af-telephone">
+                        Numéro de téléphone
+                        <span class="af-required">*</span>
+                    </label>
+
+                    <input
+                        type="tel"
+                        id="af-telephone"
+                        name="telephone"
+                        value="{{ formulaire.telephone.value|default_if_none:'' }}"
+                        autocomplete="tel"
+                        required
+                    >
+
+                    <div class="af-error">
+                        {{ formulaire.telephone.errors }}
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- ACTIVITÉ DU TALENT -->
+
+        <section class="af-section">
+
+            <div class="af-section-heading">
+                <div class="af-section-icon">02</div>
+                <div>
+                    <h2>Activité artistique ou professionnelle</h2>
+                    <p>Présentez votre activité sur AfroFans</p>
+                </div>
+            </div>
+
+            <div class="af-grid">
+
+                <div class="af-field full">
+
+                    <label for="af-categorie">
+                        Catégorie du Talent
+                        <span class="af-required">*</span>
+                    </label>
+
+                    <select
+                        name="categorie"
+                        id="af-categorie"
+                        required
+                    >
+
+                        <option value="">Choisissez votre catégorie</option>
+
+                        {% with selected=formulaire.categorie.value %}
+
+                            {% for code, libelle in formulaire.fields.categorie.choices %}
+
+                                {% if code %}
+
+                                    <option
+                                        value="{{ code }}"
+                                        {% if selected == code %}selected{% endif %}
+                                    >
+                                        {{ libelle }}
+                                    </option>
+
+                                {% endif %}
+
+                            {% endfor %}
+
+                        {% endwith %}
+
+                    </select>
+
+                    <div class="af-error">
+                        {{ formulaire.categorie.errors }}
+                    </div>
+
+                </div>
+
+                <div class="af-field full">
+
+                    <label for="af-lien">Lien public (facultatif)</label>
+
+                    <input
+                        type="url"
+                        id="af-lien"
+                        name="lien_public"
+                        placeholder="https://..."
+                        value="{{ formulaire.lien_public.value|default_if_none:'' }}"
+                    >
+
+                    <span class="af-help">
+                        Site Web, profil professionnel
+                        ou réseau social officiel.
+                    </span>
+
+                    <div class="af-error">
+                        {{ formulaire.lien_public.errors }}
+                    </div>
+
+                </div>
+
+                <div class="af-field full">
+
+                    <label for="af-description">
+                        Description de votre activité
+                        <span class="af-required">*</span>
+                    </label>
+
+                    <textarea
+                        id="af-description"
+                        name="description"
+                        rows="6"
+                        minlength="20"
+                        required
+                    >{{ formulaire.description.value|default_if_none:'' }}</textarea>
+
+                    <div class="af-error">
+                        {{ formulaire.description.errors }}
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- DOCUMENTS -->
+
+        <section class="af-section">
+
+            <div class="af-section-heading">
+                <div class="af-section-icon">03</div>
+                <div>
+                    <h2>Vérification de l'identité</h2>
+                    <p>Documents nécessaires à l'examen</p>
+                </div>
+            </div>
+
+            <div class="af-grid">
+
+                <div class="af-field full">
+
+                    <label for="af-type-piece">
+                        Type de document d'identité
+                        <span class="af-required">*</span>
+                    </label>
+
+                    <select name="type_piece" id="af-type-piece" required>
+
+                        <option value="">Choisissez votre document</option>
+
+                        {% with selected=formulaire.type_piece.value %}
+
+                            {% for code, libelle in formulaire.fields.type_piece.choices %}
+
+                                {% if code %}
+
+                                    <option
+                                        value="{{ code }}"
+                                        {% if selected == code %}selected{% endif %}
+                                    >
+                                        {{ libelle }}
+                                    </option>
+
+                                {% endif %}
+
+                            {% endfor %}
+
+                        {% endwith %}
+
+                    </select>
+
+                    <div class="af-error">
+                        {{ formulaire.type_piece.errors }}
+                    </div>
+
+                </div>
+
+                <div class="af-field">
+
+                    <label for="af-recto">
+                        Document — Recto
+                        <span class="af-required">*</span>
+                    </label>
+
+                    <input
+                        type="file"
+                        name="piece_recto"
+                        id="af-recto"
+                        accept=".jpg,.jpeg,.png,.pdf"
+                        required
+                    >
+
+                    <span class="af-file-name" id="af-recto-name"></span>
+
+                    <div class="af-error">
+                        {{ formulaire.piece_recto.errors }}
+                    </div>
+
+                </div>
+
+                <div class="af-field">
+
+                    <label for="af-verso">Document — Verso</label>
+
+                    <input
+                        type="file"
+                        name="piece_verso"
+                        id="af-verso"
+                        accept=".jpg,.jpeg,.png,.pdf"
+                    >
+
+                    <span class="af-file-name" id="af-verso-name"></span>
+
+                    <div class="af-error">
+                        {{ formulaire.piece_verso.errors }}
+                    </div>
+
+                </div>
+
+                <div class="af-field full">
+
+                    <label for="af-photo-identite">
+                        Photo d'identité
+                        <span class="af-required">*</span>
+                    </label>
+
+                    <input
+                        type="file"
+                        name="photo_identite"
+                        id="af-photo-identite"
+                        accept=".jpg,.jpeg,.png"
+                        required
+                    >
+
+                    <span class="af-file-name" id="af-photo-name"></span>
+
+                    <div class="af-error">
+                        {{ formulaire.photo_identite.errors }}
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="af-notice" style="margin-top:25px;">
+
+                <strong>Protection de vos documents</strong>
+
+                <p>
+                    Les documents transmis sont destinés
+                    exclusivement à l'examen de la demande.
+                    Ils doivent être conservés dans un stockage
+                    privé réservé aux personnes autorisées.
+                </p>
+
+            </div>
+
+        </section>
+
+        <!-- CONSENTEMENT -->
+
+        <section class="af-section">
+
+            <div class="af-section-heading">
+                <div class="af-section-icon">04</div>
+                <div>
+                    <h2>Déclaration et consentement</h2>
+                    <p>Confirmez l'exactitude des informations</p>
+                </div>
+            </div>
+
+            <label class="af-consent">
+
+                <input
+                    type="checkbox"
+                    name="declaration"
+                    value="on"
+                    {% if formulaire.declaration.value %}checked{% endif %}
+                    required
+                >
+
+                <span>
+                    Je certifie que les informations transmises
+                    sont exactes et que les documents présentés
+                    m'appartiennent ou que je suis autorisé
+                    à les fournir.
+
+                    J'accepte leur utilisation aux seules
+                    fins d'examen de ma demande de vérification
+                    sur AfroFans.
+                </span>
+
+            </label>
+
+            <div class="af-error">
+                {{ formulaire.declaration.errors }}
+            </div>
+
+        </section>
+
+        <!-- SOUMISSION -->
+
+        <div class="af-footer">
+
+            <div class="af-price">
+
+                Frais de vérification
+
+                <strong>15,00 $ CA + taxes</strong>
+
+                <small>
+                    Le paiement sera traité séparément.
+                    Le badge n'est pas automatique.
+                </small>
+
+            </div>
+
+            <button
+                type="submit"
+                class="af-submit"
+                id="af-submit"
+            >
+                Soumettre ma demande
+                <span aria-hidden="true">→</span>
+            </button>
+
+        </div>
+
+    </form>
+
+    {% endif %}
+
+</main>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    "use strict";
+
+    const formulaire = document.getElementById(
+        "af-verification-form"
+    );
+
+    const bouton = document.getElementById(
+        "af-submit"
+    );
+
+    if (!formulaire || !bouton) {
+        return;
+    }
+
+    let soumissionEnCours = false;
+
+    // AFFICHER LES NOMS DES FICHIERS
+
+    const fichiers = [
+        ["af-recto", "af-recto-name"],
+        ["af-verso", "af-verso-name"],
+        ["af-photo-identite", "af-photo-name"]
+    ];
+
+    fichiers.forEach(function (elements) {
+
+        const input = document.getElementById(elements[0]);
+        const affichage = document.getElementById(elements[1]);
+
+        if (!input || !affichage) {
+            return;
+        }
+
+        input.addEventListener("change", function () {
+
+            if (input.files && input.files.length > 0) {
+                affichage.textContent = input.files[0].name;
+            } else {
+                affichage.textContent = "";
+            }
+
+        });
+
+    });
+
+    // SOUMISSION
+
+    formulaire.addEventListener("submit", function (event) {
+
+        if (!formulaire.checkValidity()) {
+            return;
+        }
+
+        if (soumissionEnCours) {
+            event.preventDefault();
+            return;
+        }
+
+        soumissionEnCours = true;
+
+        bouton.setAttribute("aria-busy", "true");
+        bouton.textContent = "Enregistrement en cours...";
+
+    });
+
+    window.addEventListener("pageshow", function () {
+
+        soumissionEnCours = false;
+
+        bouton.disabled = false;
+        bouton.removeAttribute("aria-busy");
+
+        bouton.innerHTML =
+            'Soumettre ma demande ' +
+            '<span aria-hidden="true">→</span>';
+
+    });
+
+});
+</script>
+
+{% endblock %}

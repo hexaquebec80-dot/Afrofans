@@ -1,0 +1,1635 @@
+
+{% extends "Afrons/base.html" %}
+
+{% block title %}
+{{ evenement.titre }} | AfroFans
+{% endblock %}
+
+{% block content %}
+
+<style>
+/* =====================================================
+   AFROFANS — DÉTAIL ÉVÉNEMENT / BILLETTERIE
+   DESIGN PROFESSIONNEL NOIR · ORANGE · BLANC
+===================================================== */
+
+.afd-page {
+    --afd-orange: #ff8a00;
+    --afd-orange-soft: #ffae38;
+    --afd-bg: #090909;
+    --afd-panel: #161616;
+    --afd-border: #303030;
+    --afd-text: #ffffff;
+    --afd-muted: #aaaaaa;
+
+    background:
+        radial-gradient(
+            ellipse at 20% 0%,
+            rgba(255,138,0,.11),
+            transparent 42%
+        ),
+        #090909;
+
+    min-height: 100vh;
+    padding: 105px 20px 90px;
+    color: var(--afd-text);
+}
+
+.afd-page *,
+.afd-page *::before,
+.afd-page *::after {
+    box-sizing: border-box;
+}
+
+.afd-container {
+    max-width: 1220px;
+    margin: 0 auto;
+}
+
+/* =====================================================
+   EN-TÊTE
+===================================================== */
+
+.afd-heading {
+    margin-bottom: 35px;
+}
+
+.afd-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+
+    color: var(--afd-orange);
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.afd-eyebrow::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    background: var(--afd-orange);
+    border-radius: 50%;
+}
+
+.afd-heading h2 {
+    margin: 13px 0 8px;
+    font-size: clamp(27px, 4vw, 43px);
+    font-weight: 900;
+    letter-spacing: -1.2px;
+    line-height: 1.2;
+}
+
+.afd-heading h2 span {
+    color: var(--afd-orange);
+}
+
+.afd-heading p {
+    margin: 0;
+    color: var(--afd-muted);
+    font-size: 14px;
+    line-height: 1.8;
+}
+
+/* =====================================================
+   COLONNES
+===================================================== */
+
+.afd-layout {
+    display: grid;
+    grid-template-columns:
+        minmax(0, 1.25fr)
+        minmax(300px, .75fr);
+
+    gap: 28px;
+    align-items: start;
+}
+
+.afd-main,
+.afd-sidebar {
+    min-width: 0;
+}
+
+.afd-sidebar {
+    position: sticky;
+    top: 95px;
+}
+
+.afd-section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0 0 17px;
+}
+
+.afd-section-heading strong {
+    font-size: 15px;
+    font-weight: 900;
+    color: #f5f5f5;
+}
+
+.afd-section-heading span {
+    color: #929292;
+    font-size: 11px;
+}
+
+/* =====================================================
+   BILLET AFROFANS
+===================================================== */
+
+.afd-ticket {
+    display: grid;
+    grid-template-columns:
+        minmax(0, 1fr)
+        165px;
+
+    overflow: hidden;
+    border: 1px solid #3b3b3b;
+    border-radius: 23px;
+    background: #171717;
+
+    box-shadow:
+        0 20px 50px rgba(0,0,0,.3);
+}
+
+/* PARTIE PRINCIPALE */
+
+.afd-ticket-content {
+    position: relative;
+    min-width: 0;
+    padding: 0 0 28px;
+
+    background:
+        radial-gradient(
+            circle at 100% 10%,
+            rgba(255,138,0,.09),
+            transparent 48%
+        ),
+        #171717;
+}
+
+.afd-ticket-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    min-height: 68px;
+    padding: 17px 24px;
+
+    background: linear-gradient(
+        110deg,
+        #ffb32e,
+        #ff8a00 60%,
+        #ff7700
+    );
+
+    color: #0b0b0b;
+}
+
+.afd-ticket-logo {
+    font-size: 25px;
+    line-height: 1;
+    font-weight: 950;
+    letter-spacing: -1.1px;
+}
+
+.afd-ticket-logo span {
+    color: #ffffff;
+}
+
+.afd-ticket-category {
+    padding: 7px 9px;
+
+    border: 1px solid rgba(0,0,0,.24);
+    border-radius: 7px;
+    background: rgba(255,255,255,.22);
+
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: .8px;
+    white-space: nowrap;
+}
+
+.afd-ticket-inner {
+    padding: 30px 27px 0;
+}
+
+.afd-ticket-label {
+    display: block;
+    margin-bottom: 14px;
+
+    color: var(--afd-orange-soft);
+    font-size: 10px;
+    letter-spacing: 2px;
+    font-weight: 900;
+}
+
+.afd-event-title {
+    margin: 0;
+    color: #fff;
+
+    font-size: clamp(26px, 3vw, 38px);
+    font-weight: 950;
+    letter-spacing: -1px;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+
+/* STATUT */
+
+.afd-ticket-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    margin-top: 21px;
+    padding: 9px 12px;
+
+    border-radius: 8px;
+    background: #272727;
+    border: 1px solid #424242;
+
+    font-size: 11px;
+    color: #ddd;
+    font-weight: 800;
+}
+
+.afd-ticket-status::before {
+    content: "";
+    display: block;
+    width: 7px;
+    height: 7px;
+    flex: 0 0 7px;
+    border-radius: 50%;
+    background: #ff8a00;
+}
+
+.afd-ticket-status.is-open::before {
+    background: #3ed395;
+}
+
+.afd-ticket-divider {
+    height: 1px;
+    background: #383838;
+    margin: 29px 0;
+}
+
+/* INFORMATIONS DU BILLET */
+
+.afd-ticket-details {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 27px 18px;
+}
+
+.afd-ticket-item {
+    min-width: 0;
+}
+
+.afd-ticket-item small {
+    display: block;
+    margin-bottom: 8px;
+
+    color: #999;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+}
+
+.afd-ticket-item strong {
+    display: block;
+
+    color: #f6f6f6;
+    font-size: 14px;
+    line-height: 1.5;
+    font-weight: 900;
+    overflow-wrap: anywhere;
+}
+
+.afd-ticket-item .afd-price {
+    color: #ffad38;
+    font-size: 22px;
+}
+
+.afd-ticket-bottomline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #383838;
+}
+
+.afd-ticket-bottomline span {
+    font-size: 10px;
+    color: #a5a5a5;
+    font-weight: 700;
+}
+
+.afd-ticket-bottomline strong {
+    color: #ffae38;
+    font-size: 11px;
+    font-weight: 900;
+}
+
+/* =====================================================
+   PARTIE DÉTACHABLE
+===================================================== */
+
+.afd-ticket-stub {
+    position: relative;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    padding: 25px 15px;
+    text-align: center;
+
+    border-left: 2px dashed #555;
+
+    background:
+        linear-gradient(
+            180deg,
+            #222,
+            #131313
+        );
+}
+
+.afd-ticket-stub::before,
+.afd-ticket-stub::after {
+    content: "";
+    position: absolute;
+    left: -14px;
+
+    width: 27px;
+    height: 27px;
+    border-radius: 50%;
+
+    background: #090909;
+}
+
+.afd-ticket-stub::before {
+    top: -14px;
+}
+
+.afd-ticket-stub::after {
+    bottom: -14px;
+}
+
+.afd-stub-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 98px;
+    height: 98px;
+
+    border-radius: 14px;
+    background: #fff;
+    color: #101010;
+    margin-bottom: 22px;
+}
+
+/* Illustration neutre :
+   ne constitue pas un véritable QR code */
+
+.afd-stub-icon-inner {
+    display: grid;
+    grid-template-columns: repeat(3, 16px);
+    grid-template-rows: repeat(3, 16px);
+    gap: 7px;
+}
+
+.afd-stub-icon-inner i {
+    display: block;
+    background: #111;
+    border-radius: 2px;
+}
+
+.afd-stub-icon-inner i:nth-child(2),
+.afd-stub-icon-inner i:nth-child(4),
+.afd-stub-icon-inner i:nth-child(6),
+.afd-stub-icon-inner i:nth-child(8) {
+    background: #e7e7e7;
+}
+
+.afd-ticket-stub h3 {
+    margin: 0 0 9px;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 900;
+}
+
+.afd-ticket-stub p {
+    margin: 0;
+    color: #aaa;
+    font-size: 11px;
+    line-height: 1.8;
+}
+
+.afd-stub-pill {
+    margin-top: 20px;
+    padding: 8px 10px;
+    background: rgba(255,138,0,.13);
+    border: 1px solid rgba(255,138,0,.35);
+    border-radius: 20px;
+
+    color: #ffb247;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: .5px;
+}
+
+/* =====================================================
+   DESCRIPTION
+===================================================== */
+
+.afd-description {
+    margin-top: 25px;
+    padding: 29px;
+
+    background: #161616;
+    border: 1px solid #333;
+    border-radius: 19px;
+}
+
+.afd-description h2 {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+
+    font-size: 19px;
+    font-weight: 900;
+    color: #fff;
+    margin: 0 0 18px;
+}
+
+.afd-description h2::before {
+    content: "";
+    width: 4px;
+    height: 23px;
+    border-radius: 5px;
+    background: #ff8a00;
+}
+
+.afd-description p {
+    margin: 0;
+    color: #bcbcbc;
+    font-size: 14px;
+    line-height: 1.95;
+    overflow-wrap: anywhere;
+}
+
+/* INFOS COMPLÉMENTAIRES */
+
+.afd-info-strip {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.afd-mini-info {
+    padding: 17px;
+    border-radius: 13px;
+    border: 1px solid #303030;
+    background: #161616;
+}
+
+.afd-mini-info small {
+    display: block;
+    color: #999;
+    margin-bottom: 8px;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.afd-mini-info strong {
+    display: block;
+    color: #fff;
+    font-size: 12px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+/* =====================================================
+   GESTION ORGANISATEUR
+===================================================== */
+
+.afd-owner {
+    margin-top: 25px;
+    padding: 26px;
+
+    border-radius: 19px;
+    border: 1px solid #6a451a;
+
+    background:
+        linear-gradient(
+            145deg,
+            #251b0e,
+            #161616 70%
+        );
+}
+
+.afd-owner-tag {
+    display: inline-block;
+    margin-bottom: 13px;
+
+    color: #ffac34;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 1.6px;
+}
+
+.afd-owner h2 {
+    margin: 0 0 10px;
+    font-size: 20px;
+    font-weight: 900;
+    color: #fff;
+}
+
+.afd-owner p {
+    font-size: 13px;
+    line-height: 1.8;
+    color: #bbb;
+    margin: 0 0 23px;
+}
+
+.afd-owner-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+/* =====================================================
+   BOUTONS
+===================================================== */
+
+.afd-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+
+    min-height: 48px;
+    padding: 13px 18px;
+
+    border: 0;
+    border-radius: 11px;
+
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 900;
+
+    text-decoration: none;
+    text-align: center;
+    cursor: pointer;
+
+    transition:
+        transform .2s,
+        opacity .2s,
+        background .2s;
+}
+
+.afd-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+}
+
+.afd-btn-primary {
+    background: linear-gradient(
+        110deg,
+        #ffb42d,
+        #ff8a00
+    );
+    color: #080808;
+}
+
+.afd-btn-secondary {
+    background: #292929;
+    color: #fff;
+    border: 1px solid #484848;
+}
+
+.afd-btn:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
+.afd-btn-full {
+    width: 100%;
+}
+
+/* =====================================================
+   PANNEAU D'ACHAT
+===================================================== */
+
+.afd-booking {
+    overflow: hidden;
+    background: #171717;
+    border: 1px solid #383838;
+    border-radius: 21px;
+
+    box-shadow: 0 15px 35px rgba(0,0,0,.2);
+}
+
+.afd-booking-top {
+    padding: 25px 25px 22px;
+    background: #1d1d1d;
+    border-bottom: 1px solid #383838;
+}
+
+.afd-booking-tag {
+    display: inline-block;
+    margin-bottom: 12px;
+
+    color: #ff9d20;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 1.6px;
+}
+
+.afd-booking-top h2 {
+    color: #fff;
+    font-size: 25px;
+    font-weight: 900;
+    letter-spacing: -.5px;
+    margin: 0 0 8px;
+}
+
+.afd-booking-top p {
+    font-size: 12px;
+    color: #a9a9a9;
+    margin: 0;
+    line-height: 1.8;
+}
+
+.afd-booking-price {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+
+    padding-top: 19px;
+    margin-top: 19px;
+    border-top: 1px solid #3a3a3a;
+}
+
+.afd-booking-price span {
+    color: #aaa;
+    font-size: 12px;
+}
+
+.afd-booking-price strong {
+    font-size: 24px;
+    font-weight: 950;
+    color: #ffac35;
+    white-space: nowrap;
+}
+
+.afd-booking-body {
+    padding: 25px;
+}
+
+.afd-availability {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    background: #193027;
+    border: 1px solid #2e6b50;
+    border-radius: 10px;
+
+    padding: 13px;
+    color: #a9f1cd;
+
+    font-size: 12px;
+    font-weight: 800;
+    margin-bottom: 22px;
+}
+
+.afd-availability::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    background: #45df9b;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* CHAMPS */
+
+.afd-field {
+    margin-bottom: 19px;
+}
+
+.afd-field label {
+    display: block;
+    color: #eee;
+    font-size: 12px;
+    font-weight: 800;
+    margin-bottom: 9px;
+}
+
+.afd-field input:not([type="checkbox"]),
+.afd-field select,
+.afd-field textarea {
+    display: block;
+
+    width: 100%;
+    min-height: 47px;
+    padding: 13px 14px;
+
+    box-sizing: border-box;
+
+    background: #252525;
+    border: 1px solid #454545;
+    border-radius: 10px;
+
+    font-family: inherit;
+    font-size: 13px;
+    color: #fff;
+}
+
+.afd-field input:focus,
+.afd-field select:focus,
+.afd-field textarea:focus {
+    outline: none;
+    border-color: #ff8a00;
+    box-shadow: 0 0 0 3px rgba(255,138,0,.1);
+}
+
+.afd-field input::placeholder,
+.afd-field textarea::placeholder {
+    color: #8d8d8d;
+}
+
+.afd-field select option {
+    background: #242424;
+    color: #fff;
+}
+
+.afd-field-help {
+    display: block;
+    margin-top: 8px;
+    font-size: 11px;
+    line-height: 1.6;
+    color: #aaa;
+}
+
+.afd-required {
+    color: #ff9b1c;
+}
+
+.afd-checkbox {
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+
+    padding: 16px;
+    margin: 12px 0;
+
+    background: #222;
+    border: 1px solid #404040;
+    border-radius: 11px;
+}
+
+.afd-checkbox input {
+    width: 17px;
+    height: 17px;
+    margin-top: 2px;
+    flex: 0 0 17px;
+    accent-color: #ff8a00;
+}
+
+.afd-checkbox label {
+    color: #d1d1d1;
+    font-size: 12px;
+    line-height: 1.8;
+    cursor: pointer;
+}
+
+.afd-error {
+    color: #ff8e98;
+    font-size: 12px;
+    line-height: 1.6;
+    margin: 7px 0 13px;
+}
+
+.afd-booking-notice {
+    padding: 17px;
+    margin-top: 20px;
+
+    background: #222;
+    border: 1px solid #383838;
+    border-radius: 11px;
+
+    font-size: 11px;
+    line-height: 1.9;
+    color: #aaa;
+}
+
+.afd-booking-notice strong {
+    color: #ffac35;
+}
+
+.afd-booking-empty {
+    padding: 20px;
+    border: 1px solid #424242;
+    border-radius: 12px;
+    background: #242424;
+
+    color: #ccc;
+    font-size: 13px;
+    line-height: 1.9;
+}
+
+.afd-booking-empty strong {
+    display: block;
+    color: #fff;
+    font-size: 15px;
+    margin-bottom: 6px;
+}
+
+/* FOOTER TECHNIQUE */
+
+.afd-tech {
+    text-align: center;
+    margin-top: 28px;
+
+    color: #888;
+    font-size: 11px;
+    line-height: 1.9;
+}
+
+.afd-tech strong {
+    color: #ffac35;
+}
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+@media (max-width: 980px) {
+
+    .afd-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .afd-sidebar {
+        position: static;
+    }
+
+    .afd-booking {
+        max-width: 680px;
+    }
+}
+
+@media (max-width: 650px) {
+
+    .afd-page {
+        padding: 80px 12px 65px;
+    }
+
+    .afd-ticket {
+        grid-template-columns: 1fr;
+    }
+
+    .afd-ticket-banner {
+        padding: 17px 19px;
+    }
+
+    .afd-ticket-inner {
+        padding: 26px 20px 0;
+    }
+
+    .afd-event-title {
+        font-size: 30px;
+    }
+
+    .afd-ticket-stub {
+        flex-direction: row;
+        justify-content: flex-start;
+        text-align: left;
+        gap: 20px;
+
+        border-left: 0;
+        border-top: 2px dashed #555;
+
+        padding: 21px;
+    }
+
+    .afd-ticket-stub::before,
+    .afd-ticket-stub::after {
+        top: -14px;
+        left: auto;
+    }
+
+    .afd-ticket-stub::before {
+        left: -14px;
+    }
+
+    .afd-ticket-stub::after {
+        right: -14px;
+    }
+
+    .afd-stub-icon {
+        width: 83px;
+        height: 83px;
+        flex: 0 0 83px;
+        margin-bottom: 0;
+    }
+
+    .afd-stub-icon-inner {
+        grid-template-columns: repeat(3, 12px);
+        grid-template-rows: repeat(3, 12px);
+        gap: 5px;
+    }
+
+    .afd-ticket-stub h3 {
+        font-size: 13px;
+    }
+
+    .afd-stub-pill {
+        display: none;
+    }
+
+    .afd-description,
+    .afd-owner {
+        padding: 22px;
+    }
+
+    .afd-info-strip {
+        grid-template-columns: 1fr;
+    }
+
+    .afd-booking-top,
+    .afd-booking-body {
+        padding: 22px;
+    }
+}
+
+@media (max-width: 400px) {
+
+    .afd-ticket-info {
+        gap: 21px 10px;
+    }
+
+    .afd-ticket-item strong {
+        font-size: 12px;
+    }
+
+    .afd-ticket-item .afd-price {
+        font-size: 17px;
+    }
+
+    .afd-ticket-logo {
+        font-size: 22px;
+    }
+
+    .afd-owner-actions {
+        flex-direction: column;
+    }
+
+    .afd-owner-actions .afd-btn {
+        width: 100%;
+    }
+}
+</style>
+
+<!-- =====================================================
+     PAGE DÉTAIL ÉVÉNEMENT
+===================================================== -->
+
+<main class="afd-page">
+
+    <div class="afd-container">
+
+        <!-- EN-TÊTE -->
+        <header class="afd-heading">
+
+            <span class="afd-eyebrow">
+                AFROFANS ÉVÉNEMENTS
+            </span>
+
+            <h2>
+                Votre prochain
+                <span>événement</span>
+            </h2>
+
+            <p>
+                Découvrez les informations de l'événement,
+                sa billetterie et les modalités d'accès.
+            </p>
+
+        </header>
+
+        <div class="afd-layout">
+
+            <!-- =================================================
+                 COLONNE PRINCIPALE
+            ================================================== -->
+
+            <div class="afd-main">
+
+                <div class="afd-section-heading">
+                    <strong>Billetterie de l'événement</strong>
+                    <span>Format officiel AfroFans</span>
+                </div>
+
+                <!-- =========================================
+                     BILLET MODERNE
+                ========================================== -->
+
+                <article class="afd-ticket">
+
+                    <!-- CORPS DU BILLET -->
+                    <div class="afd-ticket-content">
+
+                        <div class="afd-ticket-banner">
+
+                            <div class="afd-ticket-logo">
+                                Afro<span>Fans</span>
+                            </div>
+
+                            <div class="afd-ticket-category">
+                                EVENT PASS
+                            </div>
+
+                        </div>
+
+                        <div class="afd-ticket-inner">
+
+                            <span class="afd-ticket-label">
+                                ÉVÉNEMENT · BILLETTERIE
+                            </span>
+
+                            <h1 class="afd-event-title">
+                                {{ evenement.titre }}
+                            </h1>
+
+                            <!-- STATUT ÉVÉNEMENT -->
+                            {% if evenement.statut == "ouvert" %}
+
+                                <div class="afd-ticket-status is-open">
+                                    Événement ouvert
+                                </div>
+
+                            {% elif evenement.statut == "publie" %}
+
+                                <div class="afd-ticket-status">
+                                    Billetterie publiée
+                                </div>
+
+                            {% elif evenement.statut == "termine" %}
+
+                                <div class="afd-ticket-status">
+                                    Événement terminé
+                                </div>
+
+                            {% elif evenement.statut == "annule" %}
+
+                                <div class="afd-ticket-status">
+                                    Événement annulé
+                                </div>
+
+                            {% else %}
+
+                                <div class="afd-ticket-status">
+                                    En attente de publication
+                                </div>
+
+                            {% endif %}
+
+                            <div class="afd-ticket-divider"></div>
+
+                            <!-- DÉTAILS DU BILLET -->
+                            <div class="afd-ticket-details">
+
+                                <div class="afd-ticket-item">
+                                    <small>Date</small>
+                                    <strong>
+                                        {{ evenement.date_evenement|date:"d M Y" }}
+                                    </strong>
+                                </div>
+
+                                <div class="afd-ticket-item">
+                                    <small>Heure</small>
+                                    <strong>
+                                        {{ evenement.date_evenement|date:"H:i" }}
+                                    </strong>
+                                </div>
+
+                                <div class="afd-ticket-item">
+                                    <small>Ville</small>
+                                    <strong>
+                                        {{ evenement.ville|default:"À préciser" }}
+                                    </strong>
+                                </div>
+
+                                <div class="afd-ticket-item">
+                                    <small>Lieu</small>
+                                    <strong>
+                                        {{ evenement.lieu|default:"À préciser" }}
+                                    </strong>
+                                </div>
+
+                                <div class="afd-ticket-item">
+                                    <small>Prix du billet</small>
+
+                                    <strong class="afd-price">
+                                        {% if evenement.prix == 0 %}
+                                            Gratuit
+                                        {% else %}
+                                            {{ evenement.prix }}
+                                            {{ evenement.devise }}
+                                        {% endif %}
+                                    </strong>
+                                </div>
+
+                                <div class="afd-ticket-item">
+                                    <small>Places disponibles</small>
+
+                                    <strong>
+                                        {% if evenement.statut == "publie" or evenement.statut == "ouvert" %}
+                                            {{ places_disponibles }}
+                                            place{{ places_disponibles|pluralize }}
+                                        {% else %}
+                                            Billetterie fermée
+                                        {% endif %}
+                                    </strong>
+                                </div>
+
+                            </div>
+
+                            <div class="afd-ticket-bottomline">
+
+                                <span>
+                                    BILLETTERIE NUMÉRIQUE AFROFANS
+                                </span>
+
+                                <strong>
+                                    ACCÈS PAR QR CODE
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- PARTIE DÉTACHABLE -->
+                    <div class="afd-ticket-stub">
+
+                        <div class="afd-stub-icon">
+                            <div
+                                class="afd-stub-icon-inner"
+                                aria-hidden="true"
+                            >
+                                <i></i><i></i><i></i>
+                                <i></i><i></i><i></i>
+                                <i></i><i></i><i></i>
+                            </div>
+                        </div>
+
+                        <div>
+
+                            <h3>
+                                Entrée sécurisée
+                            </h3>
+
+                            <p>
+                                Chaque billet payé
+                                reçoit son QR code
+                                personnel pour
+                                le contrôle d'accès.
+                            </p>
+
+                            <div class="afd-stub-pill">
+                                QR APRÈS PAIEMENT
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </article>
+
+                <!-- =========================================
+                     INFORMATIONS COMPLÉMENTAIRES
+                ========================================== -->
+
+                <div class="afd-info-strip">
+
+                    <div class="afd-mini-info">
+                        <small>Date et heure</small>
+                        <strong>
+                            {{ evenement.date_evenement|date:"d/m/Y à H:i" }}
+                        </strong>
+                    </div>
+
+                    <div class="afd-mini-info">
+                        <small>Localisation</small>
+                        <strong>
+                            {{ evenement.ville }},
+                            {{ evenement.lieu }}
+                        </strong>
+                    </div>
+
+                    <div class="afd-mini-info">
+                        <small>Réservation</small>
+                        <strong>
+                            Confirmation après paiement
+                        </strong>
+                    </div>
+
+                </div>
+
+                <!-- =========================================
+                     DESCRIPTION
+                ========================================== -->
+
+                <section class="afd-description">
+
+                    <h2>
+                        À propos de cet événement
+                    </h2>
+
+                    {% if evenement.description %}
+
+                        <p>
+                            {{ evenement.description|linebreaksbr }}
+                        </p>
+
+                    {% else %}
+
+                        <p>
+                            Aucune description supplémentaire
+                            n'a été renseignée pour cet événement.
+                        </p>
+
+                    {% endif %}
+
+                </section>
+
+                <!-- =========================================
+                     GESTION ORGANISATEUR
+                ========================================== -->
+
+                {% if est_proprietaire %}
+
+                <section class="afd-owner">
+
+                    <span class="afd-owner-tag">
+                        ESPACE ORGANISATEUR
+                    </span>
+
+                    <h2>
+                        Gestion de votre événement
+                    </h2>
+
+                    <p>
+                        Gérez les contrôleurs,
+                        le code unique de votre événement,
+                        le scanner des billets et
+                        le suivi des présences.
+                    </p>
+
+                    <div class="afd-owner-actions">
+
+                        <a
+                            href="{% url 'Afrons:tableau_presence' evenement.id %}"
+                            class="afd-btn afd-btn-primary"
+                        >
+                            Gérer mon événement →
+                        </a>
+
+                        {% if evenement.statut != "ouvert" and evenement.statut != "termine" %}
+
+                            <a
+                                href="{% url 'Afrons:modifier_evenement' evenement.id %}"
+                                class="afd-btn afd-btn-secondary"
+                            >
+                                Modifier l'événement
+                            </a>
+
+                        {% endif %}
+
+                    </div>
+
+                </section>
+
+                {% endif %}
+
+            </div>
+
+            <!-- =================================================
+                 COLONNE RÉSERVATION
+            ================================================== -->
+
+            <aside class="afd-sidebar">
+
+                <div class="afd-section-heading">
+                    <strong>Réservation</strong>
+                    <span>Paiement sécurisé</span>
+                </div>
+
+                <section class="afd-booking">
+
+                    <!-- EN-TÊTE RÉSERVATION -->
+                    <div class="afd-booking-top">
+
+                        <span class="afd-booking-tag">
+                            AFROFANS TICKETS
+                        </span>
+
+                        <h2>
+                            Réserver un billet
+                        </h2>
+
+                        <p>
+                            Réservez votre place pour
+                            participer à cet événement.
+                        </p>
+
+                        <div class="afd-booking-price">
+
+                            <span>
+                                Prix par billet
+                            </span>
+
+                            <strong>
+                                {% if evenement.prix == 0 %}
+                                    Gratuit
+                                {% else %}
+                                    {{ evenement.prix }}
+                                    {{ evenement.devise }}
+                                {% endif %}
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                    <!-- CONTENU -->
+                    <div class="afd-booking-body">
+
+                        {% if evenement.statut == "publie" or evenement.statut == "ouvert" %}
+
+                            {% if places_disponibles > 0 %}
+
+                                <div class="afd-availability">
+                                    {{ places_disponibles }}
+                                    place{{ places_disponibles|pluralize }}
+                                    disponible{{ places_disponibles|pluralize }}
+                                </div>
+
+                                {% if est_proprietaire %}
+
+                                    <div class="afd-booking-empty">
+
+                                        <strong>
+                                            Vous organisez cet événement
+                                        </strong>
+
+                                        En tant qu'organisateur,
+                                        vous pouvez gérer cet
+                                        événement depuis votre
+                                        espace de gestion.
+
+                                    </div>
+
+                                    <a
+                                        href="{% url 'Afrons:tableau_presence' evenement.id %}"
+                                        class="afd-btn afd-btn-primary afd-btn-full"
+                                        style="margin-top:18px;"
+                                    >
+                                        Ouvrir la gestion →
+                                    </a>
+
+                                {% elif user.is_authenticated %}
+
+                                    <!-- FORMULAIRE DE RÉSERVATION -->
+                                    <form
+                                        method="post"
+                                        action="{% url 'Afrons:acheter_billet' evenement.id %}"
+                                        id="afd-booking-form"
+                                    >
+
+                                        {% csrf_token %}
+
+                                        {% for erreur in formulaire.non_field_errors %}
+
+                                            <div class="afd-error">
+                                                {{ erreur }}
+                                            </div>
+
+                                        {% endfor %}
+
+                                        {% for champ in formulaire %}
+
+                                            {% if champ.is_hidden %}
+
+                                                {{ champ }}
+
+                                            {% elif champ.name == "accept_absence" %}
+
+                                                <div class="afd-checkbox">
+
+                                                    {{ champ }}
+
+                                                    <label for="{{ champ.id_for_label }}">
+                                                        {{ champ.label }}
+                                                    </label>
+
+                                                </div>
+
+                                                {% if champ.help_text %}
+                                                    <small class="afd-field-help">
+                                                        {{ champ.help_text }}
+                                                    </small>
+                                                {% endif %}
+
+                                            {% elif champ.field.widget.input_type == "checkbox" %}
+
+                                                <div class="afd-checkbox">
+
+                                                    {{ champ }}
+
+                                                    <label for="{{ champ.id_for_label }}">
+                                                        {{ champ.label }}
+                                                    </label>
+
+                                                </div>
+
+                                            {% else %}
+
+                                                <div class="afd-field">
+
+                                                    <label for="{{ champ.id_for_label }}">
+                                                        {{ champ.label }}
+
+                                                        {% if champ.field.required %}
+                                                            <span class="afd-required">*</span>
+                                                        {% endif %}
+                                                    </label>
+
+                                                    {{ champ }}
+
+                                                    {% if champ.help_text %}
+                                                        <small class="afd-field-help">
+                                                            {{ champ.help_text }}
+                                                        </small>
+                                                    {% endif %}
+
+                                                </div>
+
+                                            {% endif %}
+
+                                            {% for erreur in champ.errors %}
+
+                                                <div class="afd-error">
+                                                    {{ erreur }}
+                                                </div>
+
+                                            {% endfor %}
+
+                                        {% endfor %}
+
+                                        <button
+                                            type="submit"
+                                            class="afd-btn afd-btn-primary afd-btn-full"
+                                            style="margin-top:13px;"
+                                        >
+                                            Réserver mes billets →
+                                        </button>
+
+                                    </form>
+
+                                    <div class="afd-booking-notice">
+
+                                        <strong>
+                                            Réservation temporaire
+                                        </strong>
+
+                                        <div>
+                                            Votre réservation sera
+                                            maintenue pendant
+                                            10 minutes.
+
+                                            Finalisez le paiement
+                                            pour recevoir vos
+                                            billets avec QR codes.
+                                        </div>
+
+                                    </div>
+
+                                {% else %}
+
+                                    <div class="afd-booking-empty">
+
+                                        <strong>
+                                            Connexion requise
+                                        </strong>
+
+                                        Connectez-vous avec votre
+                                        compte Fan AfroFans
+                                        pour réserver votre place.
+
+                                    </div>
+
+                                {% endif %}
+
+                            {% else %}
+
+                                <div class="afd-booking-empty">
+
+                                    <strong>
+                                        Événement complet
+                                    </strong>
+
+                                    Toutes les places sont
+                                    actuellement réservées
+                                    ou vendues.
+
+                                </div>
+
+                            {% endif %}
+
+                        {% else %}
+
+                            <div class="afd-booking-empty">
+
+                                <strong>
+                                    Billetterie indisponible
+                                </strong>
+
+                                {% if evenement.statut == "termine" %}
+
+                                    Cet événement est terminé.
+
+                                {% elif evenement.statut == "annule" %}
+
+                                    Cet événement a été annulé.
+
+                                {% else %}
+
+                                    La billetterie de cet
+                                    événement n'est pas
+                                    encore ouverte.
+
+                                {% endif %}
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+                </section>
+
+                <!-- RASSURANCE / FONCTIONNEMENT -->
+                <div class="afd-booking-notice">
+
+                    <strong>
+                        Billetterie numérique AfroFans
+                    </strong>
+
+                    <div>
+                        Chaque billet confirmé dispose
+                        d'un QR code unique.
+                        Les contrôleurs autorisés
+                        vérifient les entrées
+                        grâce au système AfroFans.
+                    </div>
+
+                </div>
+
+                <!-- CRÉDIT TECHNIQUE -->
+                <div class="afd-tech">
+
+                    Système AfroFans développé et
+                    contrôlé techniquement par
+
+                    <strong>HexaQuébec</strong>
+
+                </div>
+
+            </aside>
+
+        </div>
+
+    </div>
+
+</main>
+
+{% endblock %}

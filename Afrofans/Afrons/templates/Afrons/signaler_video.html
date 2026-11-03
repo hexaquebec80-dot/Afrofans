@@ -1,0 +1,112 @@
+{% extends "Afrons/base.html" %}
+
+{% block title %}
+    Signaler une vidéo | AfroFans
+{% endblock %}
+
+{% block content %}
+
+    <section class="standard-page report-page">
+
+        <a
+            class="back-link"
+            href="{% url 'Afrons:detail_video' video.id %}"
+        >
+            ← Retour à la vidéo
+        </a>
+
+        <div class="form-card report-card">
+
+            <div class="report-icon">!</div>
+
+            <div class="form-card-heading">
+
+                <span class="page-label">
+                    Sécurité AfroFans
+                </span>
+
+                <h1>Signaler cette vidéo</h1>
+
+                <p>
+                    Ton signalement restera confidentiel.
+                    Notre équipe vérifiera le contenu.
+                </p>
+
+            </div>
+
+            <div class="reported-video">
+
+                <strong>{{ video.titre }}</strong>
+
+                <span>
+                    Publiée par
+                    @{{ video.auteur.username }}
+                </span>
+
+            </div>
+
+            <form
+                method="post"
+                class="application-form"
+                novalidate
+            >
+
+                {% csrf_token %}
+
+                {% if formulaire.non_field_errors %}
+                    <div class="form-errors">
+                        {{ formulaire.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                {% for champ in formulaire %}
+
+                    <div class="form-group">
+
+                        <label for="{{ champ.id_for_label }}">
+                            {{ champ.label }}
+                        </label>
+
+                        {{ champ }}
+
+                        {% if champ.help_text %}
+                            <small class="field-help">
+                                {{ champ.help_text }}
+                            </small>
+                        {% endif %}
+
+                        {% for erreur in champ.errors %}
+                            <small class="field-error">
+                                {{ erreur }}
+                            </small>
+                        {% endfor %}
+
+                    </div>
+
+                {% endfor %}
+
+                <div class="form-actions">
+
+                    <a
+                        class="secondary-button"
+                        href="{% url 'Afrons:detail_video' video.id %}"
+                    >
+                        Annuler
+                    </a>
+
+                    <button
+                        type="submit"
+                        class="danger-button"
+                    >
+                        Envoyer le signalement
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </section>
+
+{% endblock %}

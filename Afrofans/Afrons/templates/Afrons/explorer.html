@@ -1,0 +1,170 @@
+{% extends "Afrons/base.html" %}
+
+{% block title %}
+    Explorer | AfroFans
+{% endblock %}
+
+{% block content %}
+
+    <section class="standard-page explorer-page">
+
+        <div class="page-heading">
+
+            <span class="page-label">
+                AfroFans Explore
+            </span>
+
+            <h1>
+                Découvre les talents africains
+            </h1>
+
+            <p>
+                Musique, danse, humour, mode,
+                cuisine, culture et bien plus.
+            </p>
+
+        </div>
+
+        <form
+            method="get"
+            action="{% url 'Afrons:explorer' %}"
+            class="search-form"
+        >
+
+            <div class="search-field">
+
+                <span class="search-icon">⌕</span>
+
+                <input
+                    type="search"
+                    name="q"
+                    value="{{ recherche }}"
+                    placeholder="Artiste, vidéo ou hashtag..."
+                    autocomplete="off"
+                >
+
+            </div>
+
+            {% if categorie_active %}
+                <input
+                    type="hidden"
+                    name="categorie"
+                    value="{{ categorie_active }}"
+                >
+            {% endif %}
+
+            <button type="submit">
+                Rechercher
+            </button>
+
+        </form>
+
+        <div class="category-list">
+
+            <a
+                href="{% url 'Afrons:explorer' %}?q={{ recherche }}"
+                class="{% if not categorie_active %}active{% endif %}"
+            >
+                Tout
+            </a>
+
+            {% for valeur, etiquette in categories %}
+
+                <a
+                    href="{% url 'Afrons:explorer' %}?q={{ recherche }}&categorie={{ valeur }}"
+                    class="{% if categorie_active == valeur %}active{% endif %}"
+                >
+                    {{ etiquette }}
+                </a>
+
+            {% endfor %}
+
+        </div>
+
+        <div class="explorer-results-header">
+
+            <h2>Vidéos populaires</h2>
+
+            <span>
+                {{ videos.count }} résultat{{ videos.count|pluralize }}
+            </span>
+
+        </div>
+
+        <div class="video-grid">
+
+            {% for video in videos %}
+
+                <a
+                    class="grid-video-card"
+                    href="{% url 'Afrons:detail_video' video.id %}"
+                >
+
+                    <div class="grid-video-media">
+
+                        {% if video.miniature %}
+
+                            <img
+                                src="{{ video.miniature.url }}"
+                                alt="{{ video.titre }}"
+                                loading="lazy"
+                            >
+
+                        {% else %}
+
+                            <video
+                                src="{{ video.fichier.url }}"
+                                muted
+                                preload="metadata"
+                            ></video>
+
+                        {% endif %}
+
+                        <div class="grid-video-overlay">
+
+                            <span>
+                                ▶ {{ video.vues }}
+                            </span>
+
+                            <span>
+                                ♥ {{ video.nombre_jaimes }}
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <div class="grid-video-information">
+
+                        <h3>{{ video.titre }}</h3>
+
+                        <p>
+                            @{{ video.auteur.profil.nom_public }}
+                        </p>
+
+                    </div>
+
+                </a>
+
+            {% empty %}
+
+                <div class="empty-results">
+
+                    <span>⌕</span>
+
+                    <h2>Aucun résultat trouvé</h2>
+
+                    <p>
+                        Essaie une autre recherche
+                        ou une autre catégorie.
+                    </p>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    </section>
+
+{% endblock %}

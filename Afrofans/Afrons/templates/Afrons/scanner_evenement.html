@@ -1,0 +1,244 @@
+
+{% extends "Afrons/base.html" %}
+
+{% block title %}
+Scanner les billets | AfroFans
+{% endblock %}
+
+{% block content %}
+
+<style>
+.af-scanner-page {
+    max-width: 700px;
+    margin: auto;
+    padding: 105px 18px 90px;
+    color: #fff;
+}
+
+.af-scanner-card {
+    background: #151515;
+    border: 1px solid #343434;
+    padding: 25px;
+    border-radius: 22px;
+}
+
+.af-scanner-page h1 {
+    font-size: 30px;
+}
+
+.af-scanner-page p {
+    color: #aaa;
+    line-height: 1.6;
+}
+
+#af-reader {
+    background: #090909;
+    border: 1px solid #3b3b3b;
+    border-radius: 15px;
+    overflow: hidden;
+    min-height: 250px;
+    margin-top: 20px;
+}
+
+.af-scan-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 13px;
+    background: #222;
+    border: 1px solid #444;
+    border-radius: 11px;
+    color: #fff;
+    margin-top: 12px;
+}
+
+.af-scan-button {
+    padding: 13px 19px;
+    margin-top: 12px;
+    background: #ff8a00;
+    color: #111;
+    border: 0;
+    border-radius: 11px;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.af-scan-result {
+    margin-top: 20px;
+    padding: 20px;
+    background: #242424;
+    border: 1px solid #555;
+    border-radius: 14px;
+}
+
+.af-scan-success {
+    border-color: #2d9b69;
+    background: #123225;
+}
+
+.af-scan-error {
+    border-color: #a35c3b;
+    background: #39231c;
+}
+</style>
+
+<main class="af-scanner-page">
+
+    <h1>Scanner les billets</h1>
+
+    <p>
+        Événement :
+        <strong>
+            {{ controleur.evenement.titre }}
+        </strong>
+    </p>
+
+    <p>
+        Contrôleur :
+        {{ controleur.prenom }}
+        {{ controleur.nom }}
+    </p>
+
+    <div class="af-scanner-card">
+
+        <h2>Contrôle des entrées</h2>
+
+        <p>
+            Place le QR code du fan
+            devant la caméra.
+            Chaque billet ne peut être
+            validé qu'une seule fois.
+        </p>
+
+        <div id="af-reader"></div>
+
+        <form
+            method="post"
+            id="af-scan-form"
+        >
+
+            {% csrf_token %}
+
+            <label for="ticket_token">
+                QR code détecté
+            </label>
+
+            <input
+                type="text"
+                name="ticket_token"
+                id="ticket_token"
+                class="af-scan-input"
+                maxlength="1000"
+                autocomplete="off"
+                required
+            >
+
+            <button
+                type="submit"
+                class="af-scan-button"
+            >
+                Vérifier le billet
+            </button>
+
+        </form>
+
+        {% if resultat %}
+
+        <div
+            class="af-scan-result {% if resultat == 'ENTRÉE VALIDÉE' %}af-scan-success{% else %}af-scan-error{% endif %}"
+        >
+
+            <h2>{{ resultat }}</h2>
+
+            {% if billet_scanne and resultat == "ENTRÉE VALIDÉE" %}
+
+            <p>
+                Participant :
+                <strong>
+                    {{ billet_scanne.prenom_participant }}
+                    {{ billet_scanne.nom_participant }}
+                </strong>
+            </p>
+
+            <p>
+                Heure d'entrée :
+                <strong>
+                    {{ billet_scanne.utilise_le|date:"H:i:s" }}
+                </strong>
+            </p>
+
+            {% endif %}
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+</main>
+
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const champ = document.getElementById(
+        "ticket_token"
+    );
+
+    const formulaire = document.getElementById(
+        "af-scan-form"
+    );
+
+    const zone = document.getElementById(
+        "af-reader"
+    );
+
+    if (
+        !champ ||
+        !formulaire ||
+        !zone ||
+        typeof Html5QrcodeScanner === "undefined"
+    ) {
+        return;
+    }
+
+    let scanEnCours = false;
+
+    const lecteur = new Html5QrcodeScanner(
+        "af-reader",
+        {
+            fps: 8,
+            qrbox: {
+                width: 220,
+                height: 220
+            }
+        },
+        false
+    );
+
+    function billetDetecte(contenu) {
+
+        if (scanEnCours) {
+            return;
+        }
+
+        scanEnCours = true;
+
+        champ.value = contenu;
+
+        lecteur.clear()
+            .catch(function () {})
+            .finally(function () {
+                formulaire.requestSubmit();
+            });
+    }
+
+    lecteur.render(
+        billetDetecte,
+        function () {}
+    );
+
+});
+</script>
+
+{% endblock %}

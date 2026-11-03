@@ -1,0 +1,235 @@
+{% extends "Afrons/base.html" %}
+
+{% block title %}
+    Envoyer un don | AfroFans
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .donation-layout {
+        display: grid;
+        grid-template-columns: 0.75fr 1.25fr;
+        align-items: start;
+        gap: 40px;
+    }
+
+    .donation-creator {
+        position: sticky;
+        top: 95px;
+        padding: 27px;
+        border: 1px solid var(--af-border);
+        border-radius: 22px;
+        background:
+            radial-gradient(
+                circle at top,
+                rgba(22, 199, 132, 0.16),
+                transparent 48%
+            ),
+            var(--af-card);
+        text-align: center;
+    }
+
+    .donation-avatar {
+        width: 105px;
+        height: 105px;
+        display: grid;
+        place-items: center;
+        margin: 0 auto 17px;
+        overflow: hidden;
+        border: 3px solid #16c784;
+        border-radius: 50%;
+        background: linear-gradient(
+            135deg,
+            var(--af-orange-light),
+            var(--af-red)
+        );
+        font-size: 35px;
+        font-weight: 900;
+    }
+
+    .donation-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .donation-creator h2 {
+        margin-bottom: 4px;
+    }
+
+    .donation-creator > p {
+        color: var(--af-muted);
+        font-size: 12px;
+    }
+
+    .donation-message {
+        margin-top: 20px;
+        padding: 14px;
+        border: 1px solid rgba(22, 199, 132, 0.25);
+        border-radius: 14px;
+        background: rgba(22, 199, 132, 0.07);
+        color: #bdebd9;
+        font-size: 11px;
+        line-height: 1.55;
+    }
+
+    .payment-notice {
+        margin-bottom: 20px;
+        padding: 14px;
+        border: 1px solid rgba(255, 138, 0, 0.25);
+        border-radius: 14px;
+        background: rgba(255, 138, 0, 0.07);
+        color: #d5d5d5;
+        font-size: 11px;
+        line-height: 1.55;
+    }
+
+    .payment-notice strong {
+        display: block;
+        margin-bottom: 4px;
+        color: var(--af-orange);
+    }
+
+    @media (max-width: 760px) {
+        .donation-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .donation-creator {
+            position: static;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<section class="standard-page">
+
+    <a
+        class="back-link"
+        href="{% url 'Afrons:profil_public' createur.username %}"
+    >
+        ← Retour au profil
+    </a>
+
+    <div class="donation-layout">
+
+        <aside class="donation-creator">
+
+            <div class="donation-avatar">
+
+                {% if createur.profil.avatar %}
+
+                    <img
+                        src="{{ createur.profil.avatar.url }}"
+                        alt="{{ createur.profil.nom_public }}"
+                    >
+
+                {% else %}
+
+                    {{ createur.username|first|upper }}
+
+                {% endif %}
+
+            </div>
+
+            <h2>
+                {{ createur.profil.nom_public }}
+
+                {% if createur.profil.est_certifie %}
+                    <span class="verified-badge">✓</span>
+                {% endif %}
+            </h2>
+
+            <p>@{{ createur.username }}</p>
+
+            <div class="donation-message">
+                Ton soutien aide ce créateur à produire
+                de nouvelles vidéos et à développer
+                ses projets.
+            </div>
+
+        </aside>
+
+        <div class="form-card">
+
+            <div class="form-card-heading">
+
+                <span class="page-label">
+                    Soutenir un talent
+                </span>
+
+                <h1>Envoyer un don</h1>
+
+                <p>
+                    Choisis le montant et le moyen de paiement.
+                </p>
+
+            </div>
+
+            <div class="payment-notice">
+
+                <strong>Paiement sécurisé</strong>
+
+                Ta demande sera enregistrée avec le statut
+                « En attente ». Le paiement réel sera confirmé
+                après l’intégration du fournisseur sélectionné.
+            </div>
+
+            <form
+                method="post"
+                class="application-form"
+                novalidate
+            >
+
+                {% csrf_token %}
+
+                {% if formulaire.non_field_errors %}
+                    <div class="form-errors">
+                        {{ formulaire.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                {% for champ in formulaire %}
+
+                    <div class="form-group">
+
+                        <label for="{{ champ.id_for_label }}">
+                            {{ champ.label }}
+                        </label>
+
+                        {{ champ }}
+
+                        {% if champ.help_text %}
+                            <small class="field-help">
+                                {{ champ.help_text }}
+                            </small>
+                        {% endif %}
+
+                        {% for erreur in champ.errors %}
+                            <small class="field-error">
+                                {{ erreur }}
+                            </small>
+                        {% endfor %}
+
+                    </div>
+
+                {% endfor %}
+
+                <button
+                    type="submit"
+                    class="primary-button full-button"
+                >
+                    ♥ Continuer le don
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}

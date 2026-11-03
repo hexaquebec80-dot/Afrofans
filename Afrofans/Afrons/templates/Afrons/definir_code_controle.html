@@ -1,0 +1,286 @@
+{% extends "Afrons/base.html" %}
+
+{% block title %}
+Code secret du scanner | AfroFans
+{% endblock %}
+
+{% block body_class %}
+control-code-page
+{% endblock %}
+
+{% block extra_css %}
+
+<style>
+    body.control-code-page {
+        background:
+            radial-gradient(
+                circle at 50% 10%,
+                rgba(255, 138, 0, 0.15),
+                transparent 30rem
+            ),
+            #070707;
+        color: #ffffff;
+    }
+
+    .control-container {
+        width: min(
+            540px,
+            calc(100% - 28px)
+        );
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        margin: 0 auto;
+        padding: 95px 0 110px;
+    }
+
+    .control-card {
+        width: 100%;
+        padding: 30px;
+        border: 1px solid #2d2d2d;
+        border-radius: 27px;
+        background:
+            radial-gradient(
+                circle at 90% 5%,
+                rgba(255, 138, 0, 0.16),
+                transparent 16rem
+            ),
+            #111111;
+        box-shadow:
+            0 28px 80px
+            rgba(0, 0, 0, 0.42);
+    }
+
+    .control-icon {
+        width: 66px;
+        height: 66px;
+        display: grid;
+        margin-bottom: 20px;
+        place-items: center;
+        border-radius: 20px;
+        background:
+            linear-gradient(
+                135deg,
+                #ffb000,
+                #ff7600
+            );
+        color: #090909;
+        font-size: 27px;
+    }
+
+    .control-label {
+        color: #ff9719;
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .control-card h1 {
+        margin: 9px 0;
+        font-size: clamp(
+            27px,
+            5vw,
+            39px
+        );
+        line-height: 1.05;
+        letter-spacing: -0.04em;
+    }
+
+    .control-event {
+        margin: 0;
+        color: #a0a0a0;
+        font-size: 13px;
+    }
+
+    .control-warning {
+        display: flex;
+        align-items: flex-start;
+        gap: 11px;
+        margin: 23px 0;
+        padding: 15px;
+        border: 1px solid
+            rgba(255, 138, 0, 0.28);
+        border-radius: 15px;
+        background:
+            rgba(255, 138, 0, 0.07);
+        color: #c9c9c9;
+        font-size: 10px;
+        line-height: 1.6;
+    }
+
+    .control-warning span {
+        color: #ff8a00;
+        font-size: 18px;
+    }
+
+    .control-form p {
+        margin-bottom: 16px;
+    }
+
+    .control-form label {
+        display: block;
+        margin-bottom: 8px;
+        color: #dddddd;
+        font-size: 11px;
+        font-weight: 800;
+    }
+
+    .control-form input {
+        width: 100%;
+        min-height: 50px;
+        padding: 12px 14px;
+        border: 1px solid #333333;
+        border-radius: 13px;
+        outline: none;
+        background: #181818;
+        color: #ffffff;
+        font-size: 14px;
+    }
+
+    .control-form input:focus {
+        border-color: #ff8a00;
+        box-shadow:
+            0 0 0 4px
+            rgba(255, 138, 0, 0.1);
+    }
+
+    .control-form .errorlist {
+        margin: 7px 0;
+        padding: 0;
+        color: #ff6b82;
+        font-size: 10px;
+        list-style: none;
+    }
+
+    .control-submit {
+        width: 100%;
+        min-height: 50px;
+        border: 0;
+        border-radius: 13px;
+        background:
+            linear-gradient(
+                135deg,
+                #ffb000,
+                #ff7600
+            );
+        color: #090909;
+        font-size: 12px;
+        font-weight: 900;
+        cursor: pointer;
+    }
+
+    .control-back {
+        display: flex;
+        justify-content: center;
+        margin-top: 17px;
+        color: #888888;
+        font-size: 10px;
+        text-decoration: none;
+    }
+
+    .control-back:hover {
+        color: #ff8a00;
+    }
+
+    @media (max-width: 550px) {
+        .control-card {
+            padding: 22px 18px;
+            border-radius: 22px;
+        }
+    }
+</style>
+
+{% endblock %}
+
+{% block content %}
+
+<section class="control-container">
+
+    <div class="control-card">
+
+        <span class="control-icon">
+            🔐
+        </span>
+
+        <span class="control-label">
+            Sécurité événement
+        </span>
+
+        <h1>
+            Code secret du scanner
+        </h1>
+
+        <p class="control-event">
+            {{ evenement.titre }}
+        </p>
+
+        <div class="control-warning">
+
+            <span>⬡</span>
+
+            <p>
+                Ce code permettra uniquement au
+                Créateur d’ouvrir le scanner pendant
+                le contrôle des entrées. Il ne sera
+                jamais inscrit dans les billets,
+                les QR codes ou les codes-barres.
+            </p>
+
+        </div>
+
+        <form
+            method="post"
+            class="control-form"
+            novalidate
+        >
+
+            {% csrf_token %}
+
+            {% if formulaire.non_field_errors %}
+
+                <div class="form-errors">
+                    {{ formulaire.non_field_errors }}
+                </div>
+
+            {% endif %}
+
+            {% for champ in formulaire %}
+
+                <p>
+                    <label for="{{ champ.id_for_label }}">
+                        {{ champ.label }}
+                    </label>
+
+                    {{ champ }}
+
+                    {% for erreur in champ.errors %}
+                        <small class="field-error">
+                            {{ erreur }}
+                        </small>
+                    {% endfor %}
+                </p>
+
+            {% endfor %}
+
+            <button
+                type="submit"
+                class="control-submit"
+            >
+                Enregistrer mon code secret
+            </button>
+
+        </form>
+
+        <a
+            class="control-back"
+            href="{% url 'Afrons:detail_evenement' evenement.id %}"
+        >
+            ← Retour à l’événement
+        </a>
+
+    </div>
+
+</section>
+
+{% endblock %}

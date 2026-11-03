@@ -1,0 +1,1590 @@
+
+{% extends "Afrons/base.html" %}
+
+{% block title %}Talents en présence | AfroFans{% endblock %}
+{% block body_class %}af-presences-body{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ==========================================================
+   AFROFANS — TALENTS EN PRÉSENCE
+   SANS DEUXIÈME LOGO NI BOUTON RETOUR
+========================================================== */
+
+body.af-presences-body {
+    margin: 0;
+    background: #09090d;
+    color: #fff;
+}
+
+.af-live-directory {
+    --af-orange: #ff9100;
+    --af-gold: #ffc36b;
+    --af-red: #f32243;
+    --af-line: #2b2c36;
+    --af-muted: #a3a6b2;
+
+    min-height: 100vh;
+    padding: 30px 24px 90px;
+    color: #fff;
+    background:
+        radial-gradient(
+            ellipse at 82% 0%,
+            rgba(255,135,0,.12),
+            transparent 34%
+        ),
+        radial-gradient(
+            ellipse at 0% 35%,
+            rgba(255,90,0,.035),
+            transparent 38%
+        ),
+        #09090d;
+}
+
+.af-live-directory *,
+.af-live-directory *::before,
+.af-live-directory *::after {
+    box-sizing: border-box;
+}
+
+.af-live-directory [hidden] {
+    display: none !important;
+}
+
+.af-live-container {
+    width: min(1180px, 100%);
+    margin: 0 auto;
+}
+
+/* ==========================================================
+   PRÉSENTATION
+========================================================== */
+
+.af-live-hero {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0,1fr) auto;
+    align-items: center;
+    gap: 35px;
+    min-height: 240px;
+    margin-top: 0;
+    padding: 35px 40px;
+    overflow: hidden;
+    border: 1px solid #493524;
+    border-radius: 24px;
+    background: linear-gradient(
+        115deg,
+        #2a1a13,
+        #18181f 54%,
+        #11131a
+    );
+}
+
+.af-live-hero::before {
+    content: "";
+    position: absolute;
+    top: -160px;
+    right: -95px;
+    width: 340px;
+    height: 340px;
+    border-radius: 50%;
+    background: radial-gradient(
+        circle,
+        rgba(255,140,0,.32),
+        transparent 70%
+    );
+    pointer-events: none;
+}
+
+.af-live-hero-content {
+    position: relative;
+    z-index: 1;
+    min-width: 0;
+}
+
+.af-live-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 18px;
+    color: var(--af-gold);
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+
+.af-live-kicker-dot,
+.af-live-total-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--af-red);
+    box-shadow: 0 0 12px rgba(243,34,67,.5);
+    animation: af-live-pulse 1.4s infinite;
+}
+
+@keyframes af-live-pulse {
+    50% { opacity: .35; }
+}
+
+.af-live-title {
+    max-width: 650px;
+    margin: 0;
+    font-size: clamp(30px,4vw,50px);
+    font-weight: 950;
+    letter-spacing: -1.5px;
+    line-height: 1.1;
+}
+
+.af-live-title span {
+    color: var(--af-gold);
+}
+
+.af-live-description {
+    max-width: 580px;
+    margin: 17px 0 0;
+    color: #bbb8be;
+    font-size: 14px;
+    line-height: 1.8;
+}
+
+.af-live-hero-art {
+    display: grid;
+    place-items: center;
+    width: 155px;
+    height: 155px;
+    border: 1px solid rgba(255,190,90,.28);
+    border-radius: 50%;
+    background: radial-gradient(
+        circle,
+        rgba(255,140,0,.15),
+        rgba(255,140,0,.02) 70%
+    );
+    box-shadow: 0 0 0 20px rgba(255,160,0,.025);
+}
+
+.af-live-hero-art svg {
+    width: 70px;
+    height: 70px;
+    fill: none;
+    stroke: var(--af-gold);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+}
+
+/* ==========================================================
+   EN-TÊTES DE SECTIONS
+========================================================== */
+
+.af-live-section {
+    margin-top: 46px;
+}
+
+.af-live-section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 22px;
+}
+
+.af-live-section-label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--af-gold);
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 1.3px;
+    text-transform: uppercase;
+}
+
+.af-live-section-head h2 {
+    margin: 0;
+    font-size: clamp(22px,3vw,28px);
+    font-weight: 900;
+}
+
+.af-live-section-caption {
+    margin: 7px 0 0;
+    color: var(--af-muted);
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+.af-live-total {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 10px 14px;
+    border: 1px solid #49313a;
+    border-radius: 10px;
+    background: #25171d;
+    color: #ffd7dd;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+/* ==========================================================
+   CARTES DES TALENTS
+========================================================== */
+
+.af-live-grid {
+    display: grid;
+    grid-template-columns: repeat(4,minmax(0,1fr));
+    gap: 19px;
+}
+
+.af-live-card {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid #33343d;
+    border-radius: 18px;
+    background: #17181f;
+    color: #fff !important;
+    text-decoration: none;
+    transition:
+        border-color .2s,
+        transform .2s,
+        box-shadow .2s;
+}
+
+.af-live-card:hover {
+    transform: translateY(-5px);
+    border-color: #bc792c;
+    box-shadow: 0 16px 36px rgba(0,0,0,.3);
+}
+
+.af-live-cover {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 100%;
+    aspect-ratio: 4 / 4.4;
+    overflow: hidden;
+    background: radial-gradient(
+        circle at 50% 36%,
+        #5c341a,
+        #292027 43%,
+        #101117 85%
+    );
+}
+
+.af-live-pill {
+    position: absolute;
+    z-index: 3;
+    top: 14px;
+    left: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 11px;
+    border-radius: 7px;
+    background: #ed2343;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 900;
+}
+
+.af-live-pill::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #fff;
+    animation: af-live-pulse 1.4s infinite;
+}
+
+.af-live-profile-ring {
+    position: relative;
+    z-index: 2;
+    width: 120px;
+    height: 120px;
+    padding: 5px;
+    border: 4px solid var(--af-red);
+    border-radius: 50%;
+    box-shadow:
+        0 0 0 6px rgba(243,34,67,.08),
+        0 0 28px rgba(243,34,67,.24);
+}
+
+.af-live-profile-ring img,
+.af-live-profile-letter {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    background: linear-gradient(135deg,#ffd080,#ff8200);
+    color: #241507;
+    font-size: 44px;
+    font-weight: 900;
+}
+
+.af-live-wave {
+    position: absolute;
+    z-index: 2;
+    bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 20px;
+}
+
+.af-live-wave span {
+    width: 3px;
+    height: 7px;
+    border-radius: 3px;
+    background: #ffae47;
+    animation: af-wave 1s ease-in-out infinite alternate;
+}
+
+.af-live-wave span:nth-child(2) { animation-delay: .15s; }
+.af-live-wave span:nth-child(3) { animation-delay: .3s; }
+.af-live-wave span:nth-child(4) { animation-delay: .45s; }
+.af-live-wave span:nth-child(5) { animation-delay: .6s; }
+
+@keyframes af-wave {
+    to { height: 18px; }
+}
+
+.af-live-card-info {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    padding: 19px 17px 17px;
+}
+
+.af-live-talent-label {
+    color: var(--af-gold);
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+}
+
+.af-live-card-info h3 {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 8px 0 11px;
+    font-size: 16px;
+    font-weight: 900;
+    overflow-wrap: anywhere;
+}
+
+.af-live-verified {
+    display: inline-grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #ff9100;
+    color: #17110a;
+    font-size: 11px;
+    font-weight: 900;
+}
+
+.af-live-card-topic {
+    flex: 1;
+    min-height: 47px;
+}
+
+.af-live-card-topic small {
+    display: block;
+    margin-bottom: 5px;
+    color: #898d9a;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.af-live-card-topic p {
+    display: -webkit-box;
+    margin: 0;
+    overflow: hidden;
+    color: #e1e2e7;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.55;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.af-live-card-description {
+    display: -webkit-box;
+    margin: 10px 0 0;
+    overflow: hidden;
+    color: #989ba6;
+    font-size: 11px;
+    line-height: 1.65;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.af-live-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 19px;
+    padding-top: 14px;
+    border-top: 1px solid #343640;
+}
+
+.af-live-card-footer span:first-child {
+    color: #a4a6b0;
+    font-size: 11px;
+}
+
+.af-live-join {
+    color: var(--af-gold);
+    font-size: 11px;
+    font-weight: 900;
+}
+
+/* ==========================================================
+   AUCUNE PRÉSENCE
+========================================================== */
+
+.af-live-empty {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 310px;
+    padding: 45px 25px;
+    border: 1px dashed #42434f;
+    border-radius: 19px;
+    background: #15161d;
+    text-align: center;
+}
+
+.af-live-empty-icon {
+    display: grid;
+    place-items: center;
+    width: 76px;
+    height: 76px;
+    margin-bottom: 22px;
+    border: 1px solid #614326;
+    border-radius: 21px;
+    background: #2c211b;
+    color: var(--af-gold);
+}
+
+.af-live-empty-icon svg {
+    width: 36px;
+    height: 36px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+}
+
+.af-live-empty strong {
+    font-size: 21px;
+    font-weight: 900;
+}
+
+.af-live-empty p {
+    max-width: 450px;
+    margin: 11px 0 20px;
+    color: #a5a7b3;
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+.af-live-empty a {
+    padding: 11px 17px;
+    border: 1px solid #55505a;
+    border-radius: 10px;
+    color: var(--af-gold);
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+/* ==========================================================
+   CRÉATION D'UNE PRÉSENCE
+========================================================== */
+
+.af-live-create-section {
+    margin-top: 55px;
+    padding-top: 30px;
+    border-top: 1px solid var(--af-line);
+}
+
+.af-live-create-layout {
+    display: grid;
+    grid-template-columns: minmax(0,.85fr) minmax(0,1.15fr);
+    gap: 25px;
+    align-items: start;
+    margin-top: 22px;
+}
+
+.af-live-create-intro {
+    padding: 25px 20px 20px 0;
+}
+
+.af-live-create-intro h3 {
+    margin: 0 0 13px;
+    font-size: 24px;
+    font-weight: 900;
+    line-height: 1.3;
+}
+
+.af-live-create-intro h3 span {
+    color: var(--af-gold);
+}
+
+.af-live-create-intro p {
+    max-width: 380px;
+    color: #a7a9b4;
+    font-size: 13px;
+    line-height: 1.85;
+}
+
+.af-live-features {
+    display: grid;
+    gap: 13px;
+    margin-top: 25px;
+}
+
+.af-live-feature {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #e2e2e6;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.af-live-feature-icon {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid #55402a;
+    border-radius: 10px;
+    background: #2b211a;
+    color: #ffb75b;
+    font-size: 15px;
+}
+
+.af-live-create {
+    padding: 28px;
+    border: 1px solid #49404a;
+    border-radius: 20px;
+    background: linear-gradient(140deg,#1d1d25,#14151b);
+}
+
+.af-live-form-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 23px;
+}
+
+.af-live-form-head h3 {
+    margin: 0;
+    font-size: 19px;
+    font-weight: 900;
+}
+
+.af-live-form-badge {
+    padding: 7px 10px;
+    border: 1px solid #5c4431;
+    border-radius: 8px;
+    background: #302418;
+    color: #ffd08b;
+    font-size: 10px;
+    font-weight: 900;
+}
+
+.af-live-create form {
+    display: grid;
+    gap: 19px;
+}
+
+.af-live-field {
+    display: grid;
+    gap: 8px;
+}
+
+.af-live-field label {
+    color: #e3e3e9;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.af-live-field label span {
+    color: #ffb15e;
+}
+
+.af-live-field input,
+.af-live-field textarea {
+    display: block;
+    width: 100%;
+    min-height: 46px;
+    padding: 13px 15px;
+    border: 1px solid #42444f;
+    border-radius: 11px;
+    outline: none;
+    background: #111218;
+    color: #fff;
+    font: inherit;
+    font-size: 13px;
+}
+
+.af-live-field textarea {
+    min-height: 104px;
+    resize: vertical;
+    line-height: 1.6;
+}
+
+.af-live-field input:focus,
+.af-live-field textarea:focus {
+    border-color: var(--af-orange);
+    box-shadow: 0 0 0 3px rgba(255,145,0,.1);
+}
+
+.af-live-field-help {
+    color: #9396a3;
+    font-size: 11px;
+    line-height: 1.65;
+}
+
+.af-live-hint {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 13px;
+    border: 1px solid #51402f;
+    border-radius: 11px;
+    background: #292018;
+    color: #d2bfa6;
+    font-size: 11px;
+    line-height: 1.75;
+}
+
+.af-live-hint-icon {
+    flex-shrink: 0;
+    font-size: 16px;
+}
+
+.af-live-submit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    width: 100%;
+    min-height: 49px;
+    padding: 13px 20px;
+    border: 0;
+    border-radius: 12px;
+    background: linear-gradient(110deg,#ffc36b,#ff8d00);
+    color: #201305;
+    font-size: 13px;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.af-live-submit:disabled {
+    opacity: .5;
+    cursor: wait;
+}
+
+.af-live-submit svg {
+    width: 17px;
+    height: 17px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+}
+
+.af-live-form-message {
+    margin: 0;
+    color: #ffb5c2;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+/* ==========================================================
+   PIED DE PAGE
+========================================================== */
+
+.af-live-footer {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 55px;
+    padding-top: 22px;
+    border-top: 1px solid var(--af-line);
+    color: #828590;
+    font-size: 11px;
+}
+
+.af-live-footer strong {
+    color: #ffad4e;
+}
+
+/* ==========================================================
+   TABLETTE ET MOBILE
+========================================================== */
+
+@media (max-width:1060px) {
+    .af-live-grid {
+        grid-template-columns: repeat(3,minmax(0,1fr));
+    }
+}
+
+@media (max-width:800px) {
+    .af-live-grid {
+        grid-template-columns: repeat(2,minmax(0,1fr));
+    }
+
+    .af-live-create-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .af-live-create-intro {
+        padding: 5px 0;
+    }
+
+    .af-live-hero {
+        padding: 32px 26px;
+    }
+
+    .af-live-hero-art {
+        width: 115px;
+        height: 115px;
+    }
+}
+
+@media (max-width:580px) {
+    .af-live-directory {
+        padding: 20px 13px 65px;
+    }
+
+    .af-live-hero {
+        display: block;
+        min-height: 0;
+        padding: 27px 22px;
+        border-radius: 19px;
+    }
+
+    .af-live-hero-art {
+        display: none;
+    }
+
+    .af-live-title {
+        font-size: 33px;
+    }
+
+    .af-live-description {
+        font-size: 12px;
+    }
+
+    .af-live-section {
+        margin-top: 35px;
+    }
+
+    .af-live-grid {
+        gap: 11px;
+    }
+
+    .af-live-card {
+        border-radius: 14px;
+    }
+
+    .af-live-profile-ring {
+        width: 83px;
+        height: 83px;
+        padding: 3px;
+        border-width: 3px;
+    }
+
+    .af-live-profile-letter {
+        font-size: 30px;
+    }
+
+    .af-live-pill {
+        top: 9px;
+        left: 8px;
+        padding: 6px 8px;
+        font-size: 8px;
+    }
+
+    .af-live-card-info {
+        padding: 13px 11px;
+    }
+
+    .af-live-card-info h3 {
+        font-size: 13px;
+    }
+
+    .af-live-card-topic p {
+        font-size: 11px;
+    }
+
+    .af-live-create {
+        padding: 20px 15px;
+    }
+}
+
+@media (max-width:350px) {
+    .af-live-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (prefers-reduced-motion:reduce) {
+    .af-live-pill::before,
+    .af-live-total-dot,
+    .af-live-wave span {
+        animation: none;
+    }
+}
+
+
+
+
+/* ============================================================
+   AFROFANS — CORRECTION ESPACEMENT AVEC BASE.HTML
+   MENU PRINCIPAL + PAGE TALENTS EN PRÉSENCE
+============================================================ */
+
+/* Le menu de base.html reste au-dessus */
+body.af-presences-body .main-header {
+    z-index: 1000;
+}
+
+/* Le contenu commence sous le menu fixe */
+body.af-presences-body .af-live-directory {
+    padding-top: calc(var(--header-height, 64px) + 30px);
+    padding-right: 24px;
+    padding-bottom: calc(
+        var(--navigation-height, 72px) + 55px
+    );
+    padding-left: 24px;
+}
+
+/* Éviter un deuxième espace au-dessus du titre */
+body.af-presences-body .af-live-hero {
+    margin-top: 0;
+}
+
+/* Tablettes */
+@media (max-width: 800px) {
+    body.af-presences-body .af-live-directory {
+        padding-top: calc(var(--header-height, 64px) + 24px);
+        padding-right: 18px;
+        padding-left: 18px;
+    }
+}
+
+/* Téléphones */
+@media (max-width: 700px) {
+    body.af-presences-body .af-live-directory {
+        padding-top: calc(var(--header-height, 57px) + 18px);
+        padding-right: 13px;
+        padding-bottom: calc(
+            var(--navigation-height, 69px) + 30px
+        );
+        padding-left: 13px;
+    }
+
+    body.af-presences-body .af-live-hero {
+        padding: 25px 18px;
+        border-radius: 16px;
+    }
+}
+
+</style>
+{% endblock %}
+
+
+{% block content %}
+
+<main class="af-live-directory">
+
+    <div class="af-live-container">
+
+        <!-- ==================================================
+             PRÉSENTATION : SANS SECOND LOGO
+        ================================================== -->
+
+        <section class="af-live-hero">
+
+            <div class="af-live-hero-content">
+
+                <div class="af-live-kicker">
+                    <span class="af-live-kicker-dot"></span>
+                    AFROFANS • COMMUNAUTÉ DES TALENTS
+                </div>
+
+                <h1 class="af-live-title">
+                    Vivez les moments
+                    <span>en présence.</span>
+                </h1>
+
+                <p class="af-live-description">
+                    Retrouvez vos Talents préférés,
+                    découvrez leurs sujets du moment
+                    et rejoignez leurs présences.
+
+                    Regardez, écoutez, commentez
+                    et partagez vos réactions
+                    avec la communauté AfroFans.
+                </p>
+
+            </div>
+
+            <div class="af-live-hero-art" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M7 7a7 7 0 0 0 0 10"/>
+                    <path d="M17 7a7 7 0 0 1 0 10"/>
+                    <path d="M4 4a11 11 0 0 0 0 16"/>
+                    <path d="M20 4a11 11 0 0 1 0 16"/>
+                </svg>
+            </div>
+
+        </section>
+
+
+        <!-- ==================================================
+             TALENTS EN PRÉSENCE
+        ================================================== -->
+
+        <section class="af-live-section">
+
+            <div class="af-live-section-head">
+
+                <div>
+                    <span class="af-live-section-label">
+                        Découvrez les Talents
+                    </span>
+
+                    <h2>Talents en présence</h2>
+
+                    <p class="af-live-section-caption">
+                        Rejoignez les conversations
+                        actuellement disponibles.
+                    </p>
+                </div>
+
+                <span class="af-live-total">
+                    <span class="af-live-total-dot"></span>
+
+                    {{ presences|length }}
+                    présence{{ presences|length|pluralize }}
+                    active{{ presences|length|pluralize }}
+                </span>
+
+            </div>
+
+
+            <!-- GRILLE DES PRÉSENCES -->
+
+            <div class="af-live-grid">
+
+                {% for presence in presences %}
+
+                    <a
+                        class="af-live-card"
+                        href="{% url 'Afrons:presence_detail' presence.pk %}"
+                        aria-label="Rejoindre la présence de {{ presence.talent.username }}"
+                    >
+
+                        <div class="af-live-cover">
+
+                            <span class="af-live-pill">
+                                EN PRÉSENCE
+                            </span>
+
+                            <div class="af-live-profile-ring">
+
+                                {% if presence.talent.profil.avatar %}
+
+                                    <img
+                                        src="{{ presence.talent.profil.avatar.url }}"
+                                        alt="{{ presence.talent.username }}"
+                                        loading="lazy"
+                                    >
+
+                                {% else %}
+
+                                    <span class="af-live-profile-letter">
+                                        {{ presence.talent.username|first|upper }}
+                                    </span>
+
+                                {% endif %}
+
+                            </div>
+
+                            <div
+                                class="af-live-wave"
+                                aria-hidden="true"
+                            >
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+
+                        </div>
+
+
+                        <div class="af-live-card-info">
+
+                            <span class="af-live-talent-label">
+                                Talent AfroFans
+                            </span>
+
+                            <h3>
+
+                                @{{ presence.talent.username }}
+
+                                {% if presence.talent.profil.est_certifie %}
+
+                                    <span
+                                        class="af-live-verified"
+                                        title="Talent vérifié"
+                                    >
+                                        ✓
+                                    </span>
+
+                                {% endif %}
+
+                            </h3>
+
+                            <div class="af-live-card-topic">
+
+                                <small>
+                                    SUJET DE LA PRÉSENCE
+                                </small>
+
+                                <p>{{ presence.sujet }}</p>
+
+                            </div>
+
+                            {% if presence.description %}
+
+                                <p class="af-live-card-description">
+                                    {{ presence.description|truncatechars:100 }}
+                                </p>
+
+                            {% endif %}
+
+                            <div class="af-live-card-footer">
+
+                                <span>
+                                    Communauté AfroFans
+                                </span>
+
+                                <span class="af-live-join">
+                                    Rejoindre →
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </a>
+
+                {% empty %}
+
+                    <div class="af-live-empty">
+
+                        <div class="af-live-empty-icon">
+
+                            <svg viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="3"/>
+                                <path d="M5 5a10 10 0 0 0 0 14"/>
+                                <path d="M19 5a10 10 0 0 1 0 14"/>
+                            </svg>
+
+                        </div>
+
+                        <strong>
+                            Aucune présence pour le moment
+                        </strong>
+
+                        <p>
+                            Les Talents sont actuellement
+                            hors présence.
+
+                            Revenez découvrir leurs prochaines
+                            sessions et leurs échanges
+                            avec les fans.
+                        </p>
+
+                        <a href="{% url 'Afrons:flux' %}">
+                            Explorer les vidéos AfroFans
+                        </a>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        </section>
+
+
+        <!-- ==================================================
+             CRÉATION RÉSERVÉE AUX TALENTS
+        ================================================== -->
+
+        {% if user.is_authenticated %}
+        {% if user.profil.type_compte == "createur" %}
+
+            <section class="af-live-create-section">
+
+                <div class="af-live-section-head">
+
+                    <div>
+
+                        <span class="af-live-section-label">
+                            Espace Talent
+                        </span>
+
+                        <h2>Créer une présence</h2>
+
+                        <p class="af-live-section-caption">
+                            Préparez votre session et échangez
+                            avec vos fans.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="af-live-create-layout">
+
+                    <!-- INFORMATIONS -->
+
+                    <div class="af-live-create-intro">
+
+                        <h3>
+                            Votre talent.
+                            <span>Votre communauté.</span>
+                        </h3>
+
+                        <p>
+                            Parlez directement avec vos fans.
+
+                            Votre caméra et votre microphone
+                            pourront être activés après
+                            la création de votre présence.
+                        </p>
+
+                        <div class="af-live-features">
+
+                            <div class="af-live-feature">
+                                <span class="af-live-feature-icon">🎥</span>
+                                Caméra en direct
+                            </div>
+
+                            <div class="af-live-feature">
+                                <span class="af-live-feature-icon">🎙️</span>
+                                Microphone en direct
+                            </div>
+
+                            <div class="af-live-feature">
+                                <span class="af-live-feature-icon">♥</span>
+                                J'aime et réactions
+                            </div>
+
+                            <div class="af-live-feature">
+                                <span class="af-live-feature-icon">✦</span>
+                                Commentaires et stickers
+                            </div>
+
+                            <div class="af-live-feature">
+                                <span class="af-live-feature-icon">👥</span>
+                                Spectateurs connectés
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- FORMULAIRE -->
+
+                    <div class="af-live-create">
+
+                        <div class="af-live-form-head">
+
+                            <h3>Nouvelle présence</h3>
+
+                            <span class="af-live-form-badge">
+                                COMPTE TALENT
+                            </span>
+
+                        </div>
+
+                        <form
+                            id="af-create-presence"
+                            method="post"
+                            action="{% url 'Afrons:demarrer_presence' %}"
+                        >
+
+                            {% csrf_token %}
+
+                            <!-- SUJET -->
+
+                            <div class="af-live-field">
+
+                                <label for="af-presence-sujet">
+                                    Sujet de votre présence
+                                    <span>*</span>
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="af-presence-sujet"
+                                    name="sujet"
+                                    maxlength="160"
+                                    placeholder="Ex. : Discussion musicale avec mes fans"
+                                    autocomplete="off"
+                                    required
+                                >
+
+                                <small class="af-live-field-help">
+                                    Ce sujet sera visible
+                                    sur votre présence.
+                                </small>
+
+                            </div>
+
+
+                            <!-- DESCRIPTION -->
+
+                            <div class="af-live-field">
+
+                                <label for="af-presence-description">
+                                    Description
+                                </label>
+
+                                <textarea
+                                    id="af-presence-description"
+                                    name="description"
+                                    maxlength="2000"
+                                    rows="4"
+                                    placeholder="Présentez votre sujet et ce que vous souhaitez partager avec les fans..."
+                                ></textarea>
+
+                            </div>
+
+
+                            <!-- INDICATION LIVEKIT -->
+
+                            <p class="af-live-hint">
+
+                                <span class="af-live-hint-icon">
+                                    🎥
+                                </span>
+
+                                <span>
+                                    Après la création de votre présence,
+                                    vous accéderez à votre espace vidéo.
+
+                                    Vous pourrez y activer directement
+                                    votre caméra et votre microphone.
+
+                                    Les fans qui rejoignent votre présence
+                                    pourront vous voir et vous entendre.
+                                </span>
+
+                            </p>
+
+
+                            <!-- ERREUR -->
+
+                            <p
+                                class="af-live-form-message"
+                                id="af-create-error"
+                                role="alert"
+                                hidden
+                            ></p>
+
+
+                            <!-- CRÉATION -->
+
+                            <button
+                                type="submit"
+                                class="af-live-submit"
+                                id="af-create-submit"
+                            >
+
+                                <svg viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="3"/>
+                                    <path d="M5 5a10 10 0 0 0 0 14"/>
+                                    <path d="M19 5a10 10 0 0 1 0 14"/>
+                                </svg>
+
+                                <span>
+                                    Préparer ma présence
+                                </span>
+
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+        {% endif %}
+        {% endif %}
+
+
+        <!-- ==================================================
+             PIED DE PAGE
+        ================================================== -->
+
+        <footer class="af-live-footer">
+
+            <span>
+                <strong>AfroFans</strong>
+                — Votre talent, votre communauté.
+            </span>
+
+            <span>
+                Présences • Talents • Fans
+            </span>
+
+        </footer>
+
+    </div>
+
+</main>
+
+{% endblock %}
+
+
+{% block extra_js %}
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    "use strict";
+
+    // ======================================================
+    // FORMULAIRE DE CRÉATION D'UNE PRÉSENCE
+    // ======================================================
+
+    const form = document.getElementById(
+        "af-create-presence"
+    );
+
+    if (!form) {
+        return;
+    }
+
+    const submitButton = document.getElementById(
+        "af-create-submit"
+    );
+
+    const errorMessage = document.getElementById(
+        "af-create-error"
+    );
+
+    const urlDemarrer = form.action;
+
+    const urlPresenceModele =
+        "{% url 'Afrons:presence_detail' 987654321 %}";
+
+    let submitting = false;
+
+    // ======================================================
+    // AFFICHER UNE ERREUR
+    // ======================================================
+
+    function afficherErreur(message) {
+
+        if (!errorMessage) {
+            alert(message);
+            return;
+        }
+
+        errorMessage.textContent = message;
+        errorMessage.hidden = false;
+    }
+
+    function effacerErreur() {
+
+        if (!errorMessage) return;
+
+        errorMessage.textContent = "";
+        errorMessage.hidden = true;
+    }
+
+    // ======================================================
+    // ENVOYER LES INFORMATIONS À DJANGO
+    // ======================================================
+
+    form.addEventListener(
+        "submit",
+        async function (event) {
+
+            event.preventDefault();
+
+            if (submitting) return;
+
+            effacerErreur();
+
+            const sujetInput = form.querySelector(
+                '[name="sujet"]'
+            );
+
+            const sujet = sujetInput.value.trim();
+
+            if (!sujet) {
+
+                afficherErreur(
+                    "Veuillez renseigner le sujet de votre présence."
+                );
+
+                sujetInput.focus();
+                return;
+            }
+
+            const formData = new FormData(form);
+
+            formData.set(
+                "sujet",
+                sujet
+            );
+
+            submitting = true;
+            submitButton.disabled = true;
+
+            const texteOriginal =
+                submitButton.innerHTML;
+
+            submitButton.textContent =
+                "Préparation de la présence...";
+
+            try {
+
+                // ==================================================
+                // REQUÊTE DJANGO
+                // ==================================================
+
+                const response = await fetch(
+                    urlDemarrer,
+                    {
+                        method: "POST",
+                        credentials: "same-origin",
+                        headers: {
+                            "X-Requested-With":
+                                "XMLHttpRequest"
+                        },
+                        body: formData
+                    }
+                );
+
+                const type = response.headers.get(
+                    "content-type"
+                ) || "";
+
+                if (
+                    !type.includes(
+                        "application/json"
+                    )
+                ) {
+
+                    throw new Error(
+                        "Réponse inattendue du serveur Django. Vérifiez votre session."
+                    );
+                }
+
+                const data = await response.json();
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        data.erreur ||
+                        "Impossible de créer la présence."
+                    );
+                }
+
+                // ==================================================
+                // VÉRIFIER LA CRÉATION
+                // ==================================================
+
+                if (
+                    !data.success ||
+                    !data.presence_id
+                ) {
+
+                    throw new Error(
+                        data.erreur ||
+                        "La création de la présence n'a pas été confirmée."
+                    );
+                }
+
+                const identifiant = Number(
+                    data.presence_id
+                );
+
+                if (
+                    !Number.isSafeInteger(identifiant) ||
+                    identifiant <= 0
+                ) {
+
+                    throw new Error(
+                        "L'identifiant de présence retourné est invalide."
+                    );
+                }
+
+                // ==================================================
+                // REDIRIGER VERS LA PRÉSENCE
+                // ==================================================
+
+                const urlPresence =
+                    urlPresenceModele.replace(
+                        "987654321",
+                        String(identifiant)
+                    );
+
+                window.location.assign(
+                    urlPresence
+                );
+
+            } catch (error) {
+
+                afficherErreur(
+                    error.message ||
+                    "Une erreur est survenue."
+                );
+
+            } finally {
+
+                submitting = false;
+                submitButton.disabled = false;
+                submitButton.innerHTML = texteOriginal;
+            }
+        }
+    );
+
+});
+</script>
+
+{% endblock %}

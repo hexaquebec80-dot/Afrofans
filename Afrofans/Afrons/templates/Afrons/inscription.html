@@ -1,0 +1,2025 @@
+{% extends "Afrons/base.html" %}
+
+{% block title %}
+    Créer un compte | AfroFans
+{% endblock %}
+
+{% block body_class %}
+    authentication-page
+{% endblock %}
+
+
+{% block extra_css %}
+
+<style>
+    /*
+    ========================================================
+    STRUCTURE
+    ========================================================
+    */
+
+    .authentication-card {
+        overflow-y: auto;
+    }
+
+    .account-rules {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin: 22px 0;
+    }
+
+    .account-rule-card {
+        position: relative;
+        padding: 15px;
+        overflow: hidden;
+        border: 1px solid #292929;
+        border-radius: 15px;
+        background: #141414;
+        transition:
+            border-color 0.2s ease,
+            background 0.2s ease,
+            transform 0.2s ease;
+    }
+
+    .account-rule-card.selected {
+        border-color: #ff8a00;
+        background: rgba(255, 138, 0, 0.07);
+        transform: translateY(-2px);
+    }
+
+    .account-rule-heading {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 10px;
+    }
+
+    .account-rule-icon {
+        width: 36px;
+        height: 36px;
+        display: grid;
+        flex: 0 0 36px;
+        place-items: center;
+        border-radius: 11px;
+        background: rgba(255, 138, 0, 0.12);
+        color: #ff8a00;
+        font-size: 16px;
+    }
+
+    .account-rule-heading strong {
+        display: block;
+        font-size: 12px;
+    }
+
+    .account-rule-heading small {
+        display: block;
+        margin-top: 2px;
+        color: #777777;
+        font-size: 9px;
+    }
+
+    .account-permissions {
+        display: grid;
+        gap: 6px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .account-permissions li {
+        display: flex;
+        align-items: flex-start;
+        gap: 6px;
+        color: #aaaaaa;
+        font-size: 9px;
+        line-height: 1.4;
+    }
+
+    .account-permissions .allowed::before {
+        color: #42e3a5;
+        content: "✓";
+        font-weight: 900;
+    }
+
+    .account-permissions .forbidden::before {
+        color: #ff6675;
+        content: "×";
+        font-weight: 900;
+    }
+
+    /*
+    ========================================================
+    CHAMPS CRÉATEUR
+    ========================================================
+    */
+
+    .creator-field {
+        display: none;
+        padding: 14px;
+        border: 1px solid rgba(255, 138, 0, 0.18);
+        border-radius: 14px;
+        background: rgba(255, 138, 0, 0.04);
+    }
+
+    .creator-field.visible {
+        display: block !important;
+        animation: creatorFieldAnimation 0.3s ease;
+    }
+
+    .account-rule-card {
+        cursor: pointer;
+        user-select: none;
+    }
+
+    @keyframes creatorFieldAnimation {
+        from {
+            opacity: 0;
+            transform: translateY(-7px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .account-information {
+        display: none;
+        align-items: flex-start;
+        gap: 11px;
+        margin: 0 0 18px;
+        padding: 14px;
+        border-radius: 14px;
+        font-size: 10px;
+        line-height: 1.55;
+    }
+
+    .account-information.visible {
+        display: flex;
+    }
+
+    .account-information > span {
+        width: 34px;
+        height: 34px;
+        display: grid;
+        flex: 0 0 34px;
+        place-items: center;
+        border-radius: 10px;
+        font-size: 16px;
+    }
+
+    .account-information strong {
+        display: block;
+        margin-bottom: 3px;
+        font-size: 11px;
+    }
+
+    .fan-information {
+        border: 1px solid rgba(90, 160, 255, 0.25);
+        background: rgba(90, 160, 255, 0.07);
+        color: #b9cae2;
+    }
+
+    .fan-information > span {
+        background: rgba(90, 160, 255, 0.12);
+        color: #78adff;
+    }
+
+    .fan-information strong {
+        color: #78adff;
+    }
+
+    .creator-information {
+        border: 1px solid rgba(255, 138, 0, 0.25);
+        background: rgba(255, 138, 0, 0.07);
+        color: #d2d2d2;
+    }
+
+    .creator-information > span {
+        background: rgba(255, 138, 0, 0.12);
+        color: #ff8a00;
+    }
+
+    .creator-information strong {
+        color: #ff8a00;
+    }
+
+    /* TÉLÉPHONE ET INDICATIF DU PAYS */
+
+    .phone-input-wrapper {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        width: 100%;
+        overflow: hidden;
+        border: 1px solid #303030;
+        border-radius: 13px;
+        background: #131313;
+        transition: border-color .2s ease, box-shadow .2s ease;
+    }
+
+    .phone-input-wrapper:focus-within {
+        border-color: #ff8a00;
+        box-shadow: 0 0 0 4px rgba(255, 138, 0, .1);
+    }
+
+    .phone-country-code {
+        display: inline-flex;
+        min-width: 76px;
+        align-items: center;
+        justify-content: center;
+        padding: 0 14px;
+        border-right: 1px solid #303030;
+        color: #ff9b19;
+        font-size: 14px;
+        font-weight: 850;
+        letter-spacing: .02em;
+        white-space: nowrap;
+    }
+
+    .phone-input-wrapper input {
+        min-width: 0;
+        border: 0 !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+    }
+
+    .phone-country-help {
+        display: block;
+        margin-top: 8px;
+        color: #858585;
+        font-size: 10px;
+        line-height: 1.5;
+    }
+
+    /*
+    ========================================================
+    PHOTO APRÈS INSCRIPTION
+    ========================================================
+    */
+
+    .profile-photo-information {
+        display: none;
+        align-items: center;
+        gap: 12px;
+        margin: 2px 0 20px;
+        padding: 14px;
+        border: 1px solid #292929;
+        border-radius: 14px;
+        background: #151515;
+    }
+
+    .profile-photo-information.visible {
+        display: flex;
+    }
+
+    .profile-photo-icon {
+        width: 42px;
+        height: 42px;
+        display: grid;
+        flex: 0 0 42px;
+        place-items: center;
+        border-radius: 50%;
+        background: linear-gradient(
+            135deg,
+            #ffb000,
+            #ff8a00,
+            #ff4d00
+        );
+        color: #ffffff;
+        font-size: 19px;
+    }
+
+    .profile-photo-information strong {
+        display: block;
+        margin-bottom: 3px;
+        font-size: 11px;
+    }
+
+    .profile-photo-information p {
+        color: #888888;
+        font-size: 9px;
+        line-height: 1.5;
+    }
+
+    /*
+    ========================================================
+    MOTS DE PASSE
+    ========================================================
+    */
+
+    .password-field-wrapper {
+        position: relative;
+        width: 100%;
+    }
+
+    .password-field-wrapper input {
+        width: 100%;
+        padding-right: 52px !important;
+    }
+
+    .password-toggle-button {
+        position: absolute;
+        z-index: 5;
+        top: 50%;
+        right: 9px;
+        width: 38px;
+        height: 38px;
+        display: grid;
+        place-items: center;
+        padding: 0;
+        border: none;
+        border-radius: 10px;
+        background: transparent;
+        color: #989898;
+        transform: translateY(-50%);
+        transition:
+            color 0.2s ease,
+            background 0.2s ease;
+    }
+
+    .password-toggle-button:hover {
+        background: rgba(255, 138, 0, 0.12);
+        color: #ff8a00;
+    }
+
+    .password-toggle-button:focus-visible {
+        outline: 2px solid #ff8a00;
+        outline-offset: 2px;
+    }
+
+    .password-toggle-button svg {
+        width: 21px;
+        height: 21px;
+        fill: none;
+        stroke: currentColor;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 1.8;
+    }
+
+    .eye-hidden-icon {
+        display: none;
+    }
+
+    .password-toggle-button.password-visible
+    .eye-visible-icon {
+        display: none;
+    }
+
+    .password-toggle-button.password-visible
+    .eye-hidden-icon {
+        display: block;
+    }
+
+    .caps-lock-warning {
+        display: none;
+        align-items: center;
+        gap: 6px;
+        margin-top: 7px;
+        color: #ffb000;
+        font-size: 9px;
+        font-weight: 700;
+    }
+
+    .caps-lock-warning.visible {
+        display: flex;
+    }
+
+    /*
+    ========================================================
+    SÉCURITÉ ET CONDITIONS
+    ========================================================
+    */
+
+    .registration-security {
+        display: flex;
+        align-items: flex-start;
+        gap: 9px;
+        margin: 18px 0;
+        padding: 12px;
+        border: 1px solid #292929;
+        border-radius: 13px;
+        background: #121212;
+        color: #777777;
+        font-size: 9px;
+        line-height: 1.5;
+    }
+
+    .registration-security span {
+        color: #ff8a00;
+        font-size: 14px;
+    }
+
+    .registration-security strong {
+        color: #a0a0a0;
+    }
+
+    .submit-button-content {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+    }
+
+    @media (max-width: 700px) {
+        .account-rules {
+            grid-template-columns: 1fr;
+        }
+
+        .password-toggle-button {
+            width: 36px;
+            height: 36px;
+        }
+    }
+
+    /*
+    ========================================================
+    MISE EN PAGE PROFESSIONNELLE ET RESPONSIVE
+    Ces règles protègent la page des anciennes dimensions
+    très petites pouvant exister dans style.css.
+    ========================================================
+    */
+
+    body.authentication-page {
+        min-height: 100dvh;
+        margin: 0;
+        overflow-x: hidden;
+        background:
+            radial-gradient(circle at 8% 10%, rgba(255, 138, 0, .15), transparent 28rem),
+            #070707;
+        color: #f7f7f7;
+    }
+
+    .authentication-page .main-header,
+    .authentication-page .mobile-navigation {
+        display: none;
+    }
+
+    .authentication-page .main-content {
+        width: 100%;
+        min-height: 100dvh;
+        margin: 0;
+        padding: 0;
+    }
+
+    .authentication-page .authentication-container {
+        display: grid;
+        grid-template-columns: minmax(340px, .82fr) minmax(560px, 1.18fr);
+        width: 100%;
+        min-height: 100dvh;
+        margin: 0;
+        background: #080808;
+    }
+
+    .authentication-page .authentication-visual {
+        position: sticky;
+        top: 0;
+        display: flex;
+        min-height: 100dvh;
+        align-items: center;
+        overflow: hidden;
+        padding: clamp(42px, 6vw, 96px);
+        background:
+            linear-gradient(145deg, rgba(0, 0, 0, .18), rgba(0, 0, 0, .88)),
+            radial-gradient(circle at 30% 24%, rgba(255, 183, 0, .38), transparent 25rem),
+            linear-gradient(145deg, #211103, #080808 66%);
+    }
+
+    .authentication-page .authentication-visual::before {
+        position: absolute;
+        right: -110px;
+        bottom: -130px;
+        width: 360px;
+        height: 360px;
+        border: 1px solid rgba(255, 153, 0, .22);
+        border-radius: 50%;
+        box-shadow: 0 0 0 55px rgba(255, 153, 0, .035),
+                    0 0 0 110px rgba(255, 153, 0, .025);
+        content: "";
+    }
+
+    .authentication-page .authentication-visual-content {
+        position: relative;
+        z-index: 1;
+        width: min(100%, 570px);
+        margin: 0 auto;
+    }
+
+    .authentication-page .page-label {
+        display: inline-flex;
+        align-items: center;
+        min-height: 32px;
+        margin-bottom: 22px;
+        padding: 7px 13px;
+        border: 1px solid rgba(255, 154, 0, .3);
+        border-radius: 999px;
+        background: rgba(255, 138, 0, .1);
+        color: #ff9b19;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: .09em;
+        text-transform: uppercase;
+    }
+
+    .authentication-page .authentication-visual h1 {
+        max-width: 590px;
+        margin: 0 0 22px;
+        font-size: clamp(38px, 5vw, 72px);
+        font-weight: 900;
+        line-height: .98;
+        letter-spacing: -.055em;
+    }
+
+    .authentication-page .authentication-visual-content > p {
+        max-width: 520px;
+        margin: 0;
+        color: #c1c1c1;
+        font-size: clamp(15px, 1.4vw, 18px);
+        line-height: 1.7;
+    }
+
+    .authentication-page .authentication-benefits {
+        display: grid;
+        gap: 13px;
+        margin-top: 38px;
+    }
+
+    .authentication-page .authentication-benefits > div {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        min-height: 50px;
+    }
+
+    .authentication-page .authentication-benefits span {
+        display: grid;
+        width: 42px;
+        height: 42px;
+        flex: 0 0 42px;
+        place-items: center;
+        border-radius: 13px;
+        background: rgba(255, 138, 0, .13);
+        color: #ff9411;
+        font-size: 17px;
+    }
+
+    .authentication-page .authentication-benefits p {
+        margin: 0;
+        color: #ededed;
+        font-size: 14px;
+        font-weight: 650;
+    }
+
+    .authentication-page .authentication-card {
+        width: 100%;
+        max-width: none;
+        min-height: 100dvh;
+        padding: clamp(34px, 5vw, 72px) clamp(24px, 7vw, 110px);
+        overflow: visible;
+        border: 0;
+        border-radius: 0;
+        background: #0b0b0b;
+        box-shadow: none;
+    }
+
+    .authentication-page .authentication-card > * {
+        width: min(100%, 760px);
+        margin-right: auto;
+        margin-left: auto;
+    }
+
+    .authentication-page .authentication-logo {
+        display: inline-flex;
+        width: auto;
+        align-items: center;
+        gap: 0;
+        margin-bottom: 38px;
+        color: #fff;
+        font-size: 20px;
+        font-weight: 900;
+        text-decoration: none;
+    }
+
+    .authentication-page .authentication-logo .logo-icon {
+        display: grid;
+        width: 34px;
+        height: 34px;
+        margin-right: 8px;
+        place-items: center;
+        border-radius: 11px;
+        background: linear-gradient(135deg, #ffc000, #ff7900);
+        color: #fff;
+        font-size: 13px;
+        box-shadow: 0 9px 28px rgba(255, 125, 0, .22);
+    }
+
+    .authentication-page .authentication-logo .logo-fans {
+        color: #ff8a00;
+    }
+
+    .authentication-page .authentication-card > h2 {
+        margin: 0 0 8px;
+        color: #fff;
+        font-size: clamp(28px, 3vw, 40px);
+        font-weight: 900;
+        line-height: 1.1;
+        letter-spacing: -.035em;
+    }
+
+    .authentication-page .authentication-subtitle {
+        margin-top: 0;
+        margin-bottom: 28px;
+        color: #929292;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    .authentication-page .account-rules {
+        gap: 14px;
+        margin: 0 auto 26px;
+    }
+
+    .authentication-page .account-rule-card {
+        min-height: 232px;
+        padding: 20px;
+        border-color: #292929;
+        border-radius: 19px;
+        background: linear-gradient(145deg, #171717, #111);
+        cursor: pointer;
+        outline: none;
+        box-shadow: 0 16px 44px rgba(0, 0, 0, .2);
+    }
+
+    .authentication-page .account-rule-card:hover,
+    .authentication-page .account-rule-card:focus-visible {
+        border-color: #555;
+        transform: translateY(-3px);
+    }
+
+    .authentication-page .account-rule-card.selected {
+        border-color: #ff8a00;
+        background: linear-gradient(145deg, rgba(255, 138, 0, .13), #12100d);
+        box-shadow: 0 18px 45px rgba(255, 116, 0, .09), inset 0 0 0 1px rgba(255, 168, 41, .08);
+    }
+
+    .authentication-page .account-rule-heading {
+        gap: 12px;
+        margin-bottom: 15px;
+    }
+
+    .authentication-page .account-rule-icon {
+        width: 44px;
+        height: 44px;
+        flex-basis: 44px;
+        border-radius: 14px;
+        font-size: 19px;
+    }
+
+    .authentication-page .account-rule-heading strong {
+        color: #fff;
+        font-size: 15px;
+    }
+
+    .authentication-page .account-rule-heading small {
+        margin-top: 3px;
+        color: #818181;
+        font-size: 11px;
+    }
+
+    .authentication-page .account-permissions {
+        gap: 8px;
+    }
+
+    .authentication-page .account-permissions li {
+        gap: 8px;
+        color: #b7b7b7;
+        font-size: 11px;
+        line-height: 1.45;
+    }
+
+    .authentication-page .application-form {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+        margin-top: 0;
+    }
+
+    .authentication-page .application-form > .form-errors,
+    .authentication-page .account-information,
+    .authentication-page .profile-photo-information,
+    .authentication-page .registration-security,
+    .authentication-page .application-form > .full-button {
+        grid-column: 1 / -1;
+    }
+
+    .authentication-page .form-group {
+        min-width: 0;
+        margin: 0;
+    }
+
+    .authentication-page .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #dedede;
+        font-size: 12px;
+        font-weight: 750;
+    }
+
+    .authentication-page .form-group input,
+    .authentication-page .form-group select,
+    .authentication-page .form-group textarea {
+        width: 100%;
+        min-height: 50px;
+        padding: 12px 14px;
+        border: 1px solid #303030;
+        border-radius: 13px;
+        outline: none;
+        background: #131313;
+        color: #f7f7f7;
+        font: inherit;
+        font-size: 14px;
+        transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+    }
+
+    .authentication-page .form-group input::placeholder,
+    .authentication-page .form-group textarea::placeholder {
+        color: #656565;
+    }
+
+    .authentication-page .form-group input:focus,
+    .authentication-page .form-group select:focus,
+    .authentication-page .form-group textarea:focus {
+        border-color: #ff8a00;
+        background: #171717;
+        box-shadow: 0 0 0 4px rgba(255, 138, 0, .1);
+    }
+
+    .authentication-page .form-group:has(#id_type_compte),
+    .authentication-page .creator-field {
+        grid-column: 1 / -1;
+    }
+
+        .authentication-page .creator-field.visible {
+            display: grid !important;
+            grid-template-columns: 1fr;
+            padding: 16px;
+        }
+
+    .authentication-page .field-help {
+        display: block;
+        margin-top: 7px;
+        color: #777;
+        font-size: 10px;
+        line-height: 1.5;
+    }
+
+    .authentication-page .field-help ul {
+        margin: 7px 0 0;
+        padding-left: 18px;
+    }
+
+    .authentication-page .field-error {
+        display: block;
+        margin-top: 7px;
+        color: #ff6d7a;
+        font-size: 11px;
+        font-weight: 650;
+    }
+
+    .authentication-page .form-errors {
+        padding: 14px 16px;
+        border: 1px solid rgba(255, 85, 104, .34);
+        border-radius: 13px;
+        background: rgba(255, 85, 104, .08);
+        color: #ff8792;
+        font-size: 12px;
+        line-height: 1.55;
+    }
+
+    .authentication-page .account-information,
+    .authentication-page .profile-photo-information {
+        margin: 0;
+        padding: 16px;
+        border-radius: 15px;
+        font-size: 12px;
+        line-height: 1.55;
+    }
+
+    .authentication-page .account-information strong,
+    .authentication-page .profile-photo-information strong {
+        font-size: 12px;
+    }
+
+    .authentication-page .profile-photo-information p {
+        margin: 0;
+        font-size: 11px;
+    }
+
+    .authentication-page .registration-security {
+        margin: 2px 0 0;
+        padding: 15px 16px;
+        border-color: #292929;
+        border-radius: 14px;
+        font-size: 11px;
+    }
+
+    .authentication-page .registration-security p {
+        margin: 0;
+    }
+
+    .authentication-page .primary-button.full-button {
+        width: 100%;
+        min-height: 52px;
+        margin-top: 2px;
+        border: 0;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #ffb000, #ff7a00);
+        color: #090909;
+        font-size: 14px;
+        font-weight: 900;
+        cursor: pointer;
+        box-shadow: 0 14px 32px rgba(255, 126, 0, .2);
+        transition: transform .2s ease, box-shadow .2s ease, opacity .2s ease;
+    }
+
+    .authentication-page .primary-button.full-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 18px 38px rgba(255, 126, 0, .3);
+    }
+
+    .authentication-page .primary-button.full-button:disabled {
+        cursor: wait;
+        opacity: .65;
+        transform: none;
+    }
+
+    .authentication-page .authentication-footer {
+        margin-top: 24px;
+        margin-bottom: 0;
+        color: #858585;
+        font-size: 13px;
+        text-align: center;
+    }
+
+    .authentication-page .authentication-footer a {
+        color: #ff9411;
+        font-weight: 800;
+        text-decoration: none;
+    }
+
+    @media (max-width: 1050px) {
+        .authentication-page .authentication-container {
+            grid-template-columns: minmax(300px, .72fr) minmax(500px, 1.28fr);
+        }
+
+        .authentication-page .authentication-visual {
+            padding: 42px;
+        }
+
+        .authentication-page .authentication-card {
+            padding-right: 42px;
+            padding-left: 42px;
+        }
+    }
+
+    @media (max-width: 820px) {
+        .authentication-page .authentication-container {
+            display: block;
+        }
+
+        .authentication-page .authentication-visual {
+            position: relative;
+            min-height: auto;
+            padding: 72px 24px 52px;
+        }
+
+        .authentication-page .authentication-visual h1 {
+            max-width: 620px;
+            font-size: clamp(38px, 10vw, 58px);
+        }
+
+        .authentication-page .authentication-benefits {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .authentication-page .authentication-benefits > div {
+            align-items: flex-start;
+        }
+
+        .authentication-page .authentication-card {
+            min-height: auto;
+            padding: 42px 24px 64px;
+        }
+    }
+
+    @media (max-width: 620px) {
+        .authentication-page .authentication-visual {
+            padding-top: 56px;
+        }
+
+        .authentication-page .authentication-benefits {
+            grid-template-columns: 1fr;
+            margin-top: 28px;
+        }
+
+        .authentication-page .authentication-logo {
+            margin-bottom: 28px;
+        }
+
+        .authentication-page .account-rules,
+        .authentication-page .application-form {
+            grid-template-columns: 1fr;
+        }
+
+        .authentication-page .application-form > *,
+        .authentication-page .form-group:has(#id_type_compte),
+        .authentication-page .creator-field {
+            grid-column: 1;
+        }
+
+        .authentication-page .account-rule-card {
+            min-height: auto;
+        }
+    }
+
+    /*
+    ========================================================
+    CORRECTION FINALE POUR ORDINATEUR
+    ========================================================
+    */
+
+    @media (min-width: 821px) {
+        .authentication-page .authentication-container {
+            grid-template-columns: 40% 60%;
+            align-items: start;
+        }
+
+        .authentication-page .authentication-visual {
+            position: sticky;
+            top: 0;
+            display: block;
+            height: 100dvh;
+            min-height: 680px;
+            padding: 0 clamp(48px, 6vw, 100px);
+            overflow: hidden;
+        }
+
+        .authentication-page .authentication-visual-content {
+            display: flex;
+            width: min(100%, 560px);
+            height: 100%;
+            min-height: 680px;
+            flex-direction: column;
+            justify-content: center;
+            margin: 0 auto;
+            padding: 48px 0;
+            transform: none;
+        }
+
+        .authentication-page .authentication-visual .page-label {
+            align-self: flex-start;
+            margin: 0 0 24px;
+        }
+
+        .authentication-page .authentication-visual h1 {
+            max-width: 520px;
+            margin: 0 0 20px;
+            font-size: clamp(44px, 4vw, 66px);
+            line-height: .98;
+        }
+
+        .authentication-page .authentication-visual-content > p {
+            max-width: 500px;
+            margin: 0;
+            font-size: 16px;
+            line-height: 1.65;
+        }
+
+        .authentication-page .authentication-benefits {
+            grid-template-columns: 1fr;
+            gap: 8px;
+            margin: 30px 0 0;
+        }
+
+        .authentication-page .authentication-benefits > div {
+            min-height: 42px;
+        }
+
+        .authentication-page .authentication-benefits span {
+            width: 38px;
+            height: 38px;
+            flex-basis: 38px;
+            border-radius: 11px;
+            font-size: 15px;
+        }
+
+        .authentication-page .authentication-card {
+            display: block;
+            min-height: 100dvh;
+            padding-top: 56px;
+            padding-right: clamp(44px, 6vw, 96px);
+            padding-bottom: 72px;
+            padding-left: clamp(44px, 6vw, 96px);
+            overflow: visible;
+        }
+
+        .authentication-page .authentication-card > * {
+            width: min(100%, 850px);
+        }
+
+        .authentication-page .authentication-logo {
+            margin-bottom: 34px;
+        }
+    }
+
+    /* Hauteur d'écran réduite : conserver tout le visuel visible. */
+    @media (min-width: 821px) and (max-height: 780px) {
+        .authentication-page .authentication-visual,
+        .authentication-page .authentication-visual-content {
+            min-height: 100dvh;
+        }
+
+        .authentication-page .authentication-visual-content {
+            padding-top: 30px;
+            padding-bottom: 30px;
+        }
+
+        .authentication-page .authentication-visual .page-label {
+            margin-bottom: 16px;
+        }
+
+        .authentication-page .authentication-visual h1 {
+            margin-bottom: 14px;
+            font-size: clamp(38px, 3.5vw, 54px);
+        }
+
+        .authentication-page .authentication-benefits {
+            gap: 4px;
+            margin-top: 20px;
+        }
+
+        .authentication-page .authentication-benefits > div {
+            min-height: 36px;
+        }
+
+        .authentication-page .authentication-benefits span {
+            width: 34px;
+            height: 34px;
+            flex-basis: 34px;
+        }
+
+        .authentication-page .authentication-card {
+            padding-top: 38px;
+        }
+    }
+</style>
+
+{% endblock %}
+
+
+{% block content %}
+
+<section class="authentication-container">
+
+    <div class="authentication-visual">
+
+        <div class="authentication-visual-content">
+
+            <span class="page-label">
+                Rejoins le mouvement
+            </span>
+
+            <h1>
+                La passion africaine,
+                toujours connectée.
+            </h1>
+
+            <p>
+                Découvre des artistes, soutiens les talents
+                et partage ta passion avec la communauté.
+            </p>
+
+            <div class="authentication-benefits">
+
+                <div>
+                    <span>▶</span>
+                    <p>Découvre des vidéos uniques</p>
+                </div>
+
+                <div>
+                    <span>♥</span>
+                    <p>Soutiens tes artistes préférés</p>
+                </div>
+
+                <div>
+                    <span>♙</span>
+                    <p>Construis ta communauté</p>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="authentication-card">
+
+        <a
+            class="logo authentication-logo"
+            href="{% url 'Afrons:flux' %}"
+        >
+            <span class="logo-icon">▶</span>
+            <span class="logo-afro">Afro</span>
+            <span class="logo-fans">Fans</span>
+        </a>
+
+        <h2>Créer un compte</h2>
+
+        <p class="authentication-subtitle">
+            Choisis ton rôle dans la communauté AfroFans.
+        </p>
+
+
+        <div class="account-rules">
+
+            <article
+                class="account-rule-card"
+                id="fan-rule-card"
+                role="button"
+                tabindex="0"
+                aria-label="Choisir un compte Fan"
+            >
+                <div class="account-rule-heading">
+
+                    <span class="account-rule-icon">
+                        ♙
+                    </span>
+
+                    <div>
+                        <strong>Compte Fan</strong>
+                        <small>Spectateur et soutien</small>
+                    </div>
+
+                </div>
+
+                <ul class="account-permissions">
+                    <li class="allowed">
+                        Regarder, aimer et commenter les vidéos
+                    </li>
+
+                    <li class="allowed">
+                        Suivre les artistes et envoyer des dons
+                    </li>
+
+                    <li class="allowed">
+                        Acheter des billets d’événements
+                    </li>
+
+                    <li class="forbidden">
+                        Ne peut pas publier de vidéo
+                    </li>
+
+                    <li class="forbidden">
+                        Ne peut pas recevoir de don
+                    </li>
+
+                    <li class="forbidden">
+                        Ne peut pas créer d’événement
+                    </li>
+                </ul>
+            </article>
+
+
+            <article
+                class="account-rule-card"
+                id="creator-rule-card"
+                role="button"
+                tabindex="0"
+                aria-label="Choisir un compte Créateur"
+            >
+                <div class="account-rule-heading">
+
+                    <span class="account-rule-icon">
+                        ★
+                    </span>
+
+                    <div>
+                        <strong>Compte Créateur</strong>
+                        <small>Artiste et talent</small>
+                    </div>
+
+                </div>
+
+                <ul class="account-permissions">
+                    <li class="allowed">
+                        Proposer des vidéos à AfroFans
+                    </li>
+
+                    <li class="allowed">
+                        Recevoir des dons de la communauté
+                    </li>
+
+                    <li class="allowed">
+                        Créer des événements payants
+                    </li>
+
+                    <li class="allowed">
+                        Développer une communauté d’abonnés
+                    </li>
+
+                    <li class="forbidden">
+                        Publication soumise à validation
+                    </li>
+                </ul>
+            </article>
+
+        </div>
+
+
+        <form
+            method="post"
+            class="application-form"
+            id="registration-form"
+            novalidate
+        >
+
+            {% csrf_token %}
+
+
+            {% if formulaire.non_field_errors %}
+
+                <div class="form-errors">
+                    {{ formulaire.non_field_errors }}
+                </div>
+
+            {% endif %}
+
+
+            <div
+                class="account-information fan-information"
+                id="fan-information"
+            >
+                <span>♙</span>
+
+                <div>
+                    <strong>Tu crées un compte Fan</strong>
+
+                    Tu pourras suivre les créateurs, interagir
+                    avec leurs vidéos, acheter des billets et
+                    leur envoyer des dons.
+                </div>
+            </div>
+
+
+            <div
+                class="account-information creator-information"
+                id="creator-information"
+            >
+                <span>★</span>
+
+                <div>
+                    <strong>Tu crées un compte Créateur</strong>
+
+                    Le nom de scène, le pays et le numéro de
+                    téléphone sont obligatoires. Les vidéos et
+                    événements seront vérifiés par AfroFans.
+                </div>
+            </div>
+
+
+            <div
+                class="profile-photo-information"
+                id="profile-photo-information"
+            >
+                <span class="profile-photo-icon">
+                    📷
+                </span>
+
+                <div>
+                    <strong>
+                        Photo ajoutée après l’inscription
+                    </strong>
+
+                    <p>
+                        Après la création du compte, clique sur
+                        Profil, puis « Modifier le profil » pour
+                        ajouter ta photo.
+                    </p>
+                </div>
+            </div>
+
+
+            {% for champ in formulaire %}
+
+                <div
+                    class="form-group
+                    {% if champ.name == 'nom_scene' or champ.name == 'pays' or champ.name == 'numero_telephone' or champ.name == 'ville' %}
+                        creator-field
+                    {% endif %}
+                    "
+                >
+
+                    <label for="{{ champ.id_for_label }}">
+                        {{ champ.label }}
+                    </label>
+
+
+                    {% if champ.name == "numero_telephone" %}
+
+                        <div class="phone-input-wrapper">
+                            <span
+                                class="phone-country-code"
+                                id="phone-country-code"
+                                aria-hidden="true"
+                            >
+                                +223
+                            </span>
+
+                            {{ champ }}
+                        </div>
+
+                        <small class="phone-country-help">
+                            Sélectionne d’abord ton pays. L’indicatif
+                            sera ajouté automatiquement à ton numéro.
+                        </small>
+
+                    {% elif champ.name == "password1" or champ.name == "password2" %}
+
+                        <div class="password-field-wrapper">
+
+                            {{ champ }}
+
+                            <button
+                                type="button"
+                                class="password-toggle-button"
+                                aria-label="Afficher le mot de passe"
+                                aria-pressed="false"
+                            >
+                                <svg
+                                    class="eye-visible-icon"
+                                    viewBox="0 0 24 24"
+                                    aria-hidden="true"
+                                >
+                                    <path
+                                        d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"
+                                    ></path>
+
+                                    <circle
+                                        cx="12"
+                                        cy="12"
+                                        r="3"
+                                    ></circle>
+                                </svg>
+
+                                <svg
+                                    class="eye-hidden-icon"
+                                    viewBox="0 0 24 24"
+                                    aria-hidden="true"
+                                >
+                                    <path d="M3 3l18 18"></path>
+
+                                    <path
+                                        d="M10.6 6.2A10.8 10.8 0 0 1 12 6c6.5 0 10 6 10 6a17.4 17.4 0 0 1-3.1 3.8"
+                                    ></path>
+
+                                    <path
+                                        d="M6.2 6.2C3.5 8 2 12 2 12s3.5 6 10 6a9.8 9.8 0 0 0 4.1-.9"
+                                    ></path>
+
+                                    <path
+                                        d="M9.9 9.9a3 3 0 0 0 4.2 4.2"
+                                    ></path>
+                                </svg>
+                            </button>
+
+                        </div>
+
+                        <small class="caps-lock-warning">
+                            <span>⇧</span>
+                            La touche Majuscule est activée
+                        </small>
+
+                    {% else %}
+
+                        {{ champ }}
+
+                    {% endif %}
+
+
+                    {% if champ.help_text %}
+
+                        <small class="field-help">
+                            {{ champ.help_text|safe }}
+                        </small>
+
+                    {% endif %}
+
+
+                    {% for erreur in champ.errors %}
+
+                        <small class="field-error">
+                            {{ erreur }}
+                        </small>
+
+                    {% endfor %}
+
+                </div>
+
+            {% endfor %}
+
+
+            <div class="registration-security">
+
+                <span>🔒</span>
+
+                <p>
+                    <strong>Sécurité HexaQuébec :</strong>
+                    tes coordonnées personnelles, notamment
+                    ton numéro de téléphone, restent privées
+                    et ne sont jamais affichées publiquement.
+                </p>
+
+            </div>
+
+
+            <button
+                type="submit"
+                class="primary-button full-button"
+                id="registration-submit"
+            >
+                <span class="submit-button-content">
+                    Créer mon compte
+                </span>
+            </button>
+
+        </form>
+
+
+        <p class="authentication-footer">
+            Tu as déjà un compte ?
+
+            <a href="{% url 'Afrons:connexion' %}">
+                Se connecter
+            </a>
+        </p>
+
+    </div>
+
+</section>
+
+{% endblock %}
+
+
+{% block extra_js %}
+
+<script>
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+            const registrationForm =
+                document.getElementById(
+                    "registration-form"
+                );
+
+            const typeCompte =
+                document.getElementById(
+                    "id_type_compte"
+                );
+
+            const paysInput =
+                document.getElementById(
+                    "id_pays"
+                );
+
+            const telephoneInput =
+                document.getElementById(
+                    "id_numero_telephone"
+                );
+
+            const phoneCountryCode =
+                document.getElementById(
+                    "phone-country-code"
+                );
+
+            const indicatifsPays = {
+                "mali": "+223",
+                "ml": "+223",
+                "cote d'ivoire": "+225",
+                "côte d'ivoire": "+225",
+                "cote_divoire": "+225",
+                "ci": "+225",
+                "senegal": "+221",
+                "sénégal": "+221",
+                "sn": "+221",
+                "canada": "+1",
+                "ca": "+1",
+                "france": "+33",
+                "fr": "+33"
+            };
+
+            function normaliserPays(valeur) {
+                return (valeur || "")
+                    .trim()
+                    .toLowerCase();
+            }
+
+            function obtenirIndicatif() {
+                if (!paysInput) {
+                    return "";
+                }
+
+                const valeur =
+                    normaliserPays(paysInput.value);
+
+                const texteOption =
+                    paysInput.options
+                    && paysInput.selectedIndex >= 0
+                        ? normaliserPays(
+                            paysInput.options[
+                                paysInput.selectedIndex
+                            ].text
+                        )
+                        : "";
+
+                return indicatifsPays[valeur]
+                    || indicatifsPays[texteOption]
+                    || "";
+            }
+
+            function actualiserIndicatifPays() {
+                const indicatif = obtenirIndicatif();
+
+                if (phoneCountryCode) {
+                    phoneCountryCode.textContent =
+                        indicatif || "Pays";
+                }
+
+                if (telephoneInput) {
+                    telephoneInput.placeholder = indicatif
+                        ? "Ex. 76 12 34 56"
+                        : "Sélectionne ton pays";
+
+                    telephoneInput.setAttribute(
+                        "inputmode",
+                        "tel"
+                    );
+
+                    telephoneInput.setAttribute(
+                        "autocomplete",
+                        "tel-national"
+                    );
+                }
+            }
+
+            const creatorFields =
+                document.querySelectorAll(
+                    ".creator-field"
+                );
+
+            const fanInformation =
+                document.getElementById(
+                    "fan-information"
+                );
+
+            const creatorInformation =
+                document.getElementById(
+                    "creator-information"
+                );
+
+            const photoInformation =
+                document.getElementById(
+                    "profile-photo-information"
+                );
+
+            const fanRuleCard =
+                document.getElementById(
+                    "fan-rule-card"
+                );
+
+            const creatorRuleCard =
+                document.getElementById(
+                    "creator-rule-card"
+                );
+
+            const submitButton =
+                document.getElementById(
+                    "registration-submit"
+                );
+
+
+            /*
+            ================================================
+            CHANGEMENT DU TYPE DE COMPTE
+            ================================================
+            */
+
+            function actualiserTypeCompte() {
+                if (!typeCompte) {
+                    return;
+                }
+
+                const estCreateur =
+                    typeCompte.value === "createur";
+
+                const estFan =
+                    typeCompte.value === "fan";
+
+
+                creatorFields.forEach(
+                    function (field) {
+                        field.classList.toggle(
+                            "visible",
+                            estCreateur
+                        );
+
+                        const input =
+                            field.querySelector(
+                                "input, select, textarea"
+                            );
+
+                        if (!input) {
+                            return;
+                        }
+
+                        const obligatoire =
+                            input.name !== "ville";
+
+                        input.required =
+                            estCreateur
+                            && obligatoire;
+
+                        /*
+                        Ne pas désactiver ces champs : Django doit
+                        pouvoir réafficher leurs valeurs et erreurs.
+                        Le serveur les vide lui-même pour un Fan.
+                        */
+
+                        input.disabled = false;
+                    }
+                );
+
+
+                if (fanInformation) {
+                    fanInformation.classList.toggle(
+                        "visible",
+                        estFan
+                    );
+                }
+
+                if (creatorInformation) {
+                    creatorInformation.classList.toggle(
+                        "visible",
+                        estCreateur
+                    );
+                }
+
+                if (photoInformation) {
+                    photoInformation.classList.toggle(
+                        "visible",
+                        estFan || estCreateur
+                    );
+                }
+
+                if (fanRuleCard) {
+                    fanRuleCard.classList.toggle(
+                        "selected",
+                        estFan
+                    );
+                }
+
+                if (creatorRuleCard) {
+                    creatorRuleCard.classList.toggle(
+                        "selected",
+                        estCreateur
+                    );
+                }
+
+                if (submitButton) {
+                    submitButton.textContent =
+                        estCreateur
+                            ? "Créer mon compte Créateur"
+                            : "Créer mon compte Fan";
+                }
+
+                actualiserIndicatifPays();
+            }
+
+
+            if (typeCompte) {
+                typeCompte.addEventListener(
+                    "change",
+                    actualiserTypeCompte
+                );
+
+                actualiserTypeCompte();
+            }
+
+            if (paysInput) {
+                paysInput.addEventListener(
+                    "change",
+                    actualiserIndicatifPays
+                );
+
+                actualiserIndicatifPays();
+            }
+
+
+            /*
+            ================================================
+            CLIQUER SUR LES CARTES FAN OU CRÉATEUR
+            ================================================
+            */
+
+            function choisirCompte(valeur) {
+                if (!typeCompte) {
+                    return;
+                }
+
+                typeCompte.value = valeur;
+
+                /*
+                Sécurité supplémentaire si le widget devient
+                un groupe de boutons radio dans forms.py.
+                */
+
+                document.querySelectorAll(
+                    '[name="type_compte"]'
+                ).forEach(
+                    function (option) {
+                        if (option.type === "radio") {
+                            option.checked =
+                                option.value === valeur;
+                        }
+                    }
+                );
+
+                typeCompte.dispatchEvent(
+                    new Event(
+                        "change",
+                        {
+                            bubbles: true
+                        }
+                    )
+                );
+
+                typeCompte.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center"
+                });
+
+                typeCompte.focus();
+            }
+
+
+            if (fanRuleCard) {
+                fanRuleCard.addEventListener(
+                    "click",
+                    function () {
+                        choisirCompte("fan");
+                    }
+                );
+
+                fanRuleCard.addEventListener(
+                    "keydown",
+                    function (event) {
+                        if (
+                            event.key === "Enter"
+                            || event.key === " "
+                        ) {
+                            event.preventDefault();
+                            choisirCompte("fan");
+                        }
+                    }
+                );
+            }
+
+
+            if (creatorRuleCard) {
+                creatorRuleCard.addEventListener(
+                    "click",
+                    function () {
+                        choisirCompte("createur");
+                    }
+                );
+
+                creatorRuleCard.addEventListener(
+                    "keydown",
+                    function (event) {
+                        if (
+                            event.key === "Enter"
+                            || event.key === " "
+                        ) {
+                            event.preventDefault();
+                            choisirCompte("createur");
+                        }
+                    }
+                );
+            }
+
+
+            /*
+            ================================================
+            AFFICHER OU MASQUER LES MOTS DE PASSE
+            ================================================
+            */
+
+            document.querySelectorAll(
+                ".password-toggle-button"
+            ).forEach(
+                function (button) {
+                    const wrapper =
+                        button.closest(
+                            ".password-field-wrapper"
+                        );
+
+                    const passwordInput =
+                        wrapper
+                        ? wrapper.querySelector("input")
+                        : null;
+
+                    if (!passwordInput) {
+                        return;
+                    }
+
+
+                    button.addEventListener(
+                        "click",
+                        function () {
+                            const rendreVisible =
+                                passwordInput.type
+                                === "password";
+
+                            passwordInput.type =
+                                rendreVisible
+                                    ? "text"
+                                    : "password";
+
+                            button.classList.toggle(
+                                "password-visible",
+                                rendreVisible
+                            );
+
+                            button.setAttribute(
+                                "aria-pressed",
+                                rendreVisible
+                                    ? "true"
+                                    : "false"
+                            );
+
+                            button.setAttribute(
+                                "aria-label",
+                                rendreVisible
+                                    ? "Masquer le mot de passe"
+                                    : "Afficher le mot de passe"
+                            );
+
+                            passwordInput.focus();
+
+                            const position =
+                                passwordInput.value.length;
+
+                            try {
+                                passwordInput
+                                    .setSelectionRange(
+                                        position,
+                                        position
+                                    );
+                            } catch (error) {
+                                /*
+                                Certains navigateurs ne
+                                permettent pas cette action.
+                                */
+                            }
+                        }
+                    );
+
+
+                    const formGroup =
+                        wrapper.closest(
+                            ".form-group"
+                        );
+
+                    const capsLockWarning =
+                        formGroup
+                        ? formGroup.querySelector(
+                            ".caps-lock-warning"
+                        )
+                        : null;
+
+
+                    passwordInput.addEventListener(
+                        "keyup",
+                        function (event) {
+                            if (!capsLockWarning) {
+                                return;
+                            }
+
+                            const active =
+                                event.getModifierState
+                                && event.getModifierState(
+                                    "CapsLock"
+                                );
+
+                            capsLockWarning.classList.toggle(
+                                "visible",
+                                active
+                            );
+                        }
+                    );
+
+
+                    passwordInput.addEventListener(
+                        "blur",
+                        function () {
+                            if (capsLockWarning) {
+                                capsLockWarning.classList.remove(
+                                    "visible"
+                                );
+                            }
+                        }
+                    );
+                }
+            );
+
+
+            /*
+            ================================================
+            ENVOI DU FORMULAIRE
+            ================================================
+            */
+
+            if (registrationForm && submitButton) {
+                registrationForm.addEventListener(
+                    "submit",
+                    function (event) {
+                        if (
+                            typeCompte
+                            && typeCompte.value === "createur"
+                            && telephoneInput
+                        ) {
+                            const indicatif = obtenirIndicatif();
+                            let numero = telephoneInput.value
+                                .trim()
+                                .replace(/[\s().-]/g, "");
+
+                            if (!indicatif) {
+                                event.preventDefault();
+                                paysInput.focus();
+                                return;
+                            }
+
+                            if (numero.startsWith("00")) {
+                                numero = "+" + numero.slice(2);
+                            }
+
+                            if (!numero.startsWith("+")) {
+                                numero = numero.replace(/^0+/, "");
+                                numero = indicatif + numero;
+                            }
+
+                            telephoneInput.value = numero;
+                        }
+
+                        /*
+                        Réactiver les champs afin que Django
+                        reçoive correctement les données du
+                        compte Créateur.
+                        */
+
+                        if (
+                            typeCompte
+                            && typeCompte.value
+                            === "createur"
+                        ) {
+                            creatorFields.forEach(
+                                function (field) {
+                                    const input =
+                                        field.querySelector(
+                                            "input, select, textarea"
+                                        );
+
+                                    if (input) {
+                                        input.disabled = false;
+                                    }
+                                }
+                            );
+                        }
+
+                        if (
+                            registrationForm.checkValidity()
+                        ) {
+                            submitButton.disabled = true;
+
+                            submitButton.textContent =
+                                "Création du compte...";
+                        }
+                    }
+                );
+            }
+        }
+    );
+</script>
+
+{% endblock %}

@@ -1,0 +1,112 @@
+{% extends "Afrons/base.html" %}
+
+{% block title %}
+    Connexion | AfroFans
+{% endblock %}
+
+{% block body_class %}
+    authentication-page
+{% endblock %}
+
+{% block content %}
+
+    <section class="authentication-container">
+
+        <div class="authentication-visual">
+
+            <div class="authentication-visual-content">
+
+                <span class="page-label">
+                    Bon retour
+                </span>
+
+                <h1>
+                    Retrouve toute l’énergie
+                    de la communauté AfroFans.
+                </h1>
+
+                <p>
+                    Connecte-toi pour découvrir les
+                    nouvelles vidéos et suivre tes
+                    créateurs préférés.
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="authentication-card">
+
+            <a
+                class="logo authentication-logo"
+                href="{% url 'Afrons:flux' %}"
+            >
+                <span class="logo-icon">▶</span>
+                <span class="logo-afro">Afro</span>
+                <span class="logo-fans">Fans</span>
+            </a>
+
+            <h2>Connexion</h2>
+
+            <p class="authentication-subtitle">
+                Entre dans ton espace AfroFans.
+            </p>
+
+            <form
+                method="post"
+                class="application-form"
+                novalidate
+            >
+
+                {% csrf_token %}
+
+                {% if formulaire.non_field_errors %}
+
+                    <div class="form-errors">
+                        {{ formulaire.non_field_errors }}
+                    </div>
+
+                {% endif %}
+
+                {% for champ in formulaire %}
+
+                    <div class="form-group">
+
+                        <label for="{{ champ.id_for_label }}">
+                            {{ champ.label }}
+                        </label>
+
+                        {{ champ }}
+
+                        {% for erreur in champ.errors %}
+                            <small class="field-error">
+                                {{ erreur }}
+                            </small>
+                        {% endfor %}
+
+                    </div>
+
+                {% endfor %}
+
+                <button
+                    type="submit"
+                    class="primary-button full-button"
+                >
+                    Se connecter
+                </button>
+
+            </form>
+
+            <p class="authentication-footer">
+                Tu n’as pas encore de compte ?
+
+                <a href="{% url 'Afrons:inscription' %}">
+                    Créer un compte
+                </a>
+            </p>
+
+        </div>
+
+    </section>
+
+{% endblock %}

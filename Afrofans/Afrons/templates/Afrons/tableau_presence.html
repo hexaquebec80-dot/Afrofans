@@ -1,0 +1,527 @@
+
+{% extends "Afrons/base.html" %}
+
+{% block title %}
+Suivi des présences | AfroFans
+{% endblock %}
+
+{% block content %}
+
+<style>
+.af-dashboard {
+    max-width: 1200px;
+    margin: auto;
+    padding: 105px 20px 90px;
+    color: #fff;
+}
+
+.af-dashboard h1 {
+    font-size: 36px;
+    margin: 8px 0;
+}
+
+.af-dashboard h2 {
+    font-size: 22px;
+}
+
+.af-muted {
+    color: #aaa;
+    font-size: 13px;
+}
+
+.af-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.af-section {
+    margin-top: 35px;
+}
+
+.af-code {
+    background: #181818;
+    border: 1px solid #444;
+    border-radius: 18px;
+    padding: 25px;
+    margin-top: 25px;
+}
+
+.af-code-value {
+    font-size: 30px;
+    color: #ff9500;
+    font-weight: 900;
+    letter-spacing: 2px;
+    margin: 12px 0;
+    overflow-wrap: anywhere;
+}
+
+.af-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-top: 25px;
+}
+
+.af-card {
+    background: #171717;
+    border: 1px solid #333;
+    border-radius: 17px;
+    padding: 22px;
+}
+
+.af-card small {
+    color: #aaa;
+    font-size: 12px;
+}
+
+.af-card strong {
+    display: block;
+    margin-top: 10px;
+    font-size: 30px;
+}
+
+.af-button {
+    display: inline-block;
+    padding: 12px 16px;
+    background: #ff8a00;
+    color: #111;
+    border: 0;
+    border-radius: 11px;
+    font-weight: 800;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.af-button-secondary {
+    background: #272727;
+    color: #fff;
+    border: 1px solid #444;
+}
+
+.af-table-container {
+    overflow-x: auto;
+    background: #141414;
+    border: 1px solid #333;
+    border-radius: 17px;
+    margin-top: 16px;
+}
+
+.af-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 650px;
+}
+
+.af-table th,
+.af-table td {
+    text-align: left;
+    padding: 15px;
+    border-bottom: 1px solid #303030;
+    font-size: 13px;
+}
+
+.af-table th {
+    color: #aaa;
+}
+
+.af-status {
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 20px;
+    background: #14372b;
+    color: #6be0a9;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.af-status-absent {
+    background: #392819;
+    color: #ffc077;
+}
+
+.af-inline-form {
+    display: inline-block;
+    margin: 3px;
+}
+
+.af-inline-form button {
+    font-size: 11px;
+    padding: 8px 10px;
+}
+
+@media(max-width: 700px) {
+    .af-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .af-dashboard {
+        padding-top: 80px;
+    }
+}
+</style>
+
+<main class="af-dashboard">
+
+    <div class="af-heading">
+
+        <div>
+            <small style="color:#ff9000">
+                AFROFANS — ESPACE TALENT
+            </small>
+
+            <h1>Gestion des entrées</h1>
+
+            <p class="af-muted">
+                {{ evenement.titre }}
+            </p>
+
+            <span class="af-status">
+                {{ evenement.get_statut_display }}
+            </span>
+        </div>
+
+        <div>
+
+            {% if evenement.statut == "publie" %}
+
+            <form
+                method="post"
+                action="{% url 'Afrons:ouvrir_evenement' evenement.id %}"
+            >
+                {% csrf_token %}
+
+                <button class="af-button" type="submit">
+                    Ouvrir l'événement
+                </button>
+            </form>
+
+            {% elif evenement.statut == "ouvert" %}
+
+            <form
+                method="post"
+                action="{% url 'Afrons:terminer_evenement' evenement.id %}"
+                onsubmit="return confirm('Terminer cet événement et clôturer les entrées ?');"
+            >
+                {% csrf_token %}
+
+                <button
+                    class="af-button af-button-secondary"
+                    type="submit"
+                >
+                    Terminer l'événement
+                </button>
+            </form>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+    {% if code_acces %}
+
+    <section class="af-code">
+
+        <small class="af-muted">
+            CODE UNIQUE ET PRIVÉ DE L'ÉVÉNEMENT
+        </small>
+
+        <div class="af-code-value" id="af-code">
+            {{ code_acces.code }}
+        </div>
+
+        <button
+            type="button"
+            class="af-button"
+            onclick="copierCode()"
+        >
+            Copier le code
+        </button>
+
+        <p class="af-muted">
+            Communique ce code uniquement aux
+            contrôleurs que tu as invités.
+            Il ne doit jamais être affiché
+            aux fans ni sur la page publique.
+        </p>
+
+    </section>
+
+    {% endif %}
+
+    <div class="af-cards">
+
+        <div class="af-card">
+            <small>Billets payés émis</small>
+            <strong>{{ nombre_total }}</strong>
+        </div>
+
+        <div class="af-card">
+            <small>Fans entrés</small>
+            <strong style="color:#50d99c">
+                {{ presents }}
+            </strong>
+        </div>
+
+        <div class="af-card">
+            <small>
+                {% if cloture %}
+                Fans absents
+                {% else %}
+                Pas encore entrés
+                {% endif %}
+            </small>
+
+            <strong style="color:#ff9a00">
+                {{ non_entres|length }}
+            </strong>
+        </div>
+
+    </div>
+
+    <section class="af-section">
+
+        <div class="af-heading">
+
+            <h2>Mes contrôleurs</h2>
+
+            {% if evenement.statut == "publie" or evenement.statut == "ouvert" %}
+            <a
+                href="{% url 'Afrons:creer_controleur' evenement.id %}"
+                class="af-button"
+            >
+                + Ajouter un contrôleur
+            </a>
+            {% endif %}
+
+        </div>
+
+        <div class="af-table-container">
+
+            <table class="af-table">
+
+                <thead>
+                    <tr>
+                        <th>Nom et prénom</th>
+                        <th>Pays</th>
+                        <th>Courriel</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for controleur in controleurs %}
+
+                    <tr>
+
+                        <td>
+                            {{ controleur.prenom }}
+                            {{ controleur.nom }}
+                        </td>
+
+                        <td>
+                            {{ controleur.pays }}
+                        </td>
+
+                        <td>
+                            {{ controleur.email }}
+                        </td>
+
+                        <td>
+                            {% if controleur.actif %}
+                            <span class="af-status">
+                                Autorisé
+                            </span>
+                            {% else %}
+                            <span class="af-status af-status-absent">
+                                Désactivé
+                            </span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+
+                            {% if controleur.actif %}
+
+                            <form
+                                method="post"
+                                class="af-inline-form"
+                                action="{% url 'Afrons:renvoyer_invitation' controleur.id %}"
+                            >
+                                {% csrf_token %}
+
+                                <button
+                                    class="af-button af-button-secondary"
+                                    type="submit"
+                                >
+                                    Renvoyer
+                                </button>
+                            </form>
+
+                            <form
+                                method="post"
+                                class="af-inline-form"
+                                action="{% url 'Afrons:desactiver_controleur' controleur.id %}"
+                            >
+                                {% csrf_token %}
+
+                                <button
+                                    class="af-button af-button-secondary"
+                                    type="submit"
+                                >
+                                    Désactiver
+                                </button>
+                            </form>
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+                    {% empty %}
+
+                    <tr>
+                        <td colspan="5">
+                            Aucun contrôleur enregistré.
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+    <section class="af-section">
+
+        <h2>Liste des participants</h2>
+
+        <p class="af-muted">
+            {% if cloture %}
+            L'événement est terminé.
+            Les billets non scannés sont
+            classés comme absents.
+            {% else %}
+            Les participants non scannés
+            sont classés comme non encore entrés.
+            {% endif %}
+        </p>
+
+        <div class="af-table-container">
+
+            <table class="af-table">
+
+                <thead>
+                    <tr>
+                        <th>Nom et prénom</th>
+                        <th>Présence</th>
+                        <th>Heure d'entrée</th>
+                        <th>Contrôleur</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for billet in billets %}
+
+                    <tr>
+
+                        <td>
+                            {{ billet.nom_affiche }}
+                        </td>
+
+                        <td>
+
+                            {% if billet.statut == "utilise" %}
+
+                            <span class="af-status">
+                                Entré
+                            </span>
+
+                            {% elif billet.statut == "actif" %}
+
+                            <span class="af-status af-status-absent">
+                                {% if cloture %}
+                                Absent
+                                {% else %}
+                                Non encore entré
+                                {% endif %}
+                            </span>
+
+                            {% else %}
+
+                            <span class="af-status af-status-absent">
+                                Annulé
+                            </span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <td>
+                            {% if billet.utilise_le %}
+                            {{ billet.utilise_le|date:"d/m/Y H:i:s" }}
+                            {% else %}
+                            —
+                            {% endif %}
+                        </td>
+
+                        <td>
+
+                            {% if billet.controleur_entree %}
+                            {{ billet.controleur_entree.prenom }}
+                            {{ billet.controleur_entree.nom }}
+                            {% else %}
+                            —
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+                    {% empty %}
+
+                    <tr>
+                        <td colspan="4">
+                            Aucun billet payé pour cet événement.
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+</main>
+
+<script>
+function copierCode() {
+
+    const element = document.getElementById("af-code");
+
+    if (!element) return;
+
+    const code = element.textContent.trim();
+
+    navigator.clipboard.writeText(code)
+        .then(() => alert("Code copié."))
+        .catch(() => alert("Copie impossible."));
+}
+</script>
+
+{% endblock %}

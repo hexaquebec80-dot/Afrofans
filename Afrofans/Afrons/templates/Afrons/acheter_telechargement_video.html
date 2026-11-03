@@ -1,0 +1,95 @@
+
+{% extends "Afrons/base.html" %}
+
+{% block content %}
+
+<style>
+.af-checkout-video {
+    max-width: 520px;
+    margin: 55px auto;
+    padding: 25px;
+    border-radius: 20px;
+    background: #181818;
+    border: 1px solid #333;
+    color: #fff;
+    text-align: center;
+}
+
+.af-checkout-video h1 {
+    font-size: 25px;
+    margin-bottom: 12px;
+}
+
+.af-checkout-video p {
+    color: #bbb;
+}
+
+.af-checkout-video select {
+    display: block;
+    width: 100%;
+    padding: 15px;
+    margin: 18px 0;
+    border-radius: 10px;
+    background: #242424;
+    color: white;
+    border: 1px solid #444;
+}
+
+.af-checkout-video button {
+    width: 100%;
+    padding: 16px;
+    border: 0;
+    border-radius: 12px;
+    background: #e91e63;
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.af-checkout-video button:disabled {
+    opacity: .6;
+    cursor: wait;
+}
+</style>
+
+<div class="af-checkout-video">
+
+    <h1>💳 Acheter et télécharger</h1>
+
+    <h2>{{ video.titre }}</h2>
+
+    <p>
+        Paiement sécurisé par Stripe.
+        Le téléchargement sera débloqué
+        après confirmation du paiement.
+    </p>
+
+    <form method="post" id="form-paiement-video">
+
+        {% csrf_token %}
+
+        <label for="devise">Devise de paiement</label>
+
+        <select name="devise" id="devise" required>
+            <option value="CAD">1,00 $ CAD</option>
+            <option value="EUR">1,00 € EUR</option>
+        </select>
+
+        <button type="submit" id="btn-payer">
+            💳 Payer maintenant avec Stripe
+        </button>
+
+    </form>
+
+</div>
+
+<script>
+document.getElementById("form-paiement-video")
+    .addEventListener("submit", function () {
+        const bouton = document.getElementById("btn-payer");
+        bouton.disabled = true;
+        bouton.textContent = "Redirection vers Stripe...";
+    });
+</script>
+
+{% endblock %}

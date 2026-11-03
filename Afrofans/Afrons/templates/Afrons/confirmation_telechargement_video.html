@@ -1,0 +1,180 @@
+
+{% extends "Afrons/base.html" %}
+
+{% block content %}
+
+<style>
+.af-confirmation {
+    max-width: 650px;
+    margin: 50px auto;
+    padding: 25px;
+    color: #f5f5f5;
+}
+
+.af-confirmation-card {
+    background: #181818;
+    border: 1px solid #333;
+    border-radius: 20px;
+    padding: 30px;
+    text-align: center;
+}
+
+.af-confirmation-icon {
+    font-size: 55px;
+    margin-bottom: 15px;
+}
+
+.af-confirmation h1 {
+    font-size: 25px;
+    margin-bottom: 12px;
+}
+
+.af-confirmation p {
+    color: #bcbcbc;
+    line-height: 1.7;
+}
+
+.af-video-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+    margin: 20px 0;
+}
+
+.af-status {
+    display: inline-block;
+    padding: 9px 18px;
+    border-radius: 30px;
+    background: #3c3010;
+    color: #ffce63;
+    font-weight: 600;
+    margin: 15px 0;
+}
+
+.af-status.paid {
+    background: #143b2b;
+    color: #65dfa5;
+}
+
+.af-confirmation-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 25px;
+}
+
+.af-confirmation-btn {
+    display: block;
+    padding: 14px 20px;
+    border-radius: 12px;
+    background: #e91e63;
+    color: white;
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.af-confirmation-btn.secondary {
+    background: #292929;
+    color: #fff;
+}
+
+.af-confirmation-note {
+    margin-top: 20px;
+    font-size: 13px;
+}
+</style>
+
+<div class="af-confirmation">
+
+    <div class="af-confirmation-card">
+
+        <div class="af-confirmation-icon">
+            {% if achat.statut == "paye" %}
+                ✅
+            {% else %}
+                ⏳
+            {% endif %}
+        </div>
+
+        <h1>
+            {% if achat.statut == "paye" %}
+                Paiement confirmé
+            {% else %}
+                Achat enregistré
+            {% endif %}
+        </h1>
+
+        <p>
+            Votre demande de téléchargement
+            sur AfroFans a bien été enregistrée.
+        </p>
+
+        <div class="af-video-title">
+            {{ video.titre }}
+        </div>
+
+        <p>
+            Référence d'achat :
+            <strong>#{{ achat.pk }}</strong>
+        </p>
+
+        {% if achat.statut == "paye" %}
+
+            <div class="af-status paid">
+                Paiement confirmé
+            </div>
+
+            <p>
+                Votre paiement est enregistré.
+                Le téléchargement est accessible
+                si le fichier est disponible.
+            </p>
+
+        {% else %}
+
+            <div class="af-status">
+                Paiement en attente
+            </div>
+
+            <p>
+                Le paiement de cette vidéo
+                n'a pas encore été confirmé.
+            </p>
+
+        {% endif %}
+
+        <div class="af-confirmation-actions">
+
+            {% if achat.statut == "paye" %}
+
+                <a
+                    href="{% url 'Afrons:telecharger_video_payee' achat.pk %}"
+                    class="af-confirmation-btn"
+                >
+                    ⬇ Télécharger ma vidéo
+                </a>
+
+            {% endif %}
+
+            <a
+                href="{% url 'Afrons:detail_video' video.pk %}"
+                class="af-confirmation-btn secondary"
+            >
+                Retour à la vidéo
+            </a>
+
+        </div>
+
+        {% if achat.statut != "paye" %}
+            <p class="af-confirmation-note">
+                Le téléchargement sera disponible
+                uniquement après confirmation
+                du paiement.
+            </p>
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

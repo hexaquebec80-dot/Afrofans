@@ -1,0 +1,1594 @@
+
+{% extends "Afrons/base.html" %}
+
+{% block title %}
+{{ titre|default:"Créer un événement" }} | AfroFans
+{% endblock %}
+
+{% block content %}
+
+<style>
+/* ===============================================
+   AFROFANS - CRÉATION ÉVÉNEMENT
+   BILLET HTML / CAD / EUR / FCFA
+=============================================== */
+
+.af-event-page {
+    --orange: #ff8a00;
+    --or-light: #ffb63b;
+    --black: #080808;
+    --surface: #151515;
+    --line: #393939;
+    --muted: #adadad;
+
+    min-height: 100vh;
+    padding: 105px 18px 85px;
+    background: radial-gradient(
+        circle at 12% 0%,
+        #36200b 0%,
+        #080808 35%
+    );
+    color: #fff;
+}
+
+.af-event-page *,
+.af-event-page *::before,
+.af-event-page *::after {
+    box-sizing: border-box;
+}
+
+.af-event-wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.af-event-overline {
+    color: var(--or-light);
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 2px;
+}
+
+.af-event-intro {
+    margin-bottom: 28px;
+}
+
+.af-event-intro h1 {
+    margin: 12px 0;
+    font-size: clamp(30px, 4vw, 48px);
+    letter-spacing: -1px;
+}
+
+.af-event-intro h1 span {
+    color: var(--orange);
+}
+
+.af-event-intro p {
+    max-width: 690px;
+    color: var(--muted);
+    line-height: 1.75;
+    font-size: 13px;
+}
+
+.af-event-columns {
+    display: grid;
+    grid-template-columns:
+        minmax(0, .94fr)
+        minmax(0, 1.06fr);
+    gap: 25px;
+    align-items: start;
+}
+
+.af-event-preview {
+    position: sticky;
+    top: 90px;
+}
+
+.af-event-kicker {
+    margin: 0 0 13px;
+    color: #eaeaea;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.af-icon {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vertical-align: -4px;
+}
+
+/* ===============================================
+   BILLET PROFESSIONNEL
+   AUCUNE IMAGE
+=============================================== */
+
+.af-ticket {
+    filter: drop-shadow(
+        0 18px 35px #0007
+    );
+}
+
+.af-ticket-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+
+    background: linear-gradient(
+        110deg,
+        #ffc04c,
+        #ff8a00 70%,
+        #fc6700
+    );
+
+    color: #101010;
+    padding: 17px 22px;
+    border-radius: 21px 21px 0 0;
+}
+
+.af-ticket-brand {
+    font-size: 26px;
+    font-weight: 950;
+    letter-spacing: -1px;
+}
+
+.af-ticket-brand span {
+    color: #fff;
+}
+
+.af-ticket-pass {
+    padding: 7px 9px;
+    font-size: 10px;
+    font-weight: 900;
+    border: 1px solid #1115;
+    border-radius: 8px;
+}
+
+.af-ticket-body {
+    padding: 24px;
+
+    background: radial-gradient(
+        circle at 95% 0%,
+        #382511,
+        #141414 57%
+    );
+
+    border: 1px solid var(--line);
+    border-top: 0;
+    border-bottom: 0;
+}
+
+.af-ticket-label {
+    color: var(--or-light);
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+}
+
+.af-ticket-title {
+    min-height: 67px;
+    margin: 12px 0 25px;
+    overflow-wrap: anywhere;
+    font-size: clamp(25px, 3vw, 34px);
+    line-height: 1.18;
+}
+
+.af-ticket-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px 13px;
+}
+
+.af-ticket-detail {
+    min-width: 0;
+}
+
+.af-ticket-detail small {
+    display: block;
+    color: #999;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
+
+.af-ticket-detail strong {
+    font-size: 14px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.af-ticket-detail .price {
+    color: var(--or-light);
+    font-size: 22px;
+}
+
+.af-ticket-note {
+    padding-top: 20px;
+    margin-top: 22px;
+    border-top: 1px solid #393939;
+    color: #bbb;
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+/* DÉCOUPE DU BILLET */
+
+.af-ticket-cut {
+    position: relative;
+    height: 20px;
+    background: #141414;
+    border-left: 1px solid var(--line);
+    border-right: 1px solid var(--line);
+}
+
+.af-ticket-cut::before,
+.af-ticket-cut::after {
+    content: "";
+    position: absolute;
+    top: -4px;
+    width: 27px;
+    height: 27px;
+    border-radius: 50%;
+    background: #080808;
+}
+
+.af-ticket-cut::before {
+    left: -14px;
+}
+
+.af-ticket-cut::after {
+    right: -14px;
+}
+
+.af-ticket-cut-line {
+    position: absolute;
+    top: 9px;
+    left: 17px;
+    right: 17px;
+    border-top: 2px dashed #545454;
+}
+
+.af-ticket-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 19px 23px;
+    background: #141414;
+    border: 1px solid var(--line);
+    border-top: 0;
+    border-radius: 0 0 21px 21px;
+}
+
+.af-ticket-foot strong {
+    font-size: 13px;
+}
+
+.af-ticket-foot p {
+    color: #a3a3a3;
+    font-size: 11px;
+    line-height: 1.65;
+    margin-bottom: 0;
+}
+
+.af-ticket-qr {
+    flex: 0 0 80px;
+    height: 80px;
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: 5px;
+    background: #fff;
+    color: #111;
+    border-radius: 10px;
+}
+
+.af-ticket-qr .af-icon {
+    width: 32px;
+    height: 32px;
+}
+
+.af-ticket-qr small {
+    font-size: 8px;
+    font-weight: 900;
+}
+
+.af-preview-warning {
+    margin-top: 15px;
+    padding: 13px 15px;
+    border: 1px solid #494038;
+    border-radius: 11px;
+    background: #201a13;
+    color: #c8b4a1;
+    font-size: 11px;
+    line-height: 1.7;
+}
+
+/* ===============================================
+   FORMULAIRE
+=============================================== */
+
+.af-form-card {
+    overflow: hidden;
+    border-radius: 20px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+}
+
+.af-form-header {
+    padding: 22px 25px;
+    background: #1d1d1d;
+    border-bottom: 1px solid var(--line);
+}
+
+.af-form-header h2 {
+    margin: 7px 0;
+    font-size: 23px;
+}
+
+.af-form-header p {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.65;
+}
+
+.af-event-form {
+    padding: 24px;
+}
+
+.af-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 17px;
+}
+
+.af-field {
+    min-width: 0;
+}
+
+.af-field.wide {
+    grid-column: 1 / -1;
+}
+
+.af-field label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.af-field .required {
+    color: var(--or-light);
+}
+
+.af-field input:not([type="checkbox"]),
+.af-field select,
+.af-field textarea {
+    width: 100%;
+    min-width: 0;
+    min-height: 45px;
+    padding: 11px 12px;
+    color: #fff;
+    border: 1px solid #494949;
+    border-radius: 10px;
+    background: #222;
+    font: inherit;
+    font-size: 13px;
+}
+
+.af-field textarea {
+    min-height: 115px;
+    resize: vertical;
+}
+
+.af-field select option {
+    background: #222;
+}
+
+.af-field input:focus,
+.af-field select:focus,
+.af-field textarea:focus {
+    outline: 2px solid #ff8a0080;
+    border-color: #ff8a00;
+}
+
+.af-field-help {
+    display: block;
+    margin-top: 5px;
+    color: #999;
+    font-size: 10px;
+    line-height: 1.6;
+}
+
+.af-error {
+    margin: 7px 0;
+    color: #ff8b91;
+    font-size: 12px;
+}
+
+.af-section-title {
+    font-size: 15px;
+    margin: 21px 0 17px;
+    font-weight: 900;
+}
+
+.af-form-divider {
+    border: 0;
+    border-top: 1px solid #353535;
+    margin: 25px 0;
+}
+
+/* ===============================================
+   FRAIS ET DEVISES
+=============================================== */
+
+.af-fee-box {
+    padding: 18px;
+    border: 1px solid #765025;
+    border-radius: 14px;
+    background: #24190d;
+}
+
+.af-fee-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.af-fee-head strong {
+    color: var(--or-light);
+    font-size: 15px;
+}
+
+.af-fee-tag {
+    border: 1px solid #755128;
+    border-radius: 30px;
+    padding: 5px 9px;
+    color: #ffcd89;
+    font-size: 10px;
+}
+
+.af-fee-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 13px;
+    margin-top: 16px;
+    font-size: 12px;
+    color: #d2c7ba;
+}
+
+.af-fee-row strong {
+    color: #fff;
+}
+
+.af-fee-total {
+    padding-top: 16px;
+    margin-top: 17px;
+    border-top: 1px solid #71502a;
+}
+
+.af-fee-total strong {
+    color: var(--or-light);
+    font-size: 21px;
+}
+
+.af-fee-small {
+    margin: 12px 0 0;
+    color: #b8a998;
+    font-size: 11px;
+    line-height: 1.75;
+}
+
+.af-country-alert {
+    margin-top: 12px;
+    padding: 13px;
+    background: #1c1c1c;
+    border-radius: 10px;
+    border: 1px solid #3b3b3b;
+    font-size: 11px;
+    line-height: 1.7;
+    color: #ccc;
+}
+
+.af-checkbox-label {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-top: 19px;
+    font-size: 12px;
+    color: #ccc;
+    line-height: 1.65;
+}
+
+.af-checkbox-label input {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    accent-color: #ff8a00;
+}
+
+.af-form-actions {
+    display: flex;
+    gap: 11px;
+    margin-top: 22px;
+}
+
+.af-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 47px;
+    padding: 12px 18px;
+    border-radius: 10px;
+    border: 1px solid #484848;
+    background: #282828;
+    color: #fff;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.af-action.primary {
+    flex: 1;
+    color: #111;
+    background: linear-gradient(
+        110deg,
+        #ffc045,
+        #ff8a00
+    );
+    border-color: #ff8a00;
+}
+
+.af-action:disabled {
+    opacity: .48;
+    cursor: not-allowed;
+}
+
+.af-tech {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 11px;
+    color: #999;
+}
+
+.af-tech strong {
+    color: var(--or-light);
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 930px) {
+    .af-event-columns {
+        grid-template-columns: 1fr;
+    }
+
+    .af-event-preview {
+        position: static;
+        max-width: 610px;
+        width: 100%;
+        margin: auto;
+    }
+}
+
+@media (max-width: 530px) {
+    .af-event-page {
+        padding: 80px 11px 60px;
+    }
+
+    .af-event-form {
+        padding: 16px;
+    }
+
+    .af-form-header {
+        padding: 18px;
+    }
+
+    .af-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .af-field.wide {
+        grid-column: auto;
+    }
+
+    .af-ticket-body {
+        padding: 20px;
+    }
+
+    .af-ticket-title {
+        font-size: 27px;
+    }
+
+    .af-form-actions {
+        flex-direction: column;
+    }
+
+    .af-action.primary {
+        flex: initial;
+    }
+}
+</style>
+
+<!-- ===============================================
+     ICÔNES VECTORIELLES
+     AUCUNE IMAGE D'AFFICHE
+=============================================== -->
+
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="0"
+     height="0"
+     aria-hidden="true"
+     style="position:absolute;overflow:hidden">
+    <defs>
+
+        <symbol id="af-ic-calendar" viewBox="0 0 24 24">
+            <rect x="3" y="5"
+                  width="18" height="16" rx="2"/>
+            <path d="M8 3v4m8-4v4M3 10h18"/>
+        </symbol>
+
+        <symbol id="af-ic-pin" viewBox="0 0 24 24">
+            <path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z"/>
+            <circle cx="12" cy="10" r="2.5"/>
+        </symbol>
+
+        <symbol id="af-ic-ticket" viewBox="0 0 24 24">
+            <path d="M3 5h18v4a3 3 0 0 0 0 6v4H3v-4a3 3 0 0 0 0-6zM13 5v3m0 3v2m0 3v3"/>
+        </symbol>
+
+        <symbol id="af-ic-shield" viewBox="0 0 24 24">
+            <path d="m12 2 9 4v6c0 6-4 9-9 10-5-1-9-4-9-10V6zM8 12l3 3 5-5"/>
+        </symbol>
+
+    </defs>
+</svg>
+
+
+<main class="af-event-page">
+
+    <div class="af-event-wrap">
+
+        <!-- TITRE -->
+
+        <header class="af-event-intro">
+
+            <div class="af-event-overline">
+                AFROFANS · BILLETTERIE NUMÉRIQUE
+            </div>
+
+            <h1>
+                {% if evenement %}
+                    Modifier votre <span>événement</span>
+                {% else %}
+                    Créer votre <span>événement</span>
+                {% endif %}
+            </h1>
+
+            <p>
+                Créez votre événement sans affiche.
+                AfroFans présente automatiquement votre
+                billet professionnel.
+
+                Les frais doivent être confirmés
+                avant validation et publication.
+            </p>
+
+        </header>
+
+        <div class="af-event-columns">
+
+            <!-- ===================================
+                 COLONNE GAUCHE : APERÇU BILLET
+            ==================================== -->
+
+            <aside class="af-event-preview"
+                   aria-label="Aperçu du billet">
+
+                <p class="af-event-kicker">
+                    Aperçu en direct du billet
+                </p>
+
+                <div class="af-ticket">
+
+                    <div class="af-ticket-top">
+
+                        <strong class="af-ticket-brand">
+                            Afro<span>Fans</span>
+                        </strong>
+
+                        <span class="af-ticket-pass">
+                            EVENT PASS
+                        </span>
+
+                    </div>
+
+                    <div class="af-ticket-body">
+
+                        <span class="af-ticket-label">
+                            BILLETTERIE OFFICIELLE
+                        </span>
+
+                        <h2 class="af-ticket-title"
+                            id="preview-title">
+                            Votre prochain événement
+                        </h2>
+
+                        <div class="af-ticket-details">
+
+                            <div class="af-ticket-detail">
+
+                                <small>
+                                    <svg class="af-icon">
+                                        <use href="#af-ic-calendar"/>
+                                    </svg>
+                                    Date
+                                </small>
+
+                                <strong id="preview-date">
+                                    À définir
+                                </strong>
+
+                            </div>
+
+                            <div class="af-ticket-detail">
+
+                                <small>Heure</small>
+
+                                <strong id="preview-time">
+                                    À définir
+                                </strong>
+
+                            </div>
+
+                            <div class="af-ticket-detail">
+
+                                <small>
+                                    <svg class="af-icon">
+                                        <use href="#af-ic-pin"/>
+                                    </svg>
+                                    Lieu
+                                </small>
+
+                                <strong id="preview-place">
+                                    À définir
+                                </strong>
+
+                            </div>
+
+                            <div class="af-ticket-detail">
+
+                                <small>Prix du billet</small>
+
+                                <strong class="price"
+                                        id="preview-price">
+                                    À définir
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+                        <div class="af-ticket-note"
+                             id="preview-description">
+                            La description de votre événement
+                            s'affichera ici.
+                        </div>
+
+                    </div>
+
+                    <!-- DÉCOUPE -->
+
+                    <div class="af-ticket-cut">
+                        <div class="af-ticket-cut-line"></div>
+                    </div>
+
+                    <div class="af-ticket-foot">
+
+                        <div>
+
+                            <strong>
+                                <svg class="af-icon">
+                                    <use href="#af-ic-ticket"/>
+                                </svg>
+                                Votre billet AfroFans
+                            </strong>
+
+                            <p>
+                                Un QR code personnel sera attribué
+                                après confirmation du paiement
+                                de chaque fan.
+                            </p>
+
+                        </div>
+
+                        <div class="af-ticket-qr">
+
+                            <svg class="af-icon">
+                                <use href="#af-ic-ticket"/>
+                            </svg>
+
+                            <small>APERÇU</small>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="af-preview-warning">
+
+                    <svg class="af-icon">
+                        <use href="#af-ic-shield"/>
+                    </svg>
+
+                    Ceci est un aperçu graphique,
+                    pas un billet valide.
+
+                    Aucun QR code actif n'est généré
+                    avant paiement confirmé.
+
+                </div>
+
+            </aside>
+
+            <!-- ===================================
+                 COLONNE DROITE : FORMULAIRE
+            ==================================== -->
+
+            <section class="af-form-card">
+
+                <div class="af-form-header">
+
+                    <span class="af-event-overline">
+                        CONFIGURATION DE L'ÉVÉNEMENT
+                    </span>
+
+                    <h2>Informations de l'événement</h2>
+
+                    <p>
+                        Canada, France, Mali, Sénégal
+                        et Côte d'Ivoire.
+
+                        Le prix du billet peut être en
+                        CAD, EUR ou FCFA selon
+                        la devise choisie.
+                    </p>
+
+                </div>
+
+                <form
+                    method="post"
+                    id="af-event-form"
+                    class="af-event-form"
+                    novalidate
+                >
+
+                    {% csrf_token %}
+
+                    {% for erreur in formulaire.non_field_errors %}
+                        <p class="af-error">
+                            {{ erreur }}
+                        </p>
+                    {% endfor %}
+
+                    <h3 class="af-section-title">
+                        1. Détails du billet
+                    </h3>
+
+                    <div class="af-form-grid">
+
+                        {% for champ in formulaire %}
+
+                            {% if champ.is_hidden %}
+
+                                {{ champ }}
+
+                            {% elif champ.name != "affiche" %}
+
+                                <div class="af-field {% if champ.name == 'description' or champ.name == 'titre' %}wide{% endif %}">
+
+                                    <label for="{{ champ.id_for_label }}">
+
+                                        {{ champ.label }}
+
+                                        {% if champ.field.required %}
+                                            <span class="required">*</span>
+                                        {% endif %}
+
+                                    </label>
+
+                                    {{ champ }}
+
+                                    {% if champ.help_text %}
+
+                                        <small class="af-field-help">
+                                            {{ champ.help_text }}
+                                        </small>
+
+                                    {% endif %}
+
+                                    {% for erreur in champ.errors %}
+
+                                        <p class="af-error">
+                                            {{ erreur }}
+                                        </p>
+
+                                    {% endfor %}
+
+                                </div>
+
+                            {% endif %}
+
+                        {% endfor %}
+
+                    </div>
+
+                    <hr class="af-form-divider">
+
+                    <!-- ===================================
+                         FRAIS DE BILLETTERIE
+                    ==================================== -->
+
+                    <h3 class="af-section-title">
+                        2. Frais de billetterie
+                        et pays de paiement
+                    </h3>
+
+                    <div
+                        class="af-fee-box"
+                        id="af-fee-box"
+                        data-xof-cad="{{ taux_xof_cad|default:'' }}"
+                        data-xof-eur="{{ taux_xof_eur|default:'' }}"
+                    >
+
+                        <div class="af-fee-head">
+
+                            <strong>
+                                Estimation des frais organisateur
+                            </strong>
+
+                            <span class="af-fee-tag" id="fee-unit">
+                                FCFA
+                            </span>
+
+                        </div>
+
+                        <p class="af-fee-small">
+                            Tarif de référence actuel :
+                            50 FCFA par tranche commencée
+                            de 10 billets (maximum 100 billets).
+
+                            Ces frais sont distincts du prix
+                            payé par chaque fan.
+                        </p>
+
+                        <!-- PAYS DE PAIEMENT -->
+
+                        <div class="af-field"
+                             style="margin-top:15px">
+
+                            <label for="af-payment-country">
+                                Pays prévu pour le paiement des frais
+                                (estimation)
+                            </label>
+
+                            <select id="af-payment-country">
+
+                                <option value="CA">
+                                    Canada — Stripe, dollars canadiens (CAD)
+                                </option>
+
+                                <option value="FR">
+                                    France — Stripe, euros (EUR)
+                                </option>
+
+                                <option value="ML">
+                                    Mali — Paiement local indisponible
+                                </option>
+
+                                <option value="SN">
+                                    Sénégal — Paiement local indisponible
+                                </option>
+
+                                <option value="CI">
+                                    Côte d'Ivoire — Paiement local indisponible
+                                </option>
+
+                            </select>
+
+                            <small class="af-field-help">
+                                Ce choix sert uniquement
+                                à l'estimation.
+
+                                Vous sélectionnerez le moyen
+                                de paiement réel sur la page suivante.
+
+                                Le pays de l'événement
+                                peut être différent.
+                            </small>
+
+                        </div>
+
+                        <!-- RÉCAPITULATIF -->
+
+                        <div class="af-fee-row">
+
+                            <span>Nombre de billets</span>
+
+                            <strong id="fee-qty">
+                                10
+                            </strong>
+
+                        </div>
+
+                        <div class="af-fee-row">
+
+                            <span>Tranches de 10</span>
+
+                            <strong id="fee-blocks">
+                                1
+                            </strong>
+
+                        </div>
+
+                        <div class="af-fee-row">
+
+                            <span>Base des frais</span>
+
+                            <strong id="fee-base">
+                                50 FCFA
+                            </strong>
+
+                        </div>
+
+                        <div class="af-fee-row af-fee-total">
+
+                            <span>
+                                Montant estimatif hors taxes
+                            </span>
+
+                            <strong id="fee-estimate">
+                                À confirmer
+                            </strong>
+
+                        </div>
+
+                        <p class="af-fee-small"
+                           id="fee-explanation">
+
+                            Le total final et les taxes
+                            applicables sont calculés
+                            côté serveur au paiement.
+
+                        </p>
+
+                    </div>
+
+                    <!-- ÉTAT DES PAIEMENTS -->
+
+                    <div
+                        class="af-country-alert"
+                        id="payment-info"
+                    >
+
+                        Canada et France :
+                        paiement par Stripe.
+
+                        Mali, Sénégal et Côte d'Ivoire :
+                        moyens locaux temporairement indisponibles.
+
+                        Assistance HexaQuébec :
+                        514 467-7377.
+
+                    </div>
+
+                    <!-- CONDITIONS -->
+
+                    <label class="af-checkbox-label"
+                           for="af-accept">
+
+                        <input
+                            type="checkbox"
+                            name="accept_conditions"
+                            id="af-accept"
+                            value="oui"
+                            {% if request.POST.accept_conditions == 'oui' %}checked{% endif %}
+                            required
+                        >
+
+                        <span>
+                            Je confirme l'exactitude
+                            des informations et j'accepte
+                            les conditions de billetterie,
+                            de publication et de contrôle
+                            d'accès AfroFans.
+                        </span>
+
+                    </label>
+
+                    <!-- BOUTONS -->
+
+                    <div class="af-form-actions">
+
+                        <a
+                            class="af-action"
+                            href="{% url 'Afrons:flux' %}"
+                        >
+                            Annuler
+                        </a>
+
+                        <button
+                            class="af-action primary"
+                            type="submit"
+                            id="af-submit"
+                            disabled
+                        >
+
+                            {% if evenement %}
+
+                                Enregistrer les modifications
+
+                            {% else %}
+
+                                Créer l'événement et
+                                continuer vers le paiement
+
+                            {% endif %}
+
+                            →
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </section>
+
+        </div>
+
+        <p class="af-tech">
+            Plateforme AfroFans ·
+            Développement et contrôle technique :
+            <strong>HexaQuébec</strong>
+        </p>
+
+    </div>
+
+</main>
+
+
+<!-- ===============================================
+     JAVASCRIPT : APERÇU ET DEVISES DYNAMIQUES
+=============================================== -->
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    const form = document.getElementById(
+        "af-event-form"
+    );
+
+    if (!form) return;
+
+    const field = name =>
+        form.elements.namedItem(name);
+
+    const label = (id, value) => {
+
+        const element = document.getElementById(id);
+
+        if (element) {
+            element.textContent = value;
+        }
+
+    };
+
+    const text = (name, fallback) => {
+
+        return String(
+            field(name)?.value || ""
+        ).trim() || fallback;
+
+    };
+
+    const pays = field("pays");
+    const devise = field("devise");
+    const nombre = field("nombre_places");
+
+    const paysPaiement = document.getElementById(
+        "af-payment-country"
+    );
+
+    const consent = document.getElementById(
+        "af-accept"
+    );
+
+    const bouton = document.getElementById(
+        "af-submit"
+    );
+
+    const feeBox = document.getElementById(
+        "af-fee-box"
+    );
+
+    // Taux envoyés depuis Django.
+    // Valeur d'un FCFA dans chaque devise.
+
+    const tauxCAD = Number(
+        String(
+            feeBox.dataset.xofCad || ""
+        ).replace(",", ".")
+    );
+
+    const tauxEUR = Number(
+        String(
+            feeBox.dataset.xofEur || ""
+        ).replace(",", ".")
+    );
+
+    // =========================================
+    // DEVISE RECOMMANDÉE SELON LE PAYS
+    // =========================================
+
+    const paysDevises = {
+        CA: "CAD",
+        FR: "EUR",
+        ML: "XOF",
+        SN: "XOF",
+        CI: "XOF"
+    };
+
+    const monnaie = code => ({
+        CAD: "$ CA",
+        EUR: "€",
+        XOF: "FCFA"
+    }[code] || code);
+
+    function format(valeur, code) {
+
+        const digits = code === "XOF" ? 0 : 2;
+
+        return new Intl.NumberFormat(
+            "fr-FR",
+            {
+                minimumFractionDigits: digits,
+                maximumFractionDigits: digits
+            }
+        ).format(valeur) + " " + monnaie(code);
+
+    }
+
+    // Changer automatiquement la devise
+    // du billet lorsqu'on choisit le pays.
+
+    pays?.addEventListener("change", () => {
+
+        const propose = paysDevises[pays.value];
+
+        if (propose && devise) {
+            devise.value = propose;
+        }
+
+        actualiser();
+
+    });
+
+    // Proposer un pays de paiement,
+    // modifiable pour l'estimation.
+
+    if (paysPaiement && pays) {
+
+        paysPaiement.value =
+            pays.value === "FR" ? "FR" : "CA";
+
+    }
+
+    // =========================================
+    // APERÇU DU BILLET
+    // =========================================
+
+    function actualiser() {
+
+        const code = [
+            "CAD",
+            "EUR",
+            "XOF"
+        ].includes(devise?.value)
+            ? devise.value
+            : "XOF";
+
+        // TITRE
+
+        label(
+            "preview-title",
+            text(
+                "titre",
+                "Votre prochain événement"
+            )
+        );
+
+        // LIEU
+
+        label(
+            "preview-place",
+            [
+                text("lieu", ""),
+                text("ville", "")
+            ].filter(Boolean).join(", ") || "À définir"
+        );
+
+        // DESCRIPTION
+
+        label(
+            "preview-description",
+            text(
+                "description",
+                "La description de votre événement s'affichera ici."
+            ).slice(0, 220)
+        );
+
+        // DATE ET HEURE
+
+        const dateRaw = field(
+            "date_evenement"
+        )?.value;
+
+        const date = dateRaw
+            ? new Date(dateRaw)
+            : null;
+
+        if (
+            date &&
+            !Number.isNaN(date.getTime())
+        ) {
+
+            label(
+                "preview-date",
+                date.toLocaleDateString(
+                    "fr-FR",
+                    {
+                        day: "2-digit",
+                        month: "long",
+                        year: "numeric"
+                    }
+                )
+            );
+
+            label(
+                "preview-time",
+                date.toLocaleTimeString(
+                    "fr-FR",
+                    {
+                        hour: "2-digit",
+                        minute: "2-digit"
+                    }
+                )
+            );
+
+        } else {
+
+            label(
+                "preview-date",
+                "À définir"
+            );
+
+            label(
+                "preview-time",
+                "À définir"
+            );
+
+        }
+
+        // =====================================
+        // PRIX DU BILLET
+        // CAD / EUR / XOF
+        // =====================================
+
+        const prix = Number(
+            String(
+                field("prix")?.value || ""
+            ).replace(",", ".")
+        );
+
+        label(
+            "preview-price",
+
+            Number.isFinite(prix) && prix > 0
+                ? format(prix, code)
+                : "À définir"
+        );
+
+        // =====================================
+        // NOMBRE DE BILLETS
+        // =====================================
+
+        const qtyRaw = parseInt(
+            nombre?.value || "10",
+            10
+        );
+
+        const qty = Number.isFinite(qtyRaw)
+            ? Math.max(
+                1,
+                Math.min(100, qtyRaw)
+            )
+            : 10;
+
+        const blocks = Math.ceil(qty / 10);
+
+        // Frais de référence existants
+        const totalXOF = 50 * blocks;
+
+        label("fee-qty", String(qty));
+        label("fee-blocks", String(blocks));
+        label(
+            "fee-base",
+            format(totalXOF, "XOF")
+        );
+
+        // =====================================
+        // PAYS DE PAIEMENT
+        // =====================================
+
+        const region = paysPaiement?.value || "CA";
+
+        const paymentCode =
+            region === "FR"
+                ? "EUR"
+                : region === "CA"
+                    ? "CAD"
+                    : "XOF";
+
+        label(
+            "fee-unit",
+            monnaie(paymentCode)
+        );
+
+        const rate =
+            paymentCode === "CAD"
+                ? tauxCAD
+                : paymentCode === "EUR"
+                    ? tauxEUR
+                    : 1;
+
+        // CANADA OU FRANCE
+
+        if (
+            region === "CA" ||
+            region === "FR"
+        ) {
+
+            if (
+                Number.isFinite(rate) &&
+                rate > 0
+            ) {
+
+                label(
+                    "fee-estimate",
+                    format(
+                        totalXOF * rate,
+                        paymentCode
+                    )
+                );
+
+                label(
+                    "fee-explanation",
+                    "Conversion indicative hors taxes. " +
+                    "Le montant Stripe final, les taxes " +
+                    "et le taux applicable seront vérifiés " +
+                    "côté serveur avant paiement."
+                );
+
+            } else {
+
+                label(
+                    "fee-estimate",
+                    "À confirmer en " +
+                    monnaie(paymentCode)
+                );
+
+                label(
+                    "fee-explanation",
+                    "Aucun taux de conversion fiable " +
+                    "n'est configuré. Le montant, " +
+                    "les taxes et l'admissibilité " +
+                    "au paiement Stripe seront " +
+                    "confirmés sur la page suivante."
+                );
+
+            }
+
+            label(
+                "payment-info",
+                "Paiement prévu via Stripe (" +
+                monnaie(paymentCode) +
+                "). Le pays de l'événement " +
+                "peut être différent de celui du payeur."
+            );
+
+        } else {
+
+            // MALI / SÉNÉGAL / CÔTE D'IVOIRE
+
+            label(
+                "fee-estimate",
+                format(totalXOF, "XOF")
+            );
+
+            label(
+                "fee-explanation",
+                "Frais de référence hors taxes. " +
+                "Ce moyen de paiement local " +
+                "n'est pas disponible pour le moment."
+            );
+
+            label(
+                "payment-info",
+                "Moyens de paiement locaux " +
+                "temporairement indisponibles " +
+                "au Mali, au Sénégal et " +
+                "en Côte d'Ivoire. " +
+                "Vous pouvez choisir Canada " +
+                "ou France sur la page de paiement " +
+                "si vous disposez d'un moyen " +
+                "de paiement éligible. " +
+                "Assistance : 514 467-7377."
+            );
+
+        }
+
+        // =====================================
+        // CONDITIONS OBLIGATOIRES
+        // =====================================
+
+        if (bouton && consent) {
+
+            bouton.disabled = !consent.checked;
+
+        }
+
+    }
+
+    // =========================================
+    // ACTUALISATION AUTOMATIQUE
+    // =========================================
+
+    form.querySelectorAll(
+        "input, select, textarea"
+    ).forEach(element => {
+
+        element.addEventListener(
+            "input",
+            actualiser
+        );
+
+        element.addEventListener(
+            "change",
+            actualiser
+        );
+
+    });
+
+    paysPaiement?.addEventListener(
+        "change",
+        actualiser
+    );
+
+    actualiser();
+
+});
+</script>
+
+{% endblock %}

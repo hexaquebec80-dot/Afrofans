@@ -1,0 +1,608 @@
+{% extends "Afrons/base.html" %}
+
+{% block title %}
+Mes billets | AfroFans
+{% endblock %}
+
+{% block body_class %}
+tickets-page
+{% endblock %}
+
+{% block extra_css %}
+
+<style>
+    body.tickets-page {
+        background:
+            radial-gradient(
+                circle at 50% 0,
+                rgba(255, 138, 0, 0.12),
+                transparent 35rem
+            ),
+            #070707;
+        color: #ffffff;
+    }
+
+    .tickets-container {
+        width: min(
+            1100px,
+            calc(100% - 30px)
+        );
+        min-height: 100vh;
+        margin: 0 auto;
+        padding: 105px 0 120px;
+    }
+
+    .tickets-heading {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .tickets-label {
+        display: inline-flex;
+        padding: 7px 11px;
+        border: 1px solid
+            rgba(255, 138, 0, 0.28);
+        border-radius: 999px;
+        background:
+            rgba(255, 138, 0, 0.08);
+        color: #ff9719;
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .tickets-heading h1 {
+        margin: 11px 0 7px;
+        font-size: clamp(
+            31px,
+            5vw,
+            52px
+        );
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.045em;
+    }
+
+    .tickets-heading p {
+        max-width: 600px;
+        margin: 0;
+        color: #969696;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    .tickets-security {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        padding: 12px 15px;
+        border: 1px solid #292929;
+        border-radius: 14px;
+        background: #111111;
+        color: #aaaaaa;
+        font-size: 10px;
+        white-space: nowrap;
+    }
+
+    .tickets-security span {
+        color: #ff8a00;
+        font-size: 17px;
+    }
+
+    .tickets-grid {
+        display: grid;
+        grid-template-columns:
+            repeat(
+                3,
+                minmax(0, 1fr)
+            );
+        gap: 17px;
+    }
+
+    .ticket-card {
+        position: relative;
+        overflow: hidden;
+        padding: 20px;
+        border: 1px solid #303030;
+        border-radius: 23px;
+        background:
+            radial-gradient(
+                circle at 95% 8%,
+                rgba(255, 138, 0, 0.22),
+                transparent 15rem
+            ),
+            linear-gradient(
+                145deg,
+                #171717,
+                #0e0e0e
+            );
+        box-shadow:
+            0 20px 55px
+            rgba(0, 0, 0, 0.28);
+        transition:
+            transform 0.2s ease,
+            border-color 0.2s ease;
+    }
+
+    .ticket-card:hover {
+        border-color: #ff8a00;
+        transform: translateY(-4px);
+    }
+
+    .ticket-card::before,
+    .ticket-card::after {
+        position: absolute;
+        top: 48%;
+        width: 25px;
+        height: 25px;
+        border-radius: 50%;
+        background: #070707;
+        content: "";
+    }
+
+    .ticket-card::before {
+        left: -13px;
+    }
+
+    .ticket-card::after {
+        right: -13px;
+    }
+
+    .ticket-card-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .ticket-logo {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        color: #ffffff;
+        font-size: 15px;
+        font-weight: 900;
+    }
+
+    .ticket-logo-icon {
+        display: grid;
+        width: 31px;
+        height: 31px;
+        place-items: center;
+        border-radius: 10px;
+        background:
+            linear-gradient(
+                135deg,
+                #ffb000,
+                #ff7600
+            );
+        font-size: 12px;
+    }
+
+    .ticket-logo strong {
+        color: #ff8a00;
+    }
+
+    .ticket-status {
+        display: inline-flex;
+        padding: 6px 9px;
+        border-radius: 999px;
+        font-size: 8px;
+        font-weight: 900;
+        text-transform: uppercase;
+    }
+
+    .ticket-status-valide {
+        background:
+            rgba(47, 218, 146, 0.12);
+        color: #42e3a5;
+    }
+
+    .ticket-status-utilise {
+        background:
+            rgba(255, 138, 0, 0.12);
+        color: #ff9d1c;
+    }
+
+    .ticket-status-annule {
+        background:
+            rgba(255, 73, 105, 0.12);
+        color: #ff6682;
+    }
+
+    .ticket-event {
+        padding: 25px 0 19px;
+        border-bottom:
+            1px dashed #383838;
+    }
+
+    .ticket-event-label {
+        color: #ff8a00;
+        font-size: 9px;
+        font-weight: 900;
+        text-transform: uppercase;
+    }
+
+    .ticket-event h2 {
+        margin: 7px 0 11px;
+        color: #ffffff;
+        font-size: 19px;
+        line-height: 1.15;
+    }
+
+    .ticket-event p {
+        display: flex;
+        align-items: flex-start;
+        gap: 7px;
+        margin: 7px 0;
+        color: #ababab;
+        font-size: 10px;
+        line-height: 1.45;
+    }
+
+    .ticket-details {
+        display: grid;
+        grid-template-columns:
+            repeat(
+                3,
+                minmax(0, 1fr)
+            );
+        gap: 8px;
+        padding: 19px 0;
+    }
+
+    .ticket-detail {
+        padding: 10px 8px;
+        border: 1px solid #292929;
+        border-radius: 11px;
+        background:
+            rgba(0, 0, 0, 0.25);
+        text-align: center;
+    }
+
+    .ticket-detail span,
+    .ticket-detail strong {
+        display: block;
+    }
+
+    .ticket-detail span {
+        color: #777777;
+        font-size: 8px;
+        text-transform: uppercase;
+    }
+
+    .ticket-detail strong {
+        margin-top: 5px;
+        color: #ffffff;
+        font-size: 12px;
+    }
+
+    .ticket-code {
+        display: block;
+        margin-bottom: 15px;
+        padding: 12px;
+        overflow: hidden;
+        border: 1px solid
+            rgba(255, 138, 0, 0.2);
+        border-radius: 11px;
+        background:
+            rgba(255, 138, 0, 0.06);
+        color: #ff9d1c;
+        font-family:
+            "Courier New",
+            monospace;
+        font-size: 11px;
+        font-weight: 900;
+        text-align: center;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .ticket-download {
+        width: 100%;
+        min-height: 45px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        border-radius: 12px;
+        background:
+            linear-gradient(
+                135deg,
+                #ffb000,
+                #ff7a00
+            );
+        color: #090909;
+        font-size: 11px;
+        font-weight: 900;
+        text-decoration: none;
+        box-shadow:
+            0 12px 28px
+            rgba(255, 126, 0, 0.18);
+    }
+
+    .ticket-download:hover {
+        transform: translateY(-2px);
+    }
+
+    .ticket-used-information {
+        display: block;
+        padding: 12px;
+        border: 1px solid
+            rgba(255, 138, 0, 0.25);
+        border-radius: 12px;
+        background:
+            rgba(255, 138, 0, 0.07);
+        color: #ffae43;
+        font-size: 10px;
+        text-align: center;
+    }
+
+    .ticket-cancelled-information {
+        display: block;
+        padding: 12px;
+        border: 1px solid
+            rgba(255, 73, 105, 0.25);
+        border-radius: 12px;
+        background:
+            rgba(255, 73, 105, 0.07);
+        color: #ff738d;
+        font-size: 10px;
+        text-align: center;
+    }
+
+    .tickets-empty {
+        grid-column: 1 / -1;
+        padding: 65px 25px;
+        border: 1px dashed #303030;
+        border-radius: 24px;
+        background: #0e0e0e;
+        text-align: center;
+    }
+
+    .tickets-empty-icon {
+        width: 72px;
+        height: 72px;
+        display: grid;
+        margin: 0 auto 18px;
+        place-items: center;
+        border-radius: 22px;
+        background:
+            linear-gradient(
+                135deg,
+                #ffb000,
+                #ff7600
+            );
+        color: #ffffff;
+        font-size: 28px;
+    }
+
+    .tickets-empty h2 {
+        margin-bottom: 8px;
+    }
+
+    .tickets-empty p {
+        margin-bottom: 19px;
+        color: #8f8f8f;
+        font-size: 12px;
+    }
+
+    @media (max-width: 900px) {
+        .tickets-grid {
+            grid-template-columns:
+                repeat(
+                    2,
+                    minmax(0, 1fr)
+                );
+        }
+    }
+
+    @media (max-width: 650px) {
+        .tickets-container {
+            padding-top: 80px;
+        }
+
+        .tickets-heading {
+            display: block;
+        }
+
+        .tickets-security {
+            width: fit-content;
+            margin-top: 17px;
+        }
+
+        .tickets-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+{% endblock %}
+
+{% block content %}
+
+<section class="tickets-container">
+
+    <header class="tickets-heading">
+
+        <div>
+            <span class="tickets-label">
+                Billetterie sécurisée
+            </span>
+
+            <h1>Mes billets</h1>
+
+            <p>
+                Chaque carte représente un billet
+                original. Un billet est utilisable
+                une seule fois à l’entrée.
+            </p>
+        </div>
+
+        <div class="tickets-security">
+            <span>⬡</span>
+            QR unique protégé par AfroFans
+        </div>
+
+    </header>
+
+    <div class="tickets-grid">
+
+        {% for ticket in tickets %}
+
+            <article
+                class="ticket-card
+                ticket-card-{{ ticket.statut }}"
+            >
+
+                <div class="ticket-card-top">
+
+                    <span class="ticket-logo">
+                        <span class="ticket-logo-icon">
+                            ▶
+                        </span>
+
+                        Afro<strong>Fans</strong>
+                    </span>
+
+                    <span
+                        class="ticket-status
+                        ticket-status-{{ ticket.statut }}"
+                    >
+                        {{ ticket.get_statut_display }}
+                    </span>
+
+                </div>
+
+                <div class="ticket-event">
+
+                    <span class="ticket-event-label">
+                        Billet événement
+                    </span>
+
+                    <h2>
+                        {{ ticket.evenement.titre }}
+                    </h2>
+
+                    <p>
+                        <span>▣</span>
+
+                        {{ ticket.evenement.date_evenement|date:"d M Y à H:i" }}
+                    </p>
+
+                    <p>
+                        <span>◉</span>
+
+                        {{ ticket.evenement.lieu }}
+
+                        {% if ticket.evenement.ville %}
+                            — {{ ticket.evenement.ville }}
+                        {% endif %}
+                    </p>
+
+                    <p>
+                        <span>♙</span>
+
+                        {{ ticket.nom_participant }}
+                    </p>
+
+                </div>
+
+                <div class="ticket-details">
+
+                    <div class="ticket-detail">
+                        <span>Billet</span>
+
+                        <strong>
+                            {{ ticket.numero }}/{{ ticket.commande.quantite }}
+                        </strong>
+                    </div>
+
+                    <div class="ticket-detail">
+                        <span>Catégorie</span>
+
+                        <strong>
+                            {{ ticket.categorie }}
+                        </strong>
+                    </div>
+
+                    <div class="ticket-detail">
+                        <span>Siège</span>
+
+                        <strong>
+                            {% if ticket.siege %}
+                                {{ ticket.siege }}
+                            {% else %}
+                                Libre
+                            {% endif %}
+                        </strong>
+                    </div>
+
+                </div>
+
+                <code class="ticket-code">
+                    {{ ticket.code_public }}
+                </code>
+
+                {% if ticket.statut == "valide" %}
+
+                    <a
+                        class="ticket-download"
+                        href="{% url 'Afrons:telecharger_ticket' ticket.identifiant %}"
+                    >
+                        <span>⇩</span>
+                        Télécharger le PDF original
+                    </a>
+
+                {% elif ticket.statut == "utilise" %}
+
+                    <span class="ticket-used-information">
+                        ✓ Utilisé le
+                        {{ ticket.utilise_le|date:"d/m/Y à H:i" }}
+                    </span>
+
+                {% else %}
+
+                    <span class="ticket-cancelled-information">
+                        Ce billet a été annulé.
+                    </span>
+
+                {% endif %}
+
+            </article>
+
+        {% empty %}
+
+            <div class="tickets-empty">
+
+                <span class="tickets-empty-icon">
+                    ▣
+                </span>
+
+                <h2>Aucun billet disponible</h2>
+
+                <p>
+                    Tes billets apparaîtront ici
+                    après la confirmation du paiement.
+                </p>
+
+                <a
+                    class="primary-button"
+                    href="{% url 'Afrons:explorer' %}"
+                >
+                    Découvrir les événements
+                </a>
+
+            </div>
+
+        {% endfor %}
+
+    </div>
+
+</section>
+
+{% endblock %}

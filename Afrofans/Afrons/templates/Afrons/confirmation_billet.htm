@@ -1,0 +1,68 @@
+
+{% if billet.statut == "en_attente" %}
+
+<form
+    id="af-checkout-billet"
+    action="{% url 'Afrons:checkout_billet_afrofans' billet.code_billet %}"
+    method="post"
+>
+    {% csrf_token %}
+
+    <button type="submit" id="af-btn-payer-billet">
+        💳 Payer mes billets avec Stripe
+    </button>
+
+    <p id="af-paiement-erreur" role="alert"></p>
+</form>
+
+<script>
+document.getElementById("af-checkout-billet")
+    .addEventListener("submit", async function (event) {
+
+        event.preventDefault();
+
+        const formulaire = event.currentTarget;
+        const bouton = document.getElementById(
+            "af-btn-payer-billet"
+        );
+        const erreur = document.getElementById(
+            "af-paiement-erreur"
+        );
+
+        bouton.disabled = true;
+        erreur.textContent = "";
+
+        try {
+            const response = await fetch(
+                formulaire.action,
+                {
+                    method: "POST",
+                    credentials: "same-origin",
+                    body: new FormData(formulaire),
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                throw new Error(
+                    data.erreur || "Paiement indisponible."
+                );
+            }
+
+            if (!data.url) {
+                throw new Error(
+                    "Lien de paiement Stripe manquant."
+                );
+            }
+
+            window.location.assign(data.url);
+
+        } catch (e) {
+            erreur.textContent = e.message;
+            bouton.disabled = false;
+        }
+    });
+</script>
+
+{% endif %}

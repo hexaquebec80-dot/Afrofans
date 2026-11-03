@@ -1,0 +1,479 @@
+
+{% extends "Afrons/base.html" %}
+
+{% block title %}
+Paiement de la billetterie | AfroFans
+{% endblock %}
+
+{% block content %}
+
+<style>
+.afpay {
+    --orange: #ff8a00;
+    background: radial-gradient(ellipse at 15% 0%, #34200c, #080808 45%);
+    min-height: 100vh;
+    padding: 105px 18px 90px;
+    color: white;
+}
+.afpay * { box-sizing: border-box; }
+.afpay-wrap { max-width: 1120px; margin: auto; }
+.afpay-label {
+    color: #ff9d26;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 1.8px;
+}
+.afpay h1 {
+    font-size: clamp(29px, 5vw, 44px);
+    margin: 12px 0 30px;
+}
+.afpay h1 span { color: var(--orange); }
+.afpay-grid {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) minmax(290px,.75fr);
+    align-items: start;
+    gap: 24px;
+}
+.afpay-card {
+    background: #151515;
+    border: 1px solid #353535;
+    border-radius: 21px;
+    overflow: hidden;
+}
+.afpay-head {
+    background: #202020;
+    border-bottom: 1px solid #353535;
+    padding: 24px;
+}
+.afpay-head h2 { margin: 9px 0; font-size: 22px; }
+.afpay-head p { color: #aaa; font-size: 13px; line-height: 1.8; }
+.afpay-body { padding: 25px; }
+.afpay-ticket {
+    border: 1px solid #6b471b;
+    border-radius: 15px;
+    overflow: hidden;
+    margin-bottom: 24px;
+}
+.afpay-ticket-top {
+    background: linear-gradient(110deg,#ffb32e,#ff8a00);
+    padding: 18px 22px;
+    color: #111;
+    font-size: 22px;
+    font-weight: 950;
+}
+.afpay-ticket-content { padding: 23px; }
+.afpay-ticket-content h3 { font-size: 23px; margin: 0 0 17px; }
+.afpay-ticket-content p {
+    font-size: 13px;
+    color: #ccc;
+    line-height: 1.8;
+}
+.afpay-description {
+    border-top: 1px solid #3b3b3b;
+    padding-top: 15px;
+    margin-top: 18px;
+}
+.afpay-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+.afpay-field label {
+    display: block;
+    color: #ddd;
+    font-size: 12px;
+    font-weight: 800;
+    margin-bottom: 9px;
+}
+.afpay-field select {
+    width: 100%;
+    height: 49px;
+    background: #252525;
+    color: white;
+    border: 1px solid #484848;
+    border-radius: 10px;
+    padding: 12px;
+}
+.afpay-methods {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+    margin: 20px 0;
+}
+.afpay-methods span {
+    padding: 10px 13px;
+    border: 1px solid #444;
+    background: #282828;
+    border-radius: 25px;
+    font-size: 12px;
+}
+.afpay-alert {
+    background: #302213;
+    color: #ffd69d;
+    border: 1px solid #85541c;
+    border-radius: 12px;
+    padding: 20px;
+    line-height: 1.8;
+    font-size: 13px;
+}
+.afpay-alert strong {
+    display: block;
+    color: #ffb74a;
+    margin-bottom: 8px;
+}
+.afpay-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    padding: 13px 0;
+    font-size: 13px;
+    color: #aaa;
+}
+.afpay-row strong { color: white; text-align: right; }
+.afpay-total {
+    border-top: 1px dashed #666;
+    margin-top: 12px;
+    padding-top: 22px;
+}
+.afpay-total strong {
+    color: #ffad32;
+    font-size: 24px;
+}
+.afpay-btn {
+    display: block;
+    width: 100%;
+    padding: 17px;
+    margin-top: 23px;
+    background: linear-gradient(115deg,#ffb22e,#ff8a00);
+    color: #080808;
+    font-size: 14px;
+    font-weight: 900;
+    border: 0;
+    border-radius: 11px;
+    cursor: pointer;
+}
+.afpay-back {
+    display: inline-block;
+    margin-bottom: 18px;
+    color: #ffad39;
+    text-decoration: none;
+    font-size: 13px;
+}
+.afpay-note {
+    color: #aaa;
+    font-size: 11px;
+    line-height: 1.8;
+    margin-top: 18px;
+}
+@media(max-width:850px) {
+    .afpay-grid { grid-template-columns: 1fr; }
+}
+@media(max-width:450px) {
+    .afpay { padding: 85px 11px 60px; }
+    .afpay-fields { grid-template-columns: 1fr; }
+    .afpay-body { padding: 18px; }
+}
+</style>
+
+<main class="afpay">
+<div class="afpay-wrap">
+
+    <a
+        href="{% url 'Afrons:detail_evenement' evenement.id %}"
+        class="afpay-back"
+    >
+        ← Retour à l'événement
+    </a>
+
+    <div class="afpay-label">
+        AFROFANS · HEXAQUÉBEC
+    </div>
+
+    <h1>
+        Paiement des frais de
+        <span>billetterie</span>
+    </h1>
+
+    <div class="afpay-grid">
+
+        <section class="afpay-card">
+
+            <div class="afpay-head">
+                <div class="afpay-label">
+                    ÉVÉNEMENT EN ATTENTE
+                </div>
+                <h2>Finaliser votre événement</h2>
+                <p>
+                    Le paiement doit être confirmé
+                    avant validation et publication
+                    de votre événement.
+                </p>
+            </div>
+
+            <div class="afpay-body">
+
+                <article class="afpay-ticket">
+
+                    <div class="afpay-ticket-top">
+                        AfroFans · EVENT PASS
+                    </div>
+
+                    <div class="afpay-ticket-content">
+
+                        <h3>{{ evenement.titre }}</h3>
+
+                        <p>
+                            <strong>Date :</strong>
+                            {{ evenement.date_evenement|date:"d/m/Y à H:i" }}
+                        </p>
+
+                        <p>
+                            <strong>Lieu :</strong>
+                            {{ evenement.lieu }},
+                            {{ evenement.ville }}
+                        </p>
+
+                        <p>
+                            <strong>Billets :</strong>
+                            {{ evenement.nombre_places }}
+                        </p>
+
+                        <div class="afpay-description">
+                            <div class="afpay-label">
+                                DESCRIPTION DE L'ÉVÉNEMENT
+                            </div>
+
+                            <p>
+                                {{ evenement.description|linebreaksbr }}
+                            </p>
+                        </div>
+
+                    </div>
+
+                </article>
+
+                <form method="get" class="afpay-fields">
+
+                    <div class="afpay-field">
+                        <label for="pays">
+                            Pays de paiement
+                        </label>
+
+                        <select
+                            id="pays"
+                            name="pays"
+                            onchange="this.form.submit()"
+                        >
+                            <option value="CA" {% if pays == "CA" %}selected{% endif %}>
+                                🇨🇦 Canada
+                            </option>
+
+                            <option value="ML" {% if pays == "ML" %}selected{% endif %}>
+                                🇲🇱 Mali
+                            </option>
+
+                            <option value="SN" {% if pays == "SN" %}selected{% endif %}>
+                                🇸🇳 Sénégal
+                            </option>
+
+                            <option value="CI" {% if pays == "CI" %}selected{% endif %}>
+                                🇨🇮 Côte d'Ivoire
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="afpay-field">
+                        <label for="province">
+                            Province canadienne
+                        </label>
+
+                        <select
+                            id="province"
+                            name="province"
+                            onchange="this.form.submit()"
+                            {% if pays != "CA" %}disabled{% endif %}
+                        >
+                            <option value="QC" {% if province == "QC" %}selected{% endif %}>
+                                Québec
+                            </option>
+
+                            <option value="AUTRE" {% if province == "AUTRE" %}selected{% endif %}>
+                                Autre province
+                            </option>
+                        </select>
+                    </div>
+
+                </form>
+
+                <h3 style="margin-top:27px;font-size:17px;">
+                    Moyens de paiement
+                </h3>
+
+                <div class="afpay-methods">
+                    {% for moyen in devis.moyens %}
+                        <span>{{ moyen }}</span>
+                    {% endfor %}
+                </div>
+
+                {% if devis.disponible %}
+
+                    <p class="afpay-note">
+                        Paiement par carte bancaire
+                        traité par Stripe.
+                    </p>
+
+                {% else %}
+
+                    <div class="afpay-alert">
+
+                        <strong>
+                            Service temporairement indisponible
+                        </strong>
+
+                        {{ devis.raison }}
+
+                        <p>
+                            Service clientèle HexaQuébec :
+                            <a
+                                href="tel:+15144677377"
+                                style="color:white;font-weight:900;"
+                            >
+                                514 467-7377
+                            </a>
+                        </p>
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+        </section>
+
+        <aside class="afpay-card">
+
+            <div class="afpay-head">
+                <div class="afpay-label">
+                    RÉCAPITULATIF
+                </div>
+
+                <h2>Détails du paiement</h2>
+
+                <p>
+                    Montant calculé selon le pays sélectionné.
+                </p>
+            </div>
+
+            <div class="afpay-body">
+
+                <div class="afpay-row">
+                    <span>Nombre de billets</span>
+                    <strong>{{ evenement.nombre_places }}</strong>
+                </div>
+
+                <div class="afpay-row">
+                    <span>Frais de base</span>
+                    <strong>
+                        {{ devis.base|floatformat:2 }}
+                        {{ devis.devise }}
+                    </strong>
+                </div>
+
+                {% if pays == "CA" and province == "QC" %}
+
+                    <div class="afpay-row">
+                        <span>TPS · 5 %</span>
+                        <strong>
+                            {{ devis.tps|floatformat:2 }} CAD
+                        </strong>
+                    </div>
+
+                    <div class="afpay-row">
+                        <span>TVQ · 9,975 %</span>
+                        <strong>
+                            {{ devis.tvq|floatformat:2 }} CAD
+                        </strong>
+                    </div>
+
+                {% endif %}
+
+                <div class="afpay-row afpay-total">
+
+                    <span>
+                        Total
+                        {% if not devis.disponible %}
+                            indicatif
+                        {% endif %}
+                    </span>
+
+                    <strong>
+                        {{ devis.total|floatformat:2 }}
+                        {{ devis.devise }}
+                    </strong>
+
+                </div>
+
+                <div class="afpay-alert" style="margin-top:25px;">
+                    <strong>Statut du paiement</strong>
+
+                    {{ paiement.get_statut_display }}
+
+                    <p>
+                        Votre événement ne sera pas publié
+                        avant paiement confirmé et validation.
+                    </p>
+                </div>
+
+                {% if devis.disponible %}
+
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <input
+                            type="hidden"
+                            name="pays"
+                            value="CA"
+                        >
+
+                        <input
+                            type="hidden"
+                            name="province"
+                            value="QC"
+                        >
+
+                        <button
+                            type="submit"
+                            class="afpay-btn"
+                        >
+                            Payer
+                            {{ devis.total|floatformat:2 }}
+                            CAD →
+                        </button>
+                    </form>
+
+                {% else %}
+
+                    <p class="afpay-note">
+                        Aucun paiement ne peut être
+                        démarré tant que ce moyen
+                        n'est pas activé.
+                    </p>
+
+                {% endif %}
+
+                <p class="afpay-note">
+                    Assistance officielle HexaQuébec :
+                    514 467-7377
+                </p>
+
+            </div>
+
+        </aside>
+
+    </div>
+
+</div>
+</main>
+
+{% endblock %}
