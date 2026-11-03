@@ -43,9 +43,8 @@ def env_bool(name, default=False):
         "on",
     )
 
-
 # ============================================================
-# 3. ENVIRONNEMENT
+# AFROFANS — ENVIRONNEMENT
 # ============================================================
 
 IS_RENDER = env_bool("RENDER", False)
@@ -54,7 +53,6 @@ DEBUG = env_bool(
     "DEBUG",
     default=not IS_RENDER,
 )
-
 
 # ============================================================
 # 4. SÉCURITÉ DJANGO
