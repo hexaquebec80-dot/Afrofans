@@ -1,84 +1,216 @@
-"""
-Django settings for Afrofans project.
 
-Projet principal : Afrofans
-Application principale : Afrons
+"""
+DJANGO SETTINGS — AFROFANS
+===========================================
+Entreprise : HexaQuébec
+Projet     : Afrofans
+Application: Afrons
+Hébergement: Render
+Base       : PostgreSQL / SQLite local
+===========================================
 """
 
 import os
 from pathlib import Path
 
-
+import dj_database_url
 from dotenv import load_dotenv
 
+
+# ============================================================
+# 1. CHEMINS DU PROJET
+# ============================================================
+
 BASE_DIR = Path(__file__).resolve().parent.parent
-# Charger les variables du fichier .env
 
 load_dotenv(BASE_DIR / ".env")
 
-# =========================================================
-# CHEMINS DU PROJET
-# =========================================================
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+# ============================================================
+# 2. FONCTION UTILITAIRE — VARIABLES BOOLÉENNES
+# ============================================================
+
+def env_bool(name, default=False):
+    value = os.getenv(name)
+
+    if value is None:
+        return default
+
+    return value.strip().lower() in (
+        "true",
+        "1",
+        "yes",
+        "on",
+    )
 
 
-# =========================================================
-# SÉCURITÉ
-# =========================================================
+# ============================================================
+# 3. ENVIRONNEMENT
+# ============================================================
 
-SECRET_KEY = os.environ.get(
-    "AFROFANS_SECRET_KEY",
-    (
-        "django-insecure-k@6&@9(zqiz!"
-        "rlj7aeow7tgo(9r5yeg-d13!"
-        "qdt)3pwny!ir7-"
-    ),
+IS_RENDER = env_bool("RENDER", False)
+
+DEBUG = env_bool(
+    "DEBUG",
+    default=not IS_RENDER,
 )
 
-DEBUG = True
+
+# ============================================================
+# 4. SÉCURITÉ DJANGO
+# ============================================================
+
+SECRET_KEY = os.getenv("AFROFANS_SECRET_KEY")
+
+if not SECRET_KEY:
+
+    if DEBUG:
+        SECRET_KEY = (
+            "django-insecure-"
+            "afrofans-development-only-change-me"
+        )
+
+    else:
+        raise RuntimeError(
+            "AFROFANS_SECRET_KEY est obligatoire "
+            "en production."
+        )
+
+
+# ============================================================
+# 5. DOMAINES AUTORISÉS
+# ============================================================
 
 ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
+    "afrofans.onrender.com",
 ]
 
+EXTRA_ALLOWED_HOSTS = os.getenv(
+    "AFROFANS_ALLOWED_HOSTS",
+    "",
+)
 
-# =========================================================
-# APPLICATIONS
-# =========================================================
+for host in EXTRA_ALLOWED_HOSTS.split(","):
+
+    host = host.strip()
+
+    if host and host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(host)
+
+
+# ============================================================
+# 6. PROTECTION CSRF
+# ============================================================
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://afrofans.onrender.com",
+]
+
+EXTRA_CSRF_ORIGINS = os.getenv(
+    "AFROFANS_CSRF_TRUSTED_ORIGINS",
+    "",
+)
+
+for origin in EXTRA_CSRF_ORIGINS.split(","):
+
+    origin = origin.strip()
+
+    if origin and origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(origin)
+
+
+# ============================================================
+# 7. SÉCURITÉ HTTPS / COOKIES
+# ============================================================
+
+SECURE_PROXY_SSL_HEADER = (
+    "HTTP_X_FORWARDED_PROTO",
+    "https",
+)
+
+SECURE_SSL_REDIRECT = not DEBUG
+
+SESSION_COOKIE_SECURE = not DEBUG
+
+CSRF_COOKIE_SECURE = not DEBUG
+
+SESSION_COOKIE_HTTPONLY = True
+
+CSRF_COOKIE_HTTPONLY = False
+
+SESSION_COOKIE_SAMESITE = "Lax"
+
+CSRF_COOKIE_SAMESITE = "Lax"
+
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
+X_FRAME_OPTIONS = "DENY"
+
+SECURE_REFERRER_POLICY = "same-origin"
+
+SECURE_HSTS_SECONDS = (
+    31536000 if not DEBUG else 0
+)
+
+SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+
+SECURE_HSTS_PRELOAD = False
+
+
+# ============================================================
+# 8. APPLICATIONS INSTALLÉES
+# ============================================================
 
 INSTALLED_APPS = [
+
     "django.contrib.admin",
+
     "django.contrib.auth",
+
     "django.contrib.contenttypes",
+
     "django.contrib.sessions",
+
     "django.contrib.messages",
+
     "django.contrib.staticfiles",
 
-    # Application AfroFans
+    # Application principale AfroFans
     "Afrons.apps.AfronsConfig",
+
 ]
 
 
-# =========================================================
-# MIDDLEWARE
-# =========================================================
+# ============================================================
+# 9. MIDDLEWARE
+# ============================================================
 
 MIDDLEWARE = [
+
     "django.middleware.security.SecurityMiddleware",
+
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+
     "django.contrib.sessions.middleware.SessionMiddleware",
+
     "django.middleware.common.CommonMiddleware",
+
     "django.middleware.csrf.CsrfViewMiddleware",
+
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+
     "django.contrib.messages.middleware.MessageMiddleware",
+
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+
 ]
 
 
-# =========================================================
-# URLS ET APPLICATIONS SERVEUR
-# =========================================================
+# ============================================================
+# 10. CONFIGURATION DES URLS
+# ============================================================
 
 ROOT_URLCONF = "Afrofans.urls"
 
@@ -87,11 +219,12 @@ WSGI_APPLICATION = "Afrofans.wsgi.application"
 ASGI_APPLICATION = "Afrofans.asgi.application"
 
 
-# =========================================================
-# TEMPLATES
-# =========================================================
+# ============================================================
+# 11. TEMPLATES HTML
+# ============================================================
 
 TEMPLATES = [
+
     {
         "BACKEND": (
             "django.template.backends."
@@ -105,75 +238,125 @@ TEMPLATES = [
         "APP_DIRS": True,
 
         "OPTIONS": {
+
             "context_processors": [
+
                 (
                     "django.template."
                     "context_processors.request"
                 ),
+
                 (
                     "django.contrib.auth."
                     "context_processors.auth"
                 ),
+
                 (
                     "django.contrib.messages."
                     "context_processors.messages"
                 ),
+
             ],
+
         },
+
     },
+
 ]
 
 
-# =========================================================
-# BASE DE DONNÉES
-# =========================================================
+# ============================================================
+# 12. BASE DE DONNÉES
+# POSTGRESQL SUR RENDER
+# SQLITE EN DÉVELOPPEMENT
+# ============================================================
 
-DATABASES = {
-    "default": {
-        "ENGINE": (
-            "django.db.backends.sqlite3"
-        ),
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "",
+)
 
-        "NAME": BASE_DIR / "db.sqlite3",
-    },
-}
+if DATABASE_URL:
+
+    DATABASES = {
+
+        "default": dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
+
+    }
+
+else:
+
+    if IS_RENDER:
+        import warnings
+
+        warnings.warn(
+            "AfroFans utilise SQLite sur Render. "
+            "Configurer DATABASE_URL avec PostgreSQL "
+            "avant toute utilisation en production.",
+            RuntimeWarning,
+        )
+
+    DATABASES = {
+
+        "default": {
+
+            "ENGINE": "django.db.backends.sqlite3",
+
+            "NAME": BASE_DIR / "db.sqlite3",
+
+        }
+
+    }
 
 
-# =========================================================
-# VALIDATION DES MOTS DE PASSE
-# =========================================================
+# ============================================================
+# 13. VALIDATION DES MOTS DE PASSE
+# ============================================================
 
 AUTH_PASSWORD_VALIDATORS = [
+
     {
         "NAME": (
-            "django.contrib.auth.password_validation."
+            "django.contrib.auth."
+            "password_validation."
             "UserAttributeSimilarityValidator"
         ),
     },
+
     {
         "NAME": (
-            "django.contrib.auth.password_validation."
+            "django.contrib.auth."
+            "password_validation."
             "MinimumLengthValidator"
         ),
     },
+
     {
         "NAME": (
-            "django.contrib.auth.password_validation."
+            "django.contrib.auth."
+            "password_validation."
             "CommonPasswordValidator"
         ),
     },
+
     {
         "NAME": (
-            "django.contrib.auth.password_validation."
+            "django.contrib.auth."
+            "password_validation."
             "NumericPasswordValidator"
         ),
     },
+
 ]
 
 
-# =========================================================
-# LANGUE ET FUSEAU HORAIRE
-# =========================================================
+# ============================================================
+# 14. LANGUE ET FUSEAU HORAIRE
+# ============================================================
 
 LANGUAGE_CODE = "fr-ca"
 
@@ -184,33 +367,72 @@ USE_I18N = True
 USE_TZ = True
 
 
-# =========================================================
-# FICHIERS STATIQUES
-# CSS, JAVASCRIPT, LOGOS ET ICÔNES
-# =========================================================
+# ============================================================
+# 15. FICHIERS STATIQUES
+# CSS / JS / IMAGES / LOGOS
+# ============================================================
 
 STATIC_URL = "/static/"
 
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-]
-
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
+STATICFILES_DIRS = []
 
-# =========================================================
-# FICHIERS IMPORTÉS
-# VIDÉOS, AVATARS ET MINIATURES
-# =========================================================
+if (BASE_DIR / "static").is_dir():
+
+    STATICFILES_DIRS.append(
+        BASE_DIR / "static"
+    )
+
+
+# ============================================================
+# 16. STOCKAGE DES FICHIERS STATIQUES
+# WHITENOISE
+# ============================================================
+
+STORAGES = {
+
+    "default": {
+
+        "BACKEND": (
+            "django.core.files.storage."
+            "FileSystemStorage"
+        ),
+
+    },
+
+    "staticfiles": {
+
+        "BACKEND": (
+            "whitenoise.storage."
+            "CompressedManifestStaticFilesStorage"
+        ),
+
+    },
+
+}
+
+
+# ============================================================
+# 17. FICHIERS MULTIMÉDIAS
+# VIDÉOS / AVATARS / MINIATURES
+# ============================================================
 
 MEDIA_URL = "/media/"
 
 MEDIA_ROOT = BASE_DIR / "media"
 
+# IMPORTANT :
+# Ce stockage local n'est pas persistant
+# sur un service Render sans disque persistant.
+#
+# Configurer Cloudinary ou un stockage externe
+# avant d'accepter les médias des utilisateurs.
 
-# =========================================================
-# CONNEXION ET DÉCONNEXION
-# =========================================================
+
+# ============================================================
+# 18. CONNEXION / DÉCONNEXION
+# ============================================================
 
 LOGIN_URL = "Afrons:connexion"
 
@@ -219,52 +441,40 @@ LOGIN_REDIRECT_URL = "Afrons:flux"
 LOGOUT_REDIRECT_URL = "Afrons:flux"
 
 
-# =========================================================
-# CONFIGURATION DES FICHIERS TÉLÉVERSÉS
-# =========================================================
-
-# Les petits fichiers sont temporairement conservés
-# en mémoire jusqu’à 10 Mo.
+# ============================================================
+# 19. FICHIERS TÉLÉVERSÉS
+# ============================================================
 
 FILE_UPLOAD_MAX_MEMORY_SIZE = (
     10 * 1024 * 1024
 )
-
-# Taille maximale totale d’une requête : 150 Mo.
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = (
     150 * 1024 * 1024
 )
 
 
-# =========================================================
-# SÉCURITÉ DES COOKIES EN DÉVELOPPEMENT
-# =========================================================
-
-SESSION_COOKIE_HTTPONLY = True
-
-CSRF_COOKIE_HTTPONLY = False
-
-X_FRAME_OPTIONS = "DENY"
-
-
-# =========================================================
-# CLÉ PRIMAIRE PAR DÉFAUT
-# =========================================================
+# ============================================================
+# 20. CLÉS PRIMAIRES
+# ============================================================
 
 DEFAULT_AUTO_FIELD = (
     "django.db.models.BigAutoField"
 )
 
 
-# =========================================================
-# CONFIGURATION DU SITE AFROFANS
-# =========================================================
+# ============================================================
+# 21. IDENTITÉ DU SITE AFROFANS
+# ============================================================
 
-SITE_URL = os.environ.get(
+SITE_URL = os.getenv(
     "AFROFANS_SITE_URL",
-    "http://127.0.0.1:8000",
-)
+    (
+        "https://afrofans.onrender.com"
+        if not DEBUG
+        else "http://127.0.0.1:8000"
+    ),
+).rstrip("/")
 
 AFROFANS_PROPRIETAIRE = "HexaQuébec"
 
@@ -273,59 +483,66 @@ AFROFANS_TPS = "0.05"
 AFROFANS_TVQ = "0.09975"
 
 
-# =========================================================
-# CONFIGURATION DES COURRIELS
-# GMAIL DE HEXAQUÉBEC
-# =========================================================
+# ============================================================
+# 22. CONFIGURATION EMAIL — GMAIL
+# ============================================================
 
-# ==============================================
-# AFROFANS - CONFIGURATION EMAIL
-# ==============================================
-
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_BACKEND = os.getenv(
+    "EMAIL_BACKEND",
+    "django.core.mail.backends.smtp.EmailBackend",
+)
 
 EMAIL_HOST = os.getenv(
     "EMAIL_HOST",
-    "smtp.gmail.com"
+    "smtp.gmail.com",
 )
 
 EMAIL_PORT = int(
-    os.getenv("EMAIL_PORT", "587")
+    os.getenv(
+        "EMAIL_PORT",
+        "587",
+    )
 )
 
-EMAIL_USE_TLS = (
-    os.getenv("EMAIL_USE_TLS", "True").lower()
-    == "true"
+EMAIL_USE_TLS = env_bool(
+    "EMAIL_USE_TLS",
+    True,
 )
 
-EMAIL_USE_SSL = False
+EMAIL_USE_SSL = env_bool(
+    "EMAIL_USE_SSL",
+    False,
+)
 
 EMAIL_HOST_USER = os.getenv(
     "EMAIL_HOST_USER",
-    ""
+    "",
 )
 
 EMAIL_HOST_PASSWORD = os.getenv(
     "EMAIL_HOST_PASSWORD",
-    ""
+    "",
 )
 
 DEFAULT_FROM_EMAIL = (
-    f"HexaQuebec <{EMAIL_HOST_USER}>"
+    f"AfroFans <{EMAIL_HOST_USER}>"
+    if EMAIL_HOST_USER
+    else "AfroFans <noreply@localhost>"
 )
 
+EMAIL_TIMEOUT = 30
 
 
-# =========================================================
-# CONFIGURATION CELERY
-# =========================================================
+# ============================================================
+# 23. CELERY
+# ============================================================
 
-CELERY_BROKER_URL = os.environ.get(
+CELERY_BROKER_URL = os.getenv(
     "CELERY_BROKER_URL",
     "redis://127.0.0.1:6379/0",
 )
 
-CELERY_RESULT_BACKEND = os.environ.get(
+CELERY_RESULT_BACKEND = os.getenv(
     "CELERY_RESULT_BACKEND",
     "redis://127.0.0.1:6379/0",
 )
@@ -338,82 +555,194 @@ CELERY_TASK_SERIALIZER = "json"
 
 CELERY_RESULT_SERIALIZER = "json"
 
-# En développement local, les tâches sont exécutées
-# immédiatement. Redis n’est donc pas nécessaire.
+# Mode synchrone par défaut.
+# Pour les tâches en arrière-plan :
+# configurer un worker Celery et Redis.
 
-CELERY_TASK_ALWAYS_EAGER = True
+CELERY_TASK_ALWAYS_EAGER = env_bool(
+    "CELERY_TASK_ALWAYS_EAGER",
+    True,
+)
 
-CELERY_TASK_EAGER_PROPAGATES = True
-
-
-
+CELERY_TASK_EAGER_PROPAGATES = DEBUG
 
 
 # ============================================================
-# AFROFANS — STOCKAGE PRIVÉ DES DOCUMENTS DE VÉRIFICATION
+# 24. STOCKAGE PRIVÉ
+# DOCUMENTS DE VÉRIFICATION DES TALENTS
 # ============================================================
-
-import os
-from pathlib import Path
 
 PRIVATE_VERIFICATION_ROOT = Path(
-    os.environ.get(
+    os.getenv(
         "PRIVATE_VERIFICATION_ROOT",
         str(
             Path.home()
             / "AfroFansPrivate"
             / "verification_talents"
-        )
+        ),
     )
 )
 
-
-
-
-
-LIVEKIT_URL = os.environ.get("LIVEKIT_URL", "")
-LIVEKIT_API_KEY = os.environ.get("LIVEKIT_API_KEY", "")
-LIVEKIT_API_SECRET = os.environ.get("LIVEKIT_API_SECRET", "")
-
-
+# Ce chemin local n'assure pas la persistance
+# sur Render. Les pièces d'identité exigent
+# un stockage privé et durable avec
+# contrôle d'accès.
 
 
 # ============================================================
-# AFROFANS — CONFIGURATION STRIPE
+# 25. LIVEKIT
+# AUDIO / VIDÉO / PRÉSENCE TEMPS RÉEL
 # ============================================================
 
-import os
+LIVEKIT_URL = os.getenv(
+    "LIVEKIT_URL",
+    "",
+)
 
-# Clé secrète Stripe
-STRIPE_SECRET_KEY = os.environ.get(
+LIVEKIT_API_KEY = os.getenv(
+    "LIVEKIT_API_KEY",
+    "",
+)
+
+LIVEKIT_API_SECRET = os.getenv(
+    "LIVEKIT_API_SECRET",
+    "",
+)
+
+
+# ============================================================
+# 26. STRIPE — CONFIGURATION GÉNÉRALE
+# ============================================================
+
+STRIPE_SECRET_KEY = os.getenv(
     "STRIPE_SECRET_KEY",
-    ""
+    "",
 )
 
-# Secret de signature du webhook Stripe
-STRIPE_WEBHOOK_SECRET_BILLETS = os.environ.get(
+
+# ============================================================
+# 27. STRIPE — BILLETTERIE
+# ============================================================
+
+STRIPE_WEBHOOK_SECRET_BILLETS = os.getenv(
     "STRIPE_WEBHOOK_SECRET_BILLETS",
-    ""
+    "",
 )
 
-# Configuration billetterie AfroFans
-AFROFANS_DEVISE_BILLETS = "cad"
+AFROFANS_DEVISE_BILLETS = os.getenv(
+    "AFROFANS_DEVISE_BILLETS",
+    "cad",
+).lower()
 
-# 5 % de commission sur chaque lot de 20 billets
-AFROFANS_TAILLE_LOT = 20
-AFROFANS_TAUX_COMMISSION = "0.05"
+AFROFANS_TAILLE_LOT = int(
+    os.getenv(
+        "AFROFANS_TAILLE_LOT",
+        "20",
+    )
+)
+
+AFROFANS_TAUX_COMMISSION = os.getenv(
+    "AFROFANS_TAUX_COMMISSION",
+    "0.05",
+)
 
 
-
+# ============================================================
+# 28. STRIPE — VIDÉOS PAYANTES
+# ============================================================
 
 STRIPE_WEBHOOK_SECRET_VIDEOS = os.getenv(
     "STRIPE_WEBHOOK_SECRET_VIDEOS",
-    ""
+    "",
 )
 
-AFROFANS_PAIEMENTS_VIDEOS_ACTIFS = (
-    os.getenv(
-        "AFROFANS_PAIEMENTS_VIDEOS_ACTIFS",
-        "False"
-    ).lower() == "true"
+AFROFANS_DEVISE_VIDEOS = os.getenv(
+    "AFROFANS_DEVISE_VIDEOS",
+    "cad",
+).lower()
+
+AFROFANS_PAIEMENTS_VIDEOS_ACTIFS = env_bool(
+    "AFROFANS_PAIEMENTS_VIDEOS_ACTIFS",
+    False,
 )
+
+
+# ============================================================
+# 29. AFROFANS — DONS
+# ============================================================
+
+AFROFANS_DEVISE_DONS = os.getenv(
+    "AFROFANS_DEVISE_DONS",
+    "cad",
+).lower()
+
+AFROFANS_DONS_ACTIFS = env_bool(
+    "AFROFANS_DONS_ACTIFS",
+    False,
+)
+
+
+# ============================================================
+# 30. VÉRIFICATION DES TALENTS
+# ============================================================
+
+AFROFANS_VERIFICATION_PAIEMENT_ACTIF = env_bool(
+    "AFROFANS_VERIFICATION_PAIEMENT_ACTIF",
+    False,
+)
+
+
+# ============================================================
+# 31. STRIPE CONNECT — RETRAITS
+# ============================================================
+
+AFROFANS_STRIPE_CONNECT_ACTIF = env_bool(
+    "AFROFANS_STRIPE_CONNECT_ACTIF",
+    False,
+)
+
+AFROFANS_RETRAITS_ACTIFS = env_bool(
+    "AFROFANS_RETRAITS_ACTIFS",
+    False,
+)
+
+
+# ============================================================
+# 32. JOURNALISATION
+# ============================================================
+
+LOGGING = {
+
+    "version": 1,
+
+    "disable_existing_loggers": False,
+
+    "handlers": {
+
+        "console": {
+
+            "class": "logging.StreamHandler",
+
+        },
+
+    },
+
+    "root": {
+
+        "handlers": ["console"],
+
+        "level": (
+            "DEBUG"
+            if DEBUG
+            else "INFO"
+        ),
+
+    },
+
+}
+
+
+# ============================================================
+# FIN — SETTINGS AFROFANS
+# HEXAQUÉBEC
+# ============================================================
