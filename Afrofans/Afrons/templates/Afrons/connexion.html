@@ -1,3 +1,4 @@
+
 {% extends "Afrons/base.html" %}
 
 {% block title %}
@@ -10,103 +11,632 @@
 
 {% block content %}
 
-    <section class="authentication-container">
+<section class="authentication-container">
 
-        <div class="authentication-visual">
+    <!-- ==========================================
+         PRÉSENTATION AFROFANS
+    =========================================== -->
 
-            <div class="authentication-visual-content">
+    <div class="authentication-visual">
 
-                <span class="page-label">
-                    Bon retour
-                </span>
+        <div class="authentication-visual-content">
 
-                <h1>
-                    Retrouve toute l’énergie
-                    de la communauté AfroFans.
-                </h1>
+            <span class="page-label">
+                Bon retour
+            </span>
 
-                <p>
-                    Connecte-toi pour découvrir les
-                    nouvelles vidéos et suivre tes
-                    créateurs préférés.
-                </p>
+            <h1>
+                Retrouve toute l’énergie
+                de la communauté AfroFans.
+            </h1>
 
-            </div>
+            <p>
+                Connecte-toi pour découvrir les
+                nouvelles vidéos et suivre tes
+                créateurs préférés.
+            </p>
 
         </div>
 
-        <div class="authentication-card">
+    </div>
 
-            <a
-                class="logo authentication-logo"
-                href="{% url 'Afrons:flux' %}"
+
+    <!-- ==========================================
+         FORMULAIRE DE CONNEXION
+    =========================================== -->
+
+    <div class="authentication-card">
+
+        <!--
+            Logo original conservé sur ordinateur.
+            Masqué uniquement sur téléphone
+            pour éviter le deuxième logo.
+        -->
+
+        <a
+            class="logo authentication-logo"
+            href="{% url 'Afrons:flux' %}"
+        >
+            <span class="logo-icon">▶</span>
+            <span class="logo-afro">Afro</span>
+            <span class="logo-fans">Fans</span>
+        </a>
+
+        <h2>Connexion</h2>
+
+        <p class="authentication-subtitle">
+            Entre dans ton espace AfroFans.
+        </p>
+
+        <form
+            method="post"
+            class="application-form"
+            novalidate
+        >
+
+            {% csrf_token %}
+
+            {% if formulaire.non_field_errors %}
+
+                <div class="form-errors" role="alert">
+                    {{ formulaire.non_field_errors }}
+                </div>
+
+            {% endif %}
+
+            {% for champ in formulaire %}
+
+                <div class="form-group">
+
+                    <label for="{{ champ.id_for_label }}">
+                        {{ champ.label }}
+                    </label>
+
+                    {{ champ }}
+
+                    {% for erreur in champ.errors %}
+
+                        <small class="field-error">
+                            {{ erreur }}
+                        </small>
+
+                    {% endfor %}
+
+                </div>
+
+            {% endfor %}
+
+            <button
+                type="submit"
+                class="primary-button full-button"
             >
-                <span class="logo-icon">▶</span>
-                <span class="logo-afro">Afro</span>
-                <span class="logo-fans">Fans</span>
+                Se connecter
+            </button>
+
+        </form>
+
+        <p class="authentication-footer">
+
+            Tu n’as pas encore de compte ?
+
+            <a href="{% url 'Afrons:inscription' %}">
+                Créer un compte
             </a>
 
-            <h2>Connexion</h2>
+        </p>
 
-            <p class="authentication-subtitle">
-                Entre dans ton espace AfroFans.
-            </p>
+    </div>
 
-            <form
-                method="post"
-                class="application-form"
-                novalidate
-            >
+</section>
 
-                {% csrf_token %}
 
-                {% if formulaire.non_field_errors %}
+<!-- ==============================================
+     AFROFANS — RESPONSIVE TÉLÉPHONE UNIQUEMENT
 
-                    <div class="form-errors">
-                        {{ formulaire.non_field_errors }}
-                    </div>
+     Le design ordinateur reste inchangé.
+     Aucune nouvelle couleur.
+     Aucune modification du logo principal.
+============================================== -->
 
-                {% endif %}
+<style>
 
-                {% for champ in formulaire %}
+@media only screen and (max-width: 767px) {
 
-                    <div class="form-group">
+    /* ------------------------------------------
+       1. ÉVITER LE DÉBORDEMENT HORIZONTAL
+    ------------------------------------------- */
 
-                        <label for="{{ champ.id_for_label }}">
-                            {{ champ.label }}
-                        </label>
+    body.authentication-page {
+        overflow-x: clip;
+    }
 
-                        {{ champ }}
+    .authentication-page .authentication-container,
+    .authentication-page .authentication-container * {
+        box-sizing: border-box;
+    }
 
-                        {% for erreur in champ.errors %}
-                            <small class="field-error">
-                                {{ erreur }}
-                            </small>
-                        {% endfor %}
 
-                    </div>
+    /* ------------------------------------------
+       2. CONTENEUR PRINCIPAL RESPONSIVE
+    ------------------------------------------- */
 
-                {% endfor %}
+    .authentication-page .authentication-container {
 
-                <button
-                    type="submit"
-                    class="primary-button full-button"
-                >
-                    Se connecter
-                </button>
+        display: flex;
+        flex-direction: column;
 
-            </form>
+        position: relative;
 
-            <p class="authentication-footer">
-                Tu n’as pas encore de compte ?
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
 
-                <a href="{% url 'Afrons:inscription' %}">
-                    Créer un compte
-                </a>
-            </p>
+        height: auto;
+        min-height: 0;
 
-        </div>
+        margin-left: auto;
+        margin-right: auto;
 
-    </section>
+        overflow: visible;
+
+    }
+
+
+    /* ------------------------------------------
+       3. PRÉSENTATION EN HAUT
+    ------------------------------------------- */
+
+    .authentication-page .authentication-visual {
+
+        position: relative;
+
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+
+        height: auto;
+        min-height: 0;
+
+        padding: 20px 18px;
+
+        overflow: visible;
+
+    }
+
+    .authentication-page .authentication-visual-content {
+
+        width: 100%;
+        max-width: 100%;
+
+        min-width: 0;
+
+    }
+
+    .authentication-page .authentication-visual h1 {
+
+        font-size: clamp(21px, 5.5vw, 27px);
+        line-height: 1.3;
+
+        overflow-wrap: break-word;
+
+    }
+
+    .authentication-page .authentication-visual p {
+
+        font-size: 13px;
+        line-height: 1.5;
+
+    }
+
+
+    /* ------------------------------------------
+       4. FORMULAIRE BIEN POSITIONNÉ
+    ------------------------------------------- */
+
+    .authentication-page .authentication-card {
+
+        display: block;
+
+        position: relative;
+
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+
+        height: auto;
+        min-height: 0;
+
+        margin: 0;
+
+        padding: 22px 18px 28px;
+
+        overflow: visible;
+
+        transform: none;
+
+    }
+
+
+    /* ------------------------------------------
+       5. MASQUER LE DEUXIÈME LOGO SUR MOBILE
+       Le logo du header reste visible.
+    ------------------------------------------- */
+
+    .authentication-page
+    .authentication-card
+    .authentication-logo {
+
+        display: none !important;
+
+    }
+
+
+    /* ------------------------------------------
+       6. TITRE ET DESCRIPTION
+    ------------------------------------------- */
+
+    .authentication-page .authentication-card h2 {
+
+        margin-top: 0;
+
+        font-size: clamp(24px, 6vw, 29px);
+
+        line-height: 1.25;
+
+    }
+
+    .authentication-page .authentication-subtitle {
+
+        font-size: 13px;
+
+        line-height: 1.6;
+
+    }
+
+
+    /* ------------------------------------------
+       7. FORMULAIRE RESPONSIVE
+    ------------------------------------------- */
+
+    .authentication-page .application-form {
+
+        display: block;
+
+        position: relative;
+
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+
+        height: auto;
+
+        overflow: visible;
+
+    }
+
+    .authentication-page .form-group {
+
+        display: block;
+
+        position: relative;
+
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+
+        margin-bottom: 16px;
+
+    }
+
+    .authentication-page .form-group label {
+
+        display: block;
+
+        max-width: 100%;
+
+        margin-bottom: 8px;
+
+    }
+
+
+    /* ------------------------------------------
+       8. CHAMPS ADAPTÉS AUX TÉLÉPHONES
+
+       16px limite le zoom automatique
+       du navigateur Safari sur iPhone.
+    ------------------------------------------- */
+
+    .authentication-page .form-group input,
+    .authentication-page .form-group select,
+    .authentication-page .form-group textarea {
+
+        display: block;
+
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+
+        min-height: 48px;
+
+        font-size: 16px !important;
+
+        box-sizing: border-box;
+
+    }
+
+    .authentication-page .form-group textarea {
+
+        resize: vertical;
+
+    }
+
+
+    /* ------------------------------------------
+       9. ERREURS DE VALIDATION
+    ------------------------------------------- */
+
+    .authentication-page .form-errors,
+    .authentication-page .field-error {
+
+        max-width: 100%;
+
+        overflow-wrap: anywhere;
+
+    }
+
+
+    /* ------------------------------------------
+       10. BOUTON CONNEXION
+    ------------------------------------------- */
+
+    .authentication-page .primary-button.full-button {
+
+        display: flex;
+
+        align-items: center;
+        justify-content: center;
+
+        width: 100%;
+        max-width: 100%;
+        min-height: 48px;
+
+        box-sizing: border-box;
+
+    }
+
+
+    /* ------------------------------------------
+       11. LIEN CRÉATION DE COMPTE
+    ------------------------------------------- */
+
+    .authentication-page .authentication-footer {
+
+        max-width: 100%;
+
+        text-align: center;
+
+        font-size: 13px;
+
+        line-height: 1.7;
+
+        overflow-wrap: break-word;
+
+    }
+
+}
+
+
+/* ==============================================
+   PETITS TÉLÉPHONES
+============================================== */
+
+@media only screen and (max-width: 360px) {
+
+    .authentication-page .authentication-visual {
+
+        padding: 17px 14px;
+
+    }
+
+    .authentication-page .authentication-card {
+
+        padding: 20px 14px 25px;
+
+    }
+
+    .authentication-page .authentication-visual h1 {
+
+        font-size: 21px;
+
+    }
+
+}
+
+/* ============================================
+   AFROFANS — MOBILE UNIQUEMENT
+   ORDINATEUR INCHANGÉ
+============================================ */
+
+@media screen and (max-width: 767px) {
+
+    body.authentication-page {
+        overflow-x: hidden;
+    }
+
+    .authentication-page .authentication-container,
+    .authentication-page .authentication-container * {
+        box-sizing: border-box;
+    }
+
+    /* Disposition mobile */
+    .authentication-page .authentication-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+
+        width: 100%;
+        max-width: 100%;
+        min-height: 0;
+        height: auto;
+
+        margin: 0 auto;
+        padding: 48px 16px 35px;
+        gap: 0;
+
+        overflow: visible;
+    }
+
+    /* Présentation AfroFans au-dessus */
+    .authentication-page .authentication-visual {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        width: 100%;
+        max-width: 430px;
+        min-height: 0;
+        height: auto;
+
+        margin: 0;
+        padding: 20px 14px 24px;
+
+        text-align: center;
+    }
+
+    .authentication-page .authentication-visual-content {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .authentication-page .authentication-visual h1 {
+        margin: 14px 0 10px;
+        font-size: clamp(21px, 5.5vw, 27px);
+        line-height: 1.3;
+    }
+
+    .authentication-page .authentication-visual p {
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    /* Carte de connexion plus basse et centrée */
+    .authentication-page .authentication-card {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+
+        width: 100%;
+        max-width: 430px;
+        min-width: 0;
+        min-height: 0;
+        height: auto;
+
+        margin: 12px auto 0;
+        padding: 32px 22px 35px;
+
+        transform: none;
+        overflow: visible;
+    }
+
+    /* Retirer uniquement le deuxième logo */
+    .authentication-page .authentication-card
+    .authentication-logo {
+        display: none !important;
+    }
+
+    .authentication-page .authentication-card h2 {
+        margin: 0 0 10px;
+        font-size: 27px;
+        line-height: 1.25;
+        text-align: center;
+    }
+
+    .authentication-page .authentication-subtitle {
+        margin: 0 0 30px;
+        font-size: 14px;
+        line-height: 1.6;
+        text-align: center;
+    }
+
+    /* Champs bien espacés */
+    .authentication-page .application-form {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        height: auto;
+    }
+
+    .authentication-page .form-group {
+        width: 100%;
+        min-width: 0;
+        margin-bottom: 22px;
+    }
+
+    .authentication-page .form-group label {
+        display: block;
+        margin-bottom: 10px;
+        font-size: 14px;
+    }
+
+    .authentication-page .form-group input,
+    .authentication-page .form-group select,
+    .authentication-page .form-group textarea {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+
+        min-height: 54px;
+        padding: 13px 15px;
+
+        font-size: 16px !important;
+        line-height: 1.4;
+    }
+
+    /* Bouton */
+    .authentication-page .primary-button.full-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        width: 100%;
+        min-height: 54px;
+        margin-top: 12px;
+    }
+
+    /* Inscription */
+    .authentication-page .authentication-footer {
+        margin-top: 27px;
+        font-size: 13px;
+        line-height: 1.7;
+        text-align: center;
+    }
+
+    .authentication-page .form-errors,
+    .authentication-page .field-error {
+        overflow-wrap: anywhere;
+    }
+}
+
+/* Petits téléphones */
+@media screen and (max-width: 360px) {
+    .authentication-page .authentication-container {
+        padding: 30px 12px 25px;
+    }
+
+    .authentication-page .authentication-card {
+        padding: 25px 17px 30px;
+    }
+
+    .authentication-page .authentication-visual {
+        padding: 15px 10px 20px;
+    }
+}
+
+</style>
 
 {% endblock %}
