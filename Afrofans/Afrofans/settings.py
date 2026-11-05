@@ -160,26 +160,21 @@ SECURE_HSTS_PRELOAD = False
 # ============================================================
 # 8. APPLICATIONS INSTALLÉES
 # ============================================================
-
 INSTALLED_APPS = [
-
     "django.contrib.admin",
-
     "django.contrib.auth",
-
     "django.contrib.contenttypes",
-
     "django.contrib.sessions",
-
     "django.contrib.messages",
-
     "django.contrib.staticfiles",
 
-    # Application principale AfroFans
+    # Cloudinary
+    "cloudinary_storage",
+    "cloudinary",
+
+    # AfroFans
     "Afrons.apps.AfronsConfig",
-
 ]
-
 
 # ============================================================
 # 9. MIDDLEWARE
@@ -387,29 +382,28 @@ if (BASE_DIR / "static").is_dir():
 # 16. STOCKAGE DES FICHIERS STATIQUES
 # WHITENOISE
 # ============================================================
+# ============================================================
+# AFROFANS — STOCKAGE CLOUDINARY / RENDER
+# ============================================================
+
+CLOUDINARY_URL = os.getenv("CLOUDINARY_URL", "")
 
 STORAGES = {
-
     "default": {
-
         "BACKEND": (
-            "django.core.files.storage."
-            "FileSystemStorage"
+            "cloudinary_storage.storage.MediaCloudinaryStorage"
+            if CLOUDINARY_URL
+            else "django.core.files.storage.FileSystemStorage"
         ),
-
     },
 
     "staticfiles": {
-
         "BACKEND": (
             "whitenoise.storage."
             "CompressedManifestStaticFilesStorage"
         ),
-
     },
-
 }
-
 
 # ============================================================
 # 17. FICHIERS MULTIMÉDIAS
