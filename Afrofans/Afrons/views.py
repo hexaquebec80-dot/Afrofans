@@ -592,28 +592,39 @@ def deconnexion(request):
     )
 
 
+# ============================================================
+# AFROFANS — PUBLICATION VIDÉO
+# PostgreSQL + Cloudinary + AfroFans Studio
+# ============================================================
+
 @login_required
 def publier_video(request):
 
+    # ========================================================
+    # 1. VÉRIFICATION DU PROFIL
+    # ========================================================
+
     profil = request.user.profil
 
-    # Seuls les créateurs peuvent publier.
     if profil.type_compte != "createur":
+
         messages.error(
             request,
             (
-                "Seuls les comptes Créateur peuvent "
-                "publier des vidéos."
+                "Seuls les comptes Talent peuvent "
+                "publier des vidéos sur AfroFans."
             ),
         )
 
-        return redirect(
-            "Afrons:flux"
-        )
+        return redirect("Afrons:flux")
 
-    # Musiques visibles dans AfroFans Studio.
+    # ========================================================
+    # 2. MUSIQUES DISPONIBLES
+    # ========================================================
+
     musiques = (
-        Musique.objects.filter(
+        Musique.objects
+        .filter(
             est_active=True,
             est_autorisee=True,
         )
@@ -624,14 +635,26 @@ def publier_video(request):
         )
     )
 
+    # ========================================================
+    # 3. FORMULAIRE DE PUBLICATION
+    # ========================================================
+
     formulaire = VideoForm(
         request.POST or None,
         request.FILES or None,
     )
 
+    # ========================================================
+    # 4. PUBLICATION
+    # ========================================================
+
     if request.method == "POST":
 
         if formulaire.is_valid():
+
+            # ------------------------------------------------
+            # MODE MUSICAL
+            # ------------------------------------------------
 
             mode_musique = request.POST.get(
                 "selection_musique",
@@ -647,109 +670,275 @@ def publier_video(request):
             if mode_musique not in modes_autorises:
                 mode_musique = "automatique"
 
-            with transaction.atomic():
+            # =================================================
+            # 5. PRÉPARATION DE LA VIDÉO
+            # =================================================
 
-                video = formulaire.save(
-                    commit=False
+            video = formulaire.save(commit=False)
+
+            video.auteur = request.user
+
+            # ------------------------------------------------
+            # MUSIQUE AUTOMATIQUE
+            # ------------------------------------------------
+
+            if (
+                mode_musique == "automatique"
+                and not video.musique_id
+            ):
+
+                video.musique = (
+                    musique_recommandee_pour_categorie(
+                        video.categorie
+                    )
                 )
 
-                video.auteur = request.user
+            # ------------------------------------------------
+            # SON ORIGINAL
+            # ------------------------------------------------
 
-                # ==========================================
-                # MUSIQUE AUTOMATIQUE
-                # ==========================================
+            if mode_musique == "original":
 
-                if (
-                    mode_musique == "automatique"
-                    and not video.musique_id
-                ):
-                    video.musique = (
-                        musique_recommandee_pour_categorie(
-                            video.categorie
-                        )
-                    )
+                video.musique = None
+                video.volume_musique = 0
 
-                # ==========================================
-                # SON ORIGINAL
-                # ==========================================
+            # ------------------------------------------------
+            # VÉRIFICATION MUSIQUE
+            # ------------------------------------------------
 
-                if mode_musique == "original":
+            if video.musique_id:
+
+                musique_valide = (
+                    video.musique.est_active
+                    and video.musique.est_autorisee
+                )
+
+                if not musique_valide:
+
                     video.musique = None
                     video.volume_musique = 0
 
-                # ==========================================
-                # SÉCURITÉ DE LA MUSIQUE
-                # ==========================================
+            # =================================================
+            # 6. STATUT INITIAL
+            # =================================================
 
-                if video.musique_id:
+            video.statut_traitement = "en_attente"
 
-                    musique_valide = (
-                        video.musique.est_active
-                        and video.musique.est_autorisee
-                    )
+            video.erreur_traitement = ""
 
-                    if not musique_valide:
-                        video.musique = None
-                        video.volume_musique = 0
+            # Ne pas afficher publiquement une vidéo
+            # avant la réussite du traitement.
 
-                # ==========================================
-                # TRAITEMENT VIDÉO
-                # ==========================================
+            video.est_publiee = False
 
-                video.statut_traitement = (
-                    "en_attente"
+            # =================================================
+            # 7. ENREGISTREMENT CLOUDINARY + POSTGRESQL
+            # =================================================
+
+            try:
+
+                with transaction.atomic():
+
+                    video.save()
+
+                    # Enregistrer les relations ManyToMany
+                    # éventuelles du formulaire.
+
+                    formulaire.save_m2m()
+
+            except Exception:
+
+                logger.exception(
+                    "AfroFans : échec de l'enregistrement "
+                    "de la vidéo de l'utilisateur %s",
+                    request.user.pk,
                 )
-
-                video.erreur_traitement = ""
-
-                # La vidéo ne devient publique
-                # qu’après la réussite de FFmpeg.
-                video.est_publiee = False
-
-                video.save()
-
-            # Le bloc transaction.atomic est terminé.
-            # La vidéo existe maintenant réellement
-            # dans la base de données.
-            traitement_reussi = traiter_video(
-                video.pk
-            )
-
-            if traitement_reussi:
-
-                messages.success(
-                    request,
-                    (
-                        "Ta vidéo a été préparée avec succès. "
-                        "La musique et les filtres ont été "
-                        "intégrés par AfroFans Studio."
-                    ),
-                )
-
-            else:
 
                 messages.error(
                     request,
                     (
-                        "La vidéo a été enregistrée, mais "
-                        "AfroFans Studio n’a pas réussi à "
-                        "terminer le montage. Vérifie que "
-                        "FFmpeg est correctement installé."
+                        "Impossible d'enregistrer la vidéo. "
+                        "Vérifie le fichier envoyé et "
+                        "réessaie."
                     ),
                 )
 
+                return render(
+                    request,
+                    "Afrons/publier_video.html",
+                    {
+                        "formulaire": formulaire,
+                        "musiques": musiques,
+                    },
+                )
+
+            # =================================================
+            # 8. TRAITEMENT AFROFANS STUDIO
+            # =================================================
+
+            traitement_reussi = False
+
+            try:
+
+                traitement_reussi = traiter_video(
+                    video.pk
+                )
+
+            except Exception as erreur:
+
+                logger.exception(
+                    "AfroFans Studio : échec du "
+                    "traitement de la vidéo %s",
+                    video.pk,
+                )
+
+                # Conserver un diagnostic interne.
+                # Ne pas exposer les détails techniques
+                # au public.
+
+                Video.objects.filter(
+                    pk=video.pk
+                ).update(
+                    statut_traitement="echec",
+                    erreur_traitement=str(erreur)[:2000],
+                    est_publiee=False,
+                )
+
+                traitement_reussi = False
+
+            # =================================================
+            # 9. VÉRIFIER LE RÉSULTAT DU MONTAGE
+            # =================================================
+
+            video.refresh_from_db()
+
+            if traitement_reussi:
+
+                # Vérification du fichier final.
+                # La méthode traiter_video doit avoir
+                # enregistré la version traitée.
+
+                if (
+                    video.statut_traitement == "termine"
+                    and video.fichier_traite
+                ):
+
+                    messages.success(
+                        request,
+                        (
+                            "Ta vidéo a été préparée "
+                            "avec succès ! La musique "
+                            "et les filtres ont été "
+                            "intégrés par AfroFans Studio."
+                        ),
+                    )
+
+                else:
+
+                    logger.error(
+                        "AfroFans Studio : vidéo %s "
+                        "annoncée réussie mais résultat "
+                        "incomplet.",
+                        video.pk,
+                    )
+
+                    traitement_reussi = False
+
+                    Video.objects.filter(
+                        pk=video.pk
+                    ).update(
+                        statut_traitement="echec",
+                        erreur_traitement=(
+                            "Traitement annoncé terminé "
+                            "mais fichier final absent "
+                            "ou statut incorrect."
+                        ),
+                        est_publiee=False,
+                    )
+
+            # =================================================
+            # 10. ÉCHEC DU MONTAGE
+            # =================================================
+
+            if not traitement_reussi:
+
+                # Si le service a retourné False sans
+                # renseigner l'erreur, conserver un
+                # diagnostic générique dans la base.
+
+                video.refresh_from_db()
+
+                if video.statut_traitement != "echec":
+
+                    Video.objects.filter(
+                        pk=video.pk
+                    ).update(
+                        statut_traitement="echec",
+                        est_publiee=False,
+                    )
+
+                if not video.erreur_traitement:
+
+                    Video.objects.filter(
+                        pk=video.pk
+                    ).update(
+                        erreur_traitement=(
+                            "AfroFans Studio n'a pas "
+                            "terminé le montage. "
+                            "Consulter les journaux "
+                            "du traitement vidéo."
+                        )
+                    )
+
+                logger.error(
+                    "AfroFans Studio : montage échoué "
+                    "pour la vidéo %s",
+                    video.pk,
+                )
+
+                messages.warning(
+                    request,
+                    (
+                        "Ta vidéo originale a bien été "
+                        "enregistrée, mais AfroFans Studio "
+                        "n'a pas réussi à terminer le "
+                        "montage. La vidéo reste privée "
+                        "en attendant la correction."
+                    ),
+                )
+
+            # =================================================
+            # 11. REDIRECTION VERS LA VIDÉO
+            # =================================================
+
             return redirect(
                 "Afrons:detail_video",
-                video.pk,
+                video_id=video.pk,
             )
+
+        # =====================================================
+        # 12. FORMULAIRE INVALIDE
+        # =====================================================
+
+        logger.warning(
+            "AfroFans : formulaire vidéo invalide "
+            "pour l'utilisateur %s : %s",
+            request.user.pk,
+            formulaire.errors.as_json(),
+        )
 
         messages.error(
             request,
             (
-                "La vidéo n’a pas été envoyée. "
-                "Vérifie les champs indiqués en rouge."
+                "La vidéo n'a pas été envoyée. "
+                "Vérifie les champs indiqués "
+                "dans le formulaire."
             ),
         )
+
+    # ========================================================
+    # 13. AFFICHER LE FORMULAIRE
+    # ========================================================
 
     return render(
         request,
