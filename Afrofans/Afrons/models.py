@@ -3,7 +3,7 @@ from django.core.validators import FileExtensionValidator
 from django.db import models
 from django.urls import reverse
 from django.core.exceptions import ValidationError
-
+from cloudinary_storage.storage import VideoMediaCloudinaryStorage
 
 from django.conf import settings
 from django.core.validators import MinValueValidator
@@ -53,7 +53,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 
-
+from .storage import AfroFansVideoStorage
 
 
 
@@ -346,7 +346,20 @@ class Profil(models.Model):
     def __str__(self):
         return self.nom_public
 
+
+
+
+# ============================================================
+# AFROFANS — MODÈLE VIDÉO
+# PostgreSQL + Cloudinary
+# Vidéos originales et vidéos traitées
+# ============================================================
+
 class Video(models.Model):
+
+    # =====================================================
+    # CATÉGORIES
+    # =====================================================
 
     CATEGORIES = [
         ("musique", "Musique"),
@@ -361,6 +374,10 @@ class Video(models.Model):
         ("autre", "Autre"),
     ]
 
+    # =====================================================
+    # FILTRES DE COULEUR
+    # =====================================================
+
     FILTRES_COULEUR = [
         ("natural", "Naturel"),
         ("warm", "Chaleur"),
@@ -369,6 +386,10 @@ class Video(models.Model):
         ("gold", "Or africain"),
         ("mono", "Monochrome"),
     ]
+
+    # =====================================================
+    # STATUTS DE TRAITEMENT
+    # =====================================================
 
     STATUTS_TRAITEMENT = [
         (
@@ -393,11 +414,19 @@ class Video(models.Model):
         ),
     ]
 
+    # =====================================================
+    # AUTEUR
+    # =====================================================
+
     auteur = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name="videos",
     )
+
+    # =====================================================
+    # INFORMATIONS DE LA VIDÉO
+    # =====================================================
 
     titre = models.CharField(
         max_length=150,
@@ -408,8 +437,15 @@ class Video(models.Model):
         blank=True,
     )
 
+    # =====================================================
+    # VIDÉO ORIGINALE — CLOUDINARY
+    # =====================================================
+
     fichier = models.FileField(
         upload_to="videos/originales/%Y/%m/",
+
+        storage=VideoMediaCloudinaryStorage(),
+
         validators=[
             FileExtensionValidator(
                 allowed_extensions=[
@@ -419,28 +455,45 @@ class Video(models.Model):
                 ]
             )
         ],
+
         help_text=(
             "Vidéo originale au format "
             "MP4, WebM ou MOV."
         ),
     )
 
+    # =====================================================
+    # VIDÉO TRAITÉE — CLOUDINARY / AFROFANS STUDIO
+    # =====================================================
+
     fichier_traite = models.FileField(
         upload_to="videos/traitees/%Y/%m/",
+
+        storage=VideoMediaCloudinaryStorage(),
+
         blank=True,
         null=True,
         editable=False,
+
         help_text=(
             "Version créée automatiquement "
             "par AfroFans Studio."
         ),
     )
 
+    # =====================================================
+    # MINIATURE — CLOUDINARY IMAGE
+    # =====================================================
+
     miniature = models.ImageField(
         upload_to="miniatures/%Y/%m/",
         blank=True,
         null=True,
     )
+
+    # =====================================================
+    # CATÉGORIE ET HASHTAGS
+    # =====================================================
 
     categorie = models.CharField(
         max_length=30,
@@ -452,6 +505,7 @@ class Video(models.Model):
     hashtags = models.CharField(
         max_length=300,
         blank=True,
+
         help_text=(
             "Exemple : #musique #mali #afrique"
         ),
@@ -467,6 +521,7 @@ class Video(models.Model):
         related_name="videos",
         blank=True,
         null=True,
+
         help_text=(
             "Musique autorisée ajoutée "
             "à la vidéo."
@@ -475,10 +530,12 @@ class Video(models.Model):
 
     volume_musique = models.PositiveSmallIntegerField(
         default=70,
+
         validators=[
             MinValueValidator(0),
             MaxValueValidator(100),
         ],
+
         help_text=(
             "Volume de la musique entre 0 et 100."
         ),
@@ -486,10 +543,12 @@ class Video(models.Model):
 
     volume_original = models.PositiveSmallIntegerField(
         default=100,
+
         validators=[
             MinValueValidator(0),
             MaxValueValidator(100),
         ],
+
         help_text=(
             "Volume du son original entre 0 et 100."
         ),
@@ -507,10 +566,12 @@ class Video(models.Model):
 
     luminosite = models.PositiveSmallIntegerField(
         default=100,
+
         validators=[
             MinValueValidator(60),
             MaxValueValidator(140),
         ],
+
         help_text=(
             "Luminosité entre 60 et 140."
         ),
@@ -518,10 +579,12 @@ class Video(models.Model):
 
     contraste = models.PositiveSmallIntegerField(
         default=100,
+
         validators=[
             MinValueValidator(60),
             MaxValueValidator(160),
         ],
+
         help_text=(
             "Contraste entre 60 et 160."
         ),
@@ -529,10 +592,12 @@ class Video(models.Model):
 
     saturation = models.PositiveSmallIntegerField(
         default=100,
+
         validators=[
             MinValueValidator(0),
             MaxValueValidator(200),
         ],
+
         help_text=(
             "Saturation entre 0 et 200."
         ),
@@ -579,9 +644,22 @@ class Video(models.Model):
         default=True,
     )
 
+    # =====================================================
+    # STATISTIQUES
+    # =====================================================
+
     vues = models.PositiveBigIntegerField(
         default=0,
     )
+
+    nombre_partages = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Nombre de partages",
+    )
+
+    # =====================================================
+    # DATES
+    # =====================================================
 
     creee_le = models.DateTimeField(
         auto_now_add=True,
@@ -591,16 +669,12 @@ class Video(models.Model):
         auto_now=True,
     )
 
-    
-
-
-    nombre_partages = models.PositiveIntegerField(
-         default=0,
-         verbose_name="Nombre de partages",
-    )
-
+    # =====================================================
+    # CONFIGURATION DU MODÈLE
+    # =====================================================
 
     class Meta:
+
         ordering = [
             "-est_a_la_une",
             "-creee_le",
@@ -614,6 +688,7 @@ class Video(models.Model):
                 ],
                 name="video_publication_idx",
             ),
+
             models.Index(
                 fields=[
                     "categorie",
@@ -626,10 +701,14 @@ class Video(models.Model):
         verbose_name = "Vidéo"
         verbose_name_plural = "Vidéos"
 
+    # =====================================================
+    # VIDÉO À DIFFUSER
+    # =====================================================
+
     @property
     def fichier_diffuse(self):
         """
-        Retourne la vidéo montée lorsqu’elle est prête.
+        Retourne la vidéo traitée lorsqu'elle est prête.
         Sinon, retourne la vidéo originale.
         """
 
@@ -641,35 +720,60 @@ class Video(models.Model):
 
         return self.fichier
 
+    # =====================================================
+    # TRAITEMENT RÉUSSI
+    # =====================================================
+
     @property
     def traitement_reussi(self):
+
         return (
             self.statut_traitement == "termine"
             and bool(self.fichier_traite)
         )
 
+    # =====================================================
+    # TRAITEMENT EN COURS
+    # =====================================================
+
     @property
     def traitement_en_cours(self):
+
         return self.statut_traitement in (
             "en_attente",
             "traitement",
         )
 
+    # =====================================================
+    # UTILISATION DE MUSIQUE
+    # =====================================================
+
     @property
     def utilise_musique(self):
+
         return bool(
             self.musique_id
             and self.volume_musique > 0
         )
 
+    # =====================================================
+    # NOM DE LA MUSIQUE
+    # =====================================================
+
     @property
     def nom_musique(self):
+
         if self.musique_id:
             return self.musique.titre
 
         return "Son original"
 
+    # =====================================================
+    # URL DE LA VIDÉO
+    # =====================================================
+
     def get_absolute_url(self):
+
         return reverse(
             "Afrons:detail_video",
             args=[
@@ -677,8 +781,13 @@ class Video(models.Model):
             ],
         )
 
+    # =====================================================
+    # REPRÉSENTATION
+    # =====================================================
+
     def __str__(self):
         return self.titre
+
 
 class Musique(models.Model):
 

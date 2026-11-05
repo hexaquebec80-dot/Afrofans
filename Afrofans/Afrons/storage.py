@@ -22,3 +22,28 @@ class StockageVerificationPrive(FileSystemStorage):
 
 def stockage_documents_verification():
     return StockageVerificationPrive()
+
+
+
+
+
+
+
+# ============================================================
+# AFROFANS — STOCKAGE CLOUDINARY
+# ============================================================
+
+from cloudinary_storage.storage import (
+    MediaCloudinaryStorage,
+    VideoMediaCloudinaryStorage,
+)
+
+
+class AfroFansImageStorage(MediaCloudinaryStorage):
+    """Stockage des avatars et miniatures."""
+    pass
+
+
+class AfroFansVideoStorage(VideoMediaCloudinaryStorage):
+    """Stockage des vidéos AfroFans."""
+    pass
