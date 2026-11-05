@@ -1266,3 +1266,269 @@ class AchatTelechargementVideoAdmin(
     ordering = (
         "-cree_le",
     )
+
+
+
+
+
+# ============================================================
+# AFROFANS — ADMINISTRATION DES MODÈLES COMPLÉMENTAIRES
+# Entreprise : HexaQuébec
+# ============================================================
+
+from django.apps import apps
+from django.contrib import admin
+
+
+# ============================================================
+# 1. MODÈLES À AJOUTER
+# ============================================================
+
+MODELES_AFROFANS = {
+
+    # COMMENTAIRES
+    "JaimeCommentaire": {
+        "colonnes": (
+            "utilisateur",
+            "commentaire",
+            "cree_le",
+        ),
+        "filtres": ("cree_le",),
+    },
+
+    "SignalementCommentaire": {
+        "colonnes": (
+            "commentaire",
+            "motif",
+            "traite",
+            "cree_le",
+        ),
+        "filtres": (
+            "motif",
+            "traite",
+            "cree_le",
+        ),
+    },
+
+    # BILLETTERIE
+    "BilletEvenement": {
+        "colonnes": (
+            "evenement",
+            "quantite",
+            "montant_total",
+            "statut",
+        ),
+        "filtres": ("statut",),
+        "prive": True,
+    },
+
+    # VÉRIFICATION DES TALENTS
+    "DemandeVerificationTalent": {
+        "colonnes": (
+            "identifiant",
+            "nom_artistique",
+            "statut",
+            "date_soumission",
+        ),
+        "filtres": ("statut",),
+        "prive": True,
+    },
+
+    # PRÉSENCE EN TEMPS RÉEL
+    "PresenceAfroFans": {
+        "colonnes": (
+            "sujet",
+            "est_active",
+            "cree_le",
+        ),
+        "filtres": (
+            "est_active",
+            "cree_le",
+        ),
+    },
+
+    "PresenceSpectateur": {
+        "colonnes": (
+            "id",
+            "derniere_activite",
+        ),
+        "filtres": ("derniere_activite",),
+    },
+
+    "PresenceMessage": {
+        "colonnes": (
+            "id",
+            "type_message",
+            "cree_le",
+        ),
+        "filtres": ("type_message",),
+    },
+
+    "PresenceJaime": {
+        "colonnes": ("id", "cree_le"),
+        "filtres": ("cree_le",),
+    },
+
+    # PAIEMENTS STRIPE
+    "PaiementBilletStripe": {
+        "colonnes": (
+            "reservation",
+            "montant_centimes",
+            "devise",
+            "statut",
+            "cree_le",
+        ),
+        "filtres": (
+            "statut",
+            "devise",
+            "cree_le",
+        ),
+        "prive": True,
+    },
+
+    # COMMISSIONS AFROFANS
+    "LotCommissionAfroFans": {
+        "colonnes": (
+            "numero_lot",
+            "nombre_billets",
+            "commission_centimes",
+            "devise",
+        ),
+        "filtres": ("devise",),
+        "prive": True,
+    },
+
+    "BilletUnitePayeeAfroFans": {
+        "colonnes": (
+            "numero_unite",
+            "montant_centimes",
+            "devise",
+        ),
+        "filtres": ("devise",),
+        "prive": True,
+    },
+}
+
+
+# ============================================================
+# 2. ADMINISTRATION SÉCURISÉE
+# ============================================================
+
+class AfroFansComplementAdmin(admin.ModelAdmin):
+
+    list_per_page = 30
+    show_full_result_count = False
+    actions = None
+
+    # Consultation uniquement pour les nouveaux modèles.
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_module_permission(self, request):
+
+        if getattr(self, "modele_prive", False):
+            return (
+                request.user.is_active
+                and request.user.is_superuser
+            )
+
+        return super().has_module_permission(request)
+
+    def has_view_permission(self, request, obj=None):
+
+        if getattr(self, "modele_prive", False):
+            return (
+                request.user.is_active
+                and request.user.is_superuser
+            )
+
+        return super().has_view_permission(request, obj)
+
+    def get_fields(self, request, obj=None):
+
+        # N'afficher que les colonnes autorisées.
+        # Évite les documents d'identité et secrets Stripe.
+
+        return list(self.list_display)
+
+    def get_readonly_fields(self, request, obj=None):
+        return self.get_fields(request, obj)
+
+
+# ============================================================
+# 3. ENREGISTREMENT AUTOMATIQUE
+# ============================================================
+
+application = apps.get_app_config("Afrons")
+
+for nom_modele, configuration in MODELES_AFROFANS.items():
+
+    modele = application.get_model(nom_modele)
+
+    # Éviter les doublons.
+    if admin.site.is_registered(modele):
+        continue
+
+    champs_existants = {
+        champ.name
+        for champ in modele._meta.fields
+    }
+
+    colonnes = tuple(
+        champ
+        for champ in configuration["colonnes"]
+        if champ in champs_existants
+    )
+
+    filtres = tuple(
+        champ
+        for champ in configuration["filtres"]
+        if champ in champs_existants
+    )
+
+    classe_admin = type(
+        f"{nom_modele}Admin",
+        (AfroFansComplementAdmin,),
+        {
+            "list_display": colonnes or ("__str__",),
+            "list_filter": filtres,
+            "modele_prive": configuration.get(
+                "prive",
+                False,
+            ),
+            "__module__": __name__,
+        },
+    )
+
+    admin.site.register(
+        modele,
+        classe_admin,
+    )
+
+
+# ============================================================
+# 4. IDENTITÉ ADMIN AFROFANS
+# ============================================================
+
+admin.site.site_header = (
+    "AfroFans | Administration"
+)
+
+admin.site.site_title = (
+    "AfroFans — HexaQuébec"
+)
+
+admin.site.index_title = (
+    "Gestion de la plateforme AfroFans"
+)
+
+# ============================================================
+# FIN
+# ============================================================
