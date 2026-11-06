@@ -4353,21 +4353,37 @@ from .services_billetterie import (
 STATUTS_PUBLICS = ("publie", "ouvert")
 
 
+# ============================================================
+# AFROFANS — VÉRIFICATION TALENT / ORGANISATEUR
+# Reconnaissance de la certification par l'administrateur
+# ============================================================
+
 def vendeur_verifie(user):
+
+    # 1. L'utilisateur doit être connecté.
     if not user.is_authenticated:
         return False
 
+    # 2. Récupérer son profil AfroFans.
     profil = getattr(user, "profil", None)
 
-    if not profil:
+    if profil is None:
         return False
 
+    # 3. Seuls les Talents et Organisateurs sont autorisés.
     if profil.type_compte not in (
         "createur",
         "organisateur",
     ):
         return False
 
+    # 4. Certification accordée directement par l'admin.
+    # Aucune demande de vérification supplémentaire requise.
+    if profil.est_certifie:
+        return True
+
+    # 5. Vérification par le système de billetterie.
+    # Le compte doit posséder une habilitation approuvée.
     return HabilitationBilletterie.objects.filter(
         user=user,
         statut="verifie",
