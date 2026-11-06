@@ -75,25 +75,34 @@ STATUTS_PUBLICS = ("publie", "ouvert")
 
 
 def vendeur_verifie(user):
+
+    # Utilisateur connecté obligatoire
     if not user.is_authenticated:
         return False
 
+    # Récupérer le profil AfroFans
     profil = getattr(user, "profil", None)
 
     if profil is None:
         return False
 
+    # Seuls les Talents et Organisateurs sont autorisés
     if profil.type_compte not in (
         "createur",
         "organisateur",
     ):
         return False
 
+    # PRIORITÉ : certification directe par l'administration.
+    # Si "Est certifié" est coché, autoriser immédiatement.
+    if profil.est_certifie:
+        return True
+
+    # Sinon, vérifier l'habilitation de billetterie
     return HabilitationBilletterie.objects.filter(
         user=user,
         statut="verifie",
     ).exists()
-
 
 
 def evenement_du_vendeur(request, evenement_id):
