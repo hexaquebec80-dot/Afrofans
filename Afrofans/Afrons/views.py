@@ -4423,11 +4423,83 @@ def evenement_du_vendeur(request, evenement_id):
 # 2. CRÉER UN ÉVÉNEMENT
 # =====================================================
 
+# ============================================================
+# AFROFANS — CRÉATION OFFICIELLE DES ÉVÉNEMENTS
+# Talents et organisateurs vérifiés
+# Certification directe par l'administration acceptée
+# ============================================================
+
 @login_required
 @transaction.atomic
 def creer_evenement(request):
 
-    if not vendeur_verifie(request.user):
+    # ========================================================
+    # 1. RÉCUPÉRER LE PROFIL
+    # ========================================================
+
+    profil = getattr(request.user, "profil", None)
+
+    if profil is None:
+
+        messages.error(
+            request,
+            "Ton profil AfroFans est introuvable.",
+        )
+
+        return redirect("Afrons:flux")
+
+    # ========================================================
+    # 2. VÉRIFIER LE TYPE DE COMPTE
+    # ========================================================
+
+    est_talent_ou_organisateur = (
+        profil.type_compte in (
+            "createur",
+            "organisateur",
+        )
+    )
+
+    if not est_talent_ou_organisateur:
+
+        messages.error(
+            request,
+            "Seuls les Talents et Organisateurs "
+            "peuvent créer des événements.",
+        )
+
+        return redirect("Afrons:flux")
+
+    # ========================================================
+    # 3. CERTIFICATION ADMINISTRATIVE
+    # ========================================================
+
+    # Un compte certifié directement par l'administration
+    # AfroFans peut créer un événement sans effectuer
+    # une nouvelle demande de vérification.
+
+    certification_admin = bool(
+        profil.est_certifie
+    )
+
+    # ========================================================
+    # 4. AUTRES CERTIFICATIONS RECONNUES
+    # ========================================================
+
+    # Conserver le système de certification existant
+    # pour les comptes qui ne sont pas certifiés directement
+    # par l'administrateur.
+
+    autorise = certification_admin
+
+    if not autorise:
+        autorise = vendeur_verifie(request.user)
+
+    # ========================================================
+    # 5. REFUSER LES COMPTES NON VÉRIFIÉS
+    # ========================================================
+
+    if not autorise:
+
         messages.error(
             request,
             "Seuls les talents et organisateurs "
@@ -4436,45 +4508,94 @@ def creer_evenement(request):
 
         return redirect("Afrons:flux")
 
+    # ========================================================
+    # 6. FORMULAIRE DE CRÉATION
+    # ========================================================
+
     formulaire = EvenementForm(
         request.POST or None,
         request.FILES or None,
     )
 
-    if request.method == "POST" and formulaire.is_valid():
+    # ========================================================
+    # 7. TRAITER LA CRÉATION
+    # ========================================================
 
-        if request.POST.get("accept_conditions") != "oui":
-            formulaire.add_error(
-                None,
-                "Tu dois accepter les conditions.",
-            )
+    if request.method == "POST":
 
-        else:
-            evenement = formulaire.save(commit=False)
+        if formulaire.is_valid():
 
-            evenement.createur = request.user
-            evenement.statut = "paiement_attente"
+            # =================================================
+            # 8. ACCEPTATION DES CONDITIONS
+            # =================================================
 
-            evenement.save()
-            formulaire.save_m2m()
+            if request.POST.get("accept_conditions") != "oui":
 
-            paiement = PaiementFraisEvenement.objects.create(
-                evenement=evenement,
-                createur=request.user,
-                devise_paiement="XOF",
-                taux_conversion=Decimal("1"),
-            )
+                formulaire.add_error(
+                    None,
+                    "Tu dois accepter les conditions "
+                    "avant de créer ton événement.",
+                )
 
-            messages.success(
-                request,
-                "Événement créé. Paie les frais de "
-                "billetterie avant sa validation.",
-            )
+            else:
 
-            return redirect(
-                "Afrons:payer_frais_evenement",
-                paiement_id=paiement.pk,
-            )
+                # =============================================
+                # 9. ENREGISTRER L'ÉVÉNEMENT
+                # =============================================
+
+                evenement = formulaire.save(
+                    commit=False
+                )
+
+                evenement.createur = request.user
+
+                # La publication n'est pas immédiate.
+                # Les frais de billetterie restent à payer.
+
+                evenement.statut = "paiement_attente"
+
+                evenement.save()
+
+                # Conserver les relations ManyToMany.
+
+                formulaire.save_m2m()
+
+                # =============================================
+                # 10. CRÉER LE DOSSIER DE PAIEMENT
+                # =============================================
+
+                paiement = (
+                    PaiementFraisEvenement.objects.create(
+                        evenement=evenement,
+                        createur=request.user,
+                        devise_paiement="XOF",
+                        taux_conversion=Decimal("1"),
+                    )
+                )
+
+                # =============================================
+                # 11. CONFIRMATION
+                # =============================================
+
+                messages.success(
+                    request,
+                    "Ton événement a été créé avec succès. "
+                    "Paie maintenant les frais de billetterie "
+                    "pour poursuivre sa validation.",
+                )
+
+                # =============================================
+                # 12. REDIRECTION VERS LE PAIEMENT
+                # =============================================
+
+                return redirect(
+                    "Afrons:payer_frais_evenement",
+                    paiement_id=paiement.pk,
+                )
+
+    # ========================================================
+    # 13. AFFICHER LE FORMULAIRE
+    # ========================================================
 
     return render(
         request,
