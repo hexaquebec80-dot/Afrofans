@@ -1779,6 +1779,246 @@
                 margin-top: 4px;
             }
         }
+
+        
+/* =====================================================
+   AFROFANS — RESPONSIVE MOBILE PROFESSIONNEL
+   LOGO + ICÔNES + NAVIGATION
+   UNIQUEMENT TÉLÉPHONE
+===================================================== */
+
+@media screen and (max-width: 700px) {
+
+    /* -----------------------------------------------
+       BARRE DE NAVIGATION INFÉRIEURE
+    ----------------------------------------------- */
+
+    .mobile-navigation {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 2000;
+
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        align-items: center;
+        justify-items: center;
+
+        width: 100%;
+        height: calc(66px + env(safe-area-inset-bottom));
+
+        padding: 5px 6px calc(5px + env(safe-area-inset-bottom));
+
+        border-top: 1px solid rgba(255,255,255,0.12);
+        background: rgba(5,5,5,0.98);
+
+        -webkit-backdrop-filter: blur(20px);
+        backdrop-filter: blur(20px);
+    }
+
+    /* -----------------------------------------------
+       BOUTONS DE NAVIGATION
+    ----------------------------------------------- */
+
+    .mobile-nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+
+        width: 100%;
+        min-width: 0;
+        min-height: 52px;
+
+        padding: 4px 1px;
+
+        border: 0;
+        background: transparent;
+        color: #d5d5d5;
+
+        font-size: 10px;
+        font-weight: 600;
+        line-height: 1.2;
+        text-align: center;
+        text-decoration: none;
+        box-shadow: none;
+    }
+
+    .mobile-nav-icon {
+        display: grid;
+        place-items: center;
+
+        width: 26px;
+        height: 26px;
+
+        font-size: 0;
+        line-height: 1;
+    }
+
+    .mobile-nav-icon svg {
+        display: block;
+        width: 24px;
+        height: 24px;
+
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.9;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .mobile-nav-item:hover,
+    .mobile-nav-item:focus-visible {
+        color: #ff9100;
+    }
+
+    /* -----------------------------------------------
+       BOUTON CENTRAL PUBLIER
+    ----------------------------------------------- */
+
+    .mobile-publish-button {
+        display: grid;
+        place-items: center;
+
+        width: 49px;
+        height: 37px;
+
+        margin: 0;
+        padding: 0;
+
+        border: 2px solid #fff;
+        border-radius: 11px;
+
+        background: linear-gradient(
+            110deg,
+            #fff 0 12%,
+            #ff9100 12% 88%,
+            #fff 88%
+        );
+
+        color: #080808;
+        box-shadow: none;
+        transform: none;
+        text-decoration: none;
+    }
+
+    .mobile-publish-button svg {
+        display: block;
+        width: 24px;
+        height: 24px;
+
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 3;
+        stroke-linecap: round;
+    }
+
+    /* -----------------------------------------------
+       DÉCONNEXION
+    ----------------------------------------------- */
+
+    .logout-form {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        margin: 0;
+    }
+
+    .logout-button {
+        width: 100%;
+        min-width: 0;
+        margin: 0;
+        padding: 4px 1px;
+        color: #d5d5d5;
+        font-size: 10px;
+        font-weight: 600;
+    }
+
+    /* -----------------------------------------------
+       LOGO AFROFANS DANS L'EN-TÊTE
+    ----------------------------------------------- */
+
+    .main-header {
+        min-height: 57px;
+        padding: 0 13px;
+    }
+
+    .main-header .logo {
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+
+        font-size: 18px;
+        font-weight: 900;
+        letter-spacing: -0.8px;
+        white-space: nowrap;
+    }
+
+    .main-header .logo-icon {
+        display: inline-grid;
+        place-items: center;
+
+        width: 30px;
+        height: 30px;
+
+        margin-right: 6px;
+        border-radius: 9px;
+
+        background: linear-gradient(
+            135deg,
+            #ffb000,
+            #ff8a00,
+            #ff4d00
+        );
+
+        font-size: 12px;
+        box-shadow: none;
+    }
+
+    /* -----------------------------------------------
+       ESPACE EN BAS DES PAGES
+    ----------------------------------------------- */
+
+    .standard-page {
+        padding-bottom: calc(
+            105px + env(safe-area-inset-bottom)
+        );
+    }
+}
+
+/* =====================================================
+   AFROFANS — PETITS ÉCRANS
+===================================================== */
+
+@media screen and (max-width: 360px) {
+
+    .mobile-navigation {
+        padding-left: 2px;
+        padding-right: 2px;
+    }
+
+    .mobile-nav-item {
+        font-size: 9px;
+    }
+
+    .mobile-nav-icon svg {
+        width: 22px;
+        height: 22px;
+    }
+
+    .mobile-publish-button {
+        width: 44px;
+        height: 35px;
+    }
+
+    .main-header .logo {
+        font-size: 17px;
+    }
+}
+
     </style>
 
     {% block extra_css %}
