@@ -4354,40 +4354,61 @@ STATUTS_PUBLICS = ("publie", "ouvert")
 
 
 # ============================================================
-# AFROFANS — VÉRIFICATION TALENT / ORGANISATEUR
-# Reconnaissance de la certification par l'administrateur
+# AFROFANS — AUTORISATION BILLETTERIE
+# TALENTS ET ORGANISATEURS CERTIFIÉS
 # ============================================================
 
 def vendeur_verifie(user):
 
-    # 1. L'utilisateur doit être connecté.
+    # 1. Utilisateur connecté
     if not user.is_authenticated:
         return False
 
-    # 2. Récupérer son profil AfroFans.
+    # 2. Profil existant
     profil = getattr(user, "profil", None)
 
     if profil is None:
         return False
 
-    # 3. Seuls les Talents et Organisateurs sont autorisés.
+    # 3. Vérifier le type de compte
     if profil.type_compte not in (
         "createur",
         "organisateur",
     ):
         return False
 
-    # 4. Certification accordée directement par l'admin.
-    # Aucune demande de vérification supplémentaire requise.
+    # 4. Certification directe par l'admin
     if profil.est_certifie:
         return True
 
-    # 5. Vérification par le système de billetterie.
-    # Le compte doit posséder une habilitation approuvée.
-    return HabilitationBilletterie.objects.filter(
-        user=user,
-        statut="verifie",
-    ).exists()
+    # 5. Certification officielle AfroFans
+    from .models_certification_afrofans import (
+        CertificationCompteAfroFans,
+    )
+
+    certification_officielle = (
+        CertificationCompteAfroFans.objects.filter(
+            utilisateur=user,
+            statut="certifie",
+        ).exists()
+    )
+
+    if certification_officielle:
+        return True
+
+    # 6. Habilitation spécifique à la billetterie
+    habilitation = (
+        HabilitationBilletterie.objects.filter(
+            user=user,
+            statut="verifie",
+        ).exists()
+    )
+
+    if habilitation:
+        return True
+
+    # 7. Compte non autorisé
+    return False
 
 
 def evenement_du_vendeur(request, evenement_id):
