@@ -134,41 +134,61 @@ def evenement_du_vendeur(request, evenement_id):
 # avant confirmation des frais et validation.
 # =====================================================
 
+# ============================================================
+# AFROFANS — CRÉATION D'ÉVÉNEMENT
+# Paiement des frais obligatoire avant publication
+# ============================================================
+
+# ============================================================
+# AFROFANS — CRÉATION OFFICIELLE D'ÉVÉNEMENT
+# TALENTS ET ORGANISATEURS VÉRIFIÉS
+# FRAIS DE BILLETTERIE OBLIGATOIRES
+# ============================================================
+
 @login_required
 @transaction.atomic
 def creer_evenement(request):
 
-    # ==========================================
-    # 1. VÉRIFICATION DU TALENT / ORGANISATEUR
-    # ==========================================
+    # ========================================================
+    # 1. VÉRIFIER LE TALENT OU L'ORGANISATEUR
+    # ========================================================
 
     if not vendeur_verifie(request.user):
 
         messages.error(
             request,
-            "Seuls les talents et organisateurs "
+            "Seuls les Talents et Organisateurs "
             "vérifiés peuvent créer des événements."
         )
 
-        return redirect("Afrons:flux")
+        return redirect(
+            "Afrons:flux"
+        )
 
-    # ==========================================
-    # 2. FORMULAIRE SANS AFFICHE
-    # ==========================================
+    # ========================================================
+    # 2. INITIALISER LE FORMULAIRE
+    # ========================================================
 
     formulaire = EvenementForm(
-        request.POST if request.method == "POST" else None
+        request.POST or None,
+        request.FILES or None,
     )
 
-    # ==========================================
-    # 3. VALIDATION
-    # ==========================================
+    # ========================================================
+    # 3. TRAITER LA CRÉATION
+    # ========================================================
 
     if request.method == "POST":
 
         conditions_acceptees = (
-            request.POST.get("accept_conditions") == "oui"
+            request.POST.get(
+                "accept_conditions"
+            ) == "oui"
         )
+
+        # ----------------------------------------------------
+        # 3.1 VALIDER LE FORMULAIRE
+        # ----------------------------------------------------
 
         formulaire_valide = formulaire.is_valid()
 
@@ -183,25 +203,27 @@ def creer_evenement(request):
 
         if formulaire_valide and conditions_acceptees:
 
-            # ==================================
-            # 4. CRÉATION DE L'ÉVÉNEMENT
-            # ==================================
+            # =================================================
+            # 4. PRÉPARER L'ÉVÉNEMENT
+            # =================================================
 
-            evenement = formulaire.save(commit=False)
+            evenement = formulaire.save(
+                commit=False
+            )
 
             evenement.createur = request.user
 
-            # Codes de pays du modèle :
-            # CA, FR, ML, SN, CI
-            evenement.pays = formulaire.cleaned_data[
-                "pays"
-            ]
+            evenement.pays = (
+                formulaire.cleaned_data["pays"]
+            )
 
-            # Devises autorisées par le modèle :
-            # CAD, EUR, XOF
-            evenement.devise = formulaire.cleaned_data[
-                "devise"
-            ]
+            evenement.devise = (
+                formulaire.cleaned_data["devise"]
+            )
+
+            # -------------------------------------------------
+            # 4.1 ÉVÉNEMENT NON PUBLIÉ
+            # -------------------------------------------------
 
             evenement.statut = "paiement_attente"
 
@@ -210,81 +232,85 @@ def creer_evenement(request):
 
             evenement.notifications_envoyees = False
 
-            # ==================================
-            # 5. ENREGISTREMENT
-            # ==================================
+            # =================================================
+            # 5. VÉRIFIER LE MODÈLE
+            # =================================================
 
-            evenement.save()
+            try:
 
-            formulaire.save_m2m()
+                evenement.full_clean()
 
-            # ==================================
-            # 6. CRÉATION DU DOSSIER DE PAIEMENT
-            # ==================================
+                # Vérifier également que le tarif
+                # de billetterie est configuré.
 
-            # XOF est la devise de référence
-            # des frais de billetterie.
-            #
-            # Le pays du payeur sera sélectionné
-            # sur la page de paiement.
-            #
-            # Aucun paiement n'est confirmé ici.
+                montant_frais = (
+                    evenement.frais_billetterie_ttc
+                )
 
-            paiement = PaiementFraisEvenement.objects.create(
-                evenement=evenement,
-                createur=request.user,
-                devise_paiement="XOF",
-                taux_conversion=Decimal("1"),
-            )
+            except ValidationError as erreur:
 
-            # ==================================
-            # 7. CONFIRMATION
-            # ==================================
+                formulaire.add_error(
+                    None,
+                    erreur,
+                )
 
-            messages.success(
-                request,
-                "Votre événement a été créé. "
-                "Vous devez maintenant régler "
-                "les frais de billetterie. "
-                "Votre événement sera soumis "
-                "à validation après confirmation "
-                "du paiement."
-            )
+            else:
 
-            # ==================================
-            # 8. PAGE DE PAIEMENT
-            # ==================================
+                # =================================================
+                # 6. ENREGISTRER L'ÉVÉNEMENT
+                # =================================================
 
-            return redirect(
-                "Afrons:payer_frais_evenement",
-                paiement_id=paiement.pk,
-            )
+                evenement.save()
 
-    # ==========================================
-    # 9. TAUX DE CONVERSION POUR L'APERÇU
-    # ==========================================
+                formulaire.save_m2m()
 
-    # Ces taux sont définis côté serveur.
-    # Il ne faut jamais inventer de taux.
-    #
-    # Ils servent uniquement à afficher
-    # une estimation dans le formulaire.
+                # =================================================
+                # 7. CRÉER LE DOSSIER DE PAIEMENT
+                # =================================================
 
-    taux_xof_cad = getattr(
-        settings,
-        "AFROFANS_XOF_TO_CAD",
-        None,
-    )
+                # Le tarif est déjà exprimé
+                # dans la devise de l'événement.
+                #
+                # On utilise un taux de 1 pour
+                # éviter toute conversion inutile.
 
-    taux_xof_eur = getattr(
-        settings,
-        "AFROFANS_XOF_TO_EUR",
-        None,
-    )
+                paiement = (
+                    PaiementFraisEvenement.objects.create(
+                        evenement=evenement,
+                        createur=request.user,
+                        devise_paiement=evenement.devise,
+                        taux_conversion=Decimal("1"),
+                    )
+                )
 
-    # ==========================================
-    # 10. AFFICHAGE DU FORMULAIRE
-    # ==========================================
+                # =================================================
+                # 8. CONFIRMATION
+                # =================================================
+
+                messages.warning(
+                    request,
+                    "Votre événement a été enregistré "
+                    "avec succès, mais il n'est pas "
+                    "encore publié. "
+                    f"Frais de billetterie : "
+                    f"{paiement.total_converti} "
+                    f"{paiement.devise_paiement}. "
+                    "Vous devez effectuer le paiement "
+                    "avant la validation et la publication."
+                )
+
+                # =================================================
+                # 9. REDIRECTION VERS LE PAIEMENT
+                # =================================================
+
+                return redirect(
+                    "Afrons:payer_frais_evenement",
+                    paiement_id=paiement.pk,
+                )
+
+    # ========================================================
+    # 10. AFFICHER LE FORMULAIRE
+    # ========================================================
 
     return render(
         request,
@@ -294,29 +320,27 @@ def creer_evenement(request):
 
             "titre": "Créer un événement",
 
-            "taux_xof_cad": (
-                str(taux_xof_cad)
-                if taux_xof_cad
-                else ""
-            ),
-
-            "taux_xof_eur": (
-                str(taux_xof_eur)
-                if taux_xof_eur
-                else ""
-            ),
-
             "telephone_assistance": "514 467-7377",
         },
     )
+
 
 # =====================================================
 # 3. MODIFIER UN ÉVÉNEMENT
 # =====================================================
 
+# ============================================================
+# AFROFANS — MODIFICATION OFFICIELLE D'UN ÉVÉNEMENT
+# BILLETTERIE / FRAIS / SÉCURITÉ / VALIDATION
+# ============================================================
+
 @login_required
 @transaction.atomic
 def modifier_evenement(request, evenement_id):
+
+    # ========================================================
+    # 1. RÉCUPÉRER L'ÉVÉNEMENT
+    # ========================================================
 
     evenement = get_object_or_404(
         Evenement.objects.select_for_update(),
@@ -324,38 +348,100 @@ def modifier_evenement(request, evenement_id):
         createur=request.user,
     )
 
+    # ========================================================
+    # 2. VÉRIFIER LE TALENT OU L'ORGANISATEUR
+    # ========================================================
+
     if not vendeur_verifie(request.user):
-        return HttpResponseForbidden(
-            "Compte non vérifié."
+
+        messages.error(
+            request,
+            "Seuls les Talents et Organisateurs "
+            "vérifiés peuvent modifier des événements."
         )
+
+        return redirect("Afrons:flux")
+
+    # ========================================================
+    # 3. VÉRIFIER LE STATUT
+    # ========================================================
 
     if evenement.statut in (
         "ouvert",
         "termine",
         "annule",
     ):
+
         messages.error(
             request,
-            "Cet événement ne peut plus être modifié.",
+            "Cet événement ne peut plus être modifié."
         )
 
-        return redirect(evenement)
+        return redirect(
+            "Afrons:detail_evenement",
+            evenement_id=evenement.pk,
+        )
 
-    if BilletEvenement.objects.filter(
+    # ========================================================
+    # 4. VÉRIFIER LES BILLETS DÉJÀ VENDUS
+    # ========================================================
+
+    billets_vendus = BilletEvenement.objects.filter(
         evenement=evenement,
         statut="paye",
-    ).exists():
+    ).exists()
+
+    if billets_vendus:
+
         messages.error(
             request,
-            "Des billets ont déjà été vendus. "
-            "Contacte AfroFans pour modifier "
-            "l'événement.",
+            "Des billets ont déjà été vendus "
+            "pour cet événement. "
+            "Contactez AfroFans pour effectuer "
+            "une modification."
         )
 
-        return redirect(evenement)
+        return redirect(
+            "Afrons:detail_evenement",
+            evenement_id=evenement.pk,
+        )
+
+    # ========================================================
+    # 5. CONSERVER LES ANCIENNES INFORMATIONS
+    # ========================================================
 
     ancienne_capacite = evenement.nombre_places
+    ancienne_devise = evenement.devise
+    ancien_pays = evenement.pays
     ancien_statut = evenement.statut
+
+    # ========================================================
+    # 6. VÉRIFIER LE PAIEMENT EXISTANT
+    # ========================================================
+
+    # PaiementFraisEvenement utilise un OneToOneField :
+    # un seul dossier de paiement par événement.
+
+    paiement_existant = (
+        PaiementFraisEvenement.objects
+        .select_for_update()
+        .filter(
+            evenement=evenement,
+        )
+        .first()
+    )
+
+    frais_deja_payes = bool(
+        evenement.frais_billetterie_payes
+        or (
+            paiement_existant is not None
+            and paiement_existant.statut == "paye"
+        )
+    )
+
+    # ========================================================
+    # 7. INITIALISER LE FORMULAIRE
+    # ========================================================
 
     formulaire = EvenementForm(
         request.POST or None,
@@ -363,56 +449,303 @@ def modifier_evenement(request, evenement_id):
         instance=evenement,
     )
 
-    if request.method == "POST" and formulaire.is_valid():
+    # ========================================================
+    # 8. TRAITER LA MODIFICATION
+    # ========================================================
 
-        if request.POST.get("accept_conditions") != "oui":
+    if request.method == "POST":
+
+        conditions_acceptees = (
+            request.POST.get(
+                "accept_conditions"
+            ) == "oui"
+        )
+
+        formulaire_valide = formulaire.is_valid()
+
+        # ----------------------------------------------------
+        # 8.1 CONDITIONS OBLIGATOIRES
+        # ----------------------------------------------------
+
+        if not conditions_acceptees:
+
             formulaire.add_error(
                 None,
-                "Accepte les conditions pour continuer.",
+                "Vous devez accepter les conditions "
+                "de publication et de billetterie "
+                "AfroFans avant de continuer."
             )
 
-        else:
-            evenement = formulaire.save(commit=False)
+        # ----------------------------------------------------
+        # 8.2 FORMULAIRE VALIDE
+        # ----------------------------------------------------
+
+        if formulaire_valide and conditions_acceptees:
+
+            evenement_modifie = formulaire.save(
+                commit=False
+            )
+
+            # =================================================
+            # 9. VÉRIFIER LES MODIFICATIONS DE TARIFICATION
+            # =================================================
 
             capacite_modifiee = (
-                evenement.nombre_places != ancienne_capacite
+                evenement_modifie.nombre_places
+                != ancienne_capacite
             )
 
-            if capacite_modifiee:
-                evenement.frais_billetterie_payes = False
-                evenement.frais_payes_le = None
-                evenement.statut = "paiement_attente"
+            devise_modifiee = (
+                evenement_modifie.devise
+                != ancienne_devise
+            )
 
-            elif ancien_statut == "paiement_attente":
-                evenement.statut = "paiement_attente"
+            pays_modifie = (
+                evenement_modifie.pays
+                != ancien_pays
+            )
+
+            # Ces modifications peuvent affecter
+            # les frais de billetterie et les taxes.
+
+            frais_a_recalculer = (
+                capacite_modifiee
+                or devise_modifiee
+                or pays_modifie
+            )
+
+            # =================================================
+            # 10. PROTÉGER UN PAIEMENT DÉJÀ CONFIRMÉ
+            # =================================================
+
+            if frais_deja_payes and frais_a_recalculer:
+
+                formulaire.add_error(
+                    None,
+                    "Les frais de billetterie de cet "
+                    "événement ont déjà été payés. "
+                    "Vous ne pouvez pas modifier "
+                    "directement le nombre de billets, "
+                    "le pays ou la devise. "
+                    "Contactez AfroFans pour une "
+                    "modification de la facturation."
+                )
+
+            # =================================================
+            # 11. PROTÉGER UN PAIEMENT REMBOURSÉ
+            # =================================================
+
+            elif (
+                paiement_existant is not None
+                and paiement_existant.statut == "rembourse"
+                and frais_a_recalculer
+            ):
+
+                formulaire.add_error(
+                    None,
+                    "Le paiement de cet événement a "
+                    "été remboursé. Contactez AfroFans "
+                    "pour reprendre la billetterie."
+                )
 
             else:
-                evenement.statut = "en_attente"
 
-            evenement.save()
-            formulaire.save_m2m()
+                # =================================================
+                # 12. DÉTERMINER LE NOUVEAU STATUT
+                # =================================================
 
-            if capacite_modifiee:
+                if frais_a_recalculer:
 
-                paiement = PaiementFraisEvenement.objects.create(
-                    evenement=evenement,
-                    createur=request.user,
-                    devise_paiement="XOF",
-                    taux_conversion=Decimal("1"),
-                )
+                    # Le nouveau montant doit être payé
+                    # avant publication.
 
-                return redirect(
-                    "Afrons:payer_frais_evenement",
-                    paiement_id=paiement.pk,
-                )
+                    evenement_modifie.frais_billetterie_payes = False
+                    evenement_modifie.frais_payes_le = None
+                    evenement_modifie.statut = "paiement_attente"
 
-            messages.success(
-                request,
-                "Modifications enregistrées et "
-                "envoyées pour validation.",
-            )
+                elif frais_deja_payes:
 
-            return redirect(evenement)
+                    # Les frais restent confirmés.
+                    # Les modifications sont soumises
+                    # à une nouvelle validation.
+
+                    evenement_modifie.frais_billetterie_payes = True
+
+                    evenement_modifie.statut = "en_attente"
+
+                else:
+
+                    # Le paiement n'est pas encore confirmé.
+
+                    evenement_modifie.frais_billetterie_payes = False
+                    evenement_modifie.frais_payes_le = None
+                    evenement_modifie.statut = "paiement_attente"
+
+                # Ne pas envoyer de notification
+                # de publication avant validation.
+
+                evenement_modifie.notifications_envoyees = False
+
+                # =================================================
+                # 13. VÉRIFIER LE MODÈLE ET LES FRAIS
+                # =================================================
+
+                try:
+
+                    evenement_modifie.full_clean()
+
+                    # Vérifier que le tarif correspondant
+                    # à la devise est disponible.
+
+                    nouveau_total = (
+                        evenement_modifie.frais_billetterie_ttc
+                    )
+
+                except ValidationError as erreur:
+
+                    formulaire.add_error(
+                        None,
+                        erreur,
+                    )
+
+                else:
+
+                    # =================================================
+                    # 14. ENREGISTRER L'ÉVÉNEMENT
+                    # =================================================
+
+                    evenement_modifie.save()
+
+                    formulaire.save_m2m()
+
+                    # =================================================
+                    # 15. PAIEMENT À RECALCULER
+                    # =================================================
+
+                    if (
+                        frais_a_recalculer
+                        and not frais_deja_payes
+                    ):
+
+                        # -----------------------------------------
+                        # 15.1 RÉUTILISER LE PAIEMENT EXISTANT
+                        # -----------------------------------------
+
+                        if paiement_existant is not None:
+
+                            paiement = paiement_existant
+
+                            paiement.devise_paiement = (
+                                evenement_modifie.devise
+                            )
+
+                            # Aucun taux de conversion :
+                            # les frais sont déjà dans
+                            # la devise de l'événement.
+
+                            paiement.taux_conversion = Decimal("1")
+
+                            paiement.statut = "en_attente"
+                            paiement.paye_le = None
+
+                            # Le save() recalcule les frais.
+
+                            paiement.save()
+
+                        # -----------------------------------------
+                        # 15.2 CRÉER LE DOSSIER S'IL N'EXISTE PAS
+                        # -----------------------------------------
+
+                        else:
+
+                            paiement = (
+                                PaiementFraisEvenement.objects.create(
+                                    evenement=evenement_modifie,
+                                    createur=request.user,
+                                    devise_paiement=(
+                                        evenement_modifie.devise
+                                    ),
+                                    taux_conversion=Decimal("1"),
+                                )
+                            )
+
+                        # -----------------------------------------
+                        # 15.3 CONFIRMATION
+                        # -----------------------------------------
+
+                        messages.warning(
+                            request,
+                            "Les frais de billetterie ont "
+                            "été recalculés : "
+                            f"{paiement.total_converti} "
+                            f"{paiement.devise_paiement}. "
+                            "Le paiement est obligatoire "
+                            "avant publication."
+                        )
+
+                        # -----------------------------------------
+                        # 15.4 REDIRECTION PAIEMENT
+                        # -----------------------------------------
+
+                        return redirect(
+                            "Afrons:payer_frais_evenement",
+                            paiement_id=paiement.pk,
+                        )
+
+                    # =================================================
+                    # 16. PAIEMENT EN ATTENTE, SANS MODIFICATION
+                    #     DE LA TARIFICATION
+                    # =================================================
+
+                    if not frais_deja_payes:
+
+                        if paiement_existant is None:
+
+                            paiement_existant = (
+                                PaiementFraisEvenement.objects.create(
+                                    evenement=evenement_modifie,
+                                    createur=request.user,
+                                    devise_paiement=(
+                                        evenement_modifie.devise
+                                    ),
+                                    taux_conversion=Decimal("1"),
+                                )
+                            )
+
+                        messages.info(
+                            request,
+                            "Les modifications ont été "
+                            "enregistrées. Vous devez "
+                            "payer les frais de billetterie "
+                            "avant la publication."
+                        )
+
+                        return redirect(
+                            "Afrons:payer_frais_evenement",
+                            paiement_id=paiement_existant.pk,
+                        )
+
+                    # =================================================
+                    # 17. FRAIS DÉJÀ PAYÉS
+                    # =================================================
+
+                    messages.success(
+                        request,
+                        "Votre événement a été modifié "
+                        "avec succès. Les frais restent "
+                        "payés et les modifications sont "
+                        "en attente de validation "
+                        "par l'administration AfroFans."
+                    )
+
+                    return redirect(
+                        "Afrons:detail_evenement",
+                        evenement_id=evenement_modifie.pk,
+                    )
+
+    # ========================================================
+    # 18. AFFICHER LE FORMULAIRE
+    # ========================================================
 
     return render(
         request,
@@ -425,24 +758,37 @@ def modifier_evenement(request, evenement_id):
     )
 
 
-# =====================================================
-# 4. DÉTAIL PUBLIC DE L'ÉVÉNEMENT
-# =====================================================
 
-# =====================================================
-# AFROFANS - DÉTAIL OFFICIEL D'UN ÉVÉNEMENT
-# BILLETTERIE - PAIEMENT - PUBLICATION
-# =====================================================
+# ============================================================
+# AFROFANS — DÉTAIL OFFICIEL D'UN ÉVÉNEMENT
+# BILLETTERIE / PAIEMENT / PUBLICATION
+# ============================================================
 
 def detail_evenement(request, evenement_id):
 
-    # ==========================================
-    # 1. ÉVÉNEMENTS ACCESSIBLES AU PUBLIC
-    # ==========================================
+    # ========================================================
+    # 1. IDENTIFIER LE VISITEUR
+    # ========================================================
 
-    # Les fans peuvent consulter uniquement
-    # les événements publiés ou ouverts
-    # dont les frais de billetterie sont payés.
+    utilisateur_connecte = (
+        request.user.is_authenticated
+    )
+
+    est_administrateur = (
+        utilisateur_connecte
+        and request.user.is_staff
+    )
+
+    # ========================================================
+    # 2. AUTORISATIONS DE CONSULTATION
+    # ========================================================
+
+    # Un événement est visible publiquement si :
+    # - son statut est publié ou ouvert ;
+    # - ses frais AfroFans sont confirmés.
+    #
+    # Le propriétaire et l'administration peuvent
+    # également consulter un événement non publié.
 
     filtre = Q(
         pk=evenement_id,
@@ -450,29 +796,22 @@ def detail_evenement(request, evenement_id):
         frais_billetterie_payes=True,
     )
 
-    # ==========================================
-    # 2. ACCÈS DU TALENT ET DE HEXAQUÉBEC
-    # ==========================================
+    if utilisateur_connecte:
 
-    if request.user.is_authenticated:
-
-        # Le propriétaire peut consulter son
-        # événement avant paiement et publication.
         filtre |= Q(
             pk=evenement_id,
             createur=request.user,
         )
 
-        # Les administrateurs peuvent consulter
-        # les événements à vérifier.
-        if request.user.is_staff:
+        if est_administrateur:
+
             filtre |= Q(
                 pk=evenement_id,
             )
 
-    # ==========================================
+    # ========================================================
     # 3. RÉCUPÉRER L'ÉVÉNEMENT
-    # ==========================================
+    # ========================================================
 
     evenement = get_object_or_404(
         Evenement.objects.select_related(
@@ -482,45 +821,100 @@ def detail_evenement(request, evenement_id):
         filtre,
     )
 
-    # ==========================================
+    # ========================================================
     # 4. VÉRIFIER LE PROPRIÉTAIRE
-    # ==========================================
+    # ========================================================
 
     proprietaire = (
-        request.user.is_authenticated
-        and request.user.pk == evenement.createur_id
+        utilisateur_connecte
+        and evenement.createur_id == request.user.pk
     )
 
-    # ==========================================
-    # 5. VÉRIFIER LE PAIEMENT DES FRAIS
-    # ==========================================
+    # ========================================================
+    # 5. RECHERCHER LE PAIEMENT DES FRAIS
+    # ========================================================
+
+    # Le modèle PaiementFraisEvenement possède
+    # une relation OneToOneField avec Evenement.
+    #
+    # On recherche donc un seul dossier de paiement.
+
+    paiement_frais = None
+
+    if proprietaire or est_administrateur:
+
+        paiement_frais = (
+            PaiementFraisEvenement.objects
+            .filter(
+                evenement=evenement,
+            )
+            .first()
+        )
+
+    # ========================================================
+    # 6. VÉRIFIER LE PAIEMENT CONFIRMÉ
+    # ========================================================
 
     frais_payes = bool(
         evenement.frais_billetterie_payes
     )
 
+    paiement_confirme = bool(
+        paiement_frais is not None
+        and paiement_frais.statut == "paye"
+    )
+
+    # Deux états doivent être cohérents :
+    # - le paiement enregistré comme payé ;
+    # - les frais de l'événement confirmés.
+
+    if paiement_frais is not None:
+
+        frais_payes = (
+            frais_payes
+            and paiement_confirme
+        )
+
     paiement_en_attente = not frais_payes
 
-    # ==========================================
-    # 6. VÉRIFIER LA PUBLICATION
-    # ==========================================
+    # ========================================================
+    # 7. PAIEMENT ACCESSIBLE AU PROPRIÉTAIRE
+    # ========================================================
+
+    peut_payer_frais = (
+        proprietaire
+        and paiement_en_attente
+        and paiement_frais is not None
+        and paiement_frais.statut in (
+            "en_attente",
+            "echoue",
+        )
+        and evenement.statut not in (
+            "annule",
+            "termine",
+        )
+    )
+
+    # ========================================================
+    # 8. STATUT DE PUBLICATION
+    # ========================================================
 
     evenement_publie = (
         evenement.statut in STATUTS_PUBLICS
     )
 
-    # La billetterie est ouverte uniquement
-    # si les frais sont payés et l'événement
-    # officiellement publié ou ouvert.
+    # ========================================================
+    # 9. BILLETTERIE OUVERTE
+    # ========================================================
 
     billetterie_ouverte = (
         frais_payes
         and evenement_publie
     )
 
-    # ==========================================
-    # 7. CALCULER LES PLACES DISPONIBLES
-    # ==========================================
+    # ========================================================
+    # 10. PLACES DISPONIBLES
+    # ========================================================
 
     if billetterie_ouverte:
 
@@ -533,9 +927,12 @@ def detail_evenement(request, evenement_id):
 
         places_disponibles = 0
 
-    # ==========================================
-    # 8. AUTORISER LA RÉSERVATION
-    # ==========================================
+    # ========================================================
+    # 11. AUTORISER L'ACHAT DES BILLETS
+    # ========================================================
+
+    # Le prix du billet est celui choisi par le talent.
+    # Il ne dépend pas des frais AfroFans.
 
     peut_reserver = (
         billetterie_ouverte
@@ -543,17 +940,17 @@ def detail_evenement(request, evenement_id):
         and not proprietaire
     )
 
-    # ==========================================
-    # 9. FORMULAIRE D'ACHAT DES BILLETS
-    # ==========================================
+    # ========================================================
+    # 12. FORMULAIRE D'ACHAT
+    # ========================================================
 
     formulaire = AchatBilletForm(
         evenement=evenement,
     )
 
-    # ==========================================
-    # 10. INFORMATIONS DU TALENT
-    # ==========================================
+    # ========================================================
+    # 13. INFORMATIONS DU TALENT
+    # ========================================================
 
     talent = evenement.createur
 
@@ -562,67 +959,166 @@ def detail_evenement(request, evenement_id):
         or talent.get_username()
     )
 
-    # ==========================================
-    # 11. AFFICHER LA PAGE PROFESSIONNELLE
-    # ==========================================
+    # ========================================================
+    # 14. MONTANTS À AFFICHER
+    # ========================================================
+
+    # Prix unitaire destiné aux fans.
+    prix_billet = evenement.prix
+
+    devise_billet = evenement.devise
+
+    # Frais de création de billetterie.
+    # Ces montants concernent le talent,
+    # pas les fans qui achètent un billet.
+
+    frais_billetterie_ht = None
+    frais_billetterie_ttc = None
+    nombre_tranches = None
+
+    if proprietaire or est_administrateur:
+
+        nombre_tranches = (
+            evenement.nombre_tranches
+        )
+
+        frais_billetterie_ht = (
+            evenement.frais_billetterie_ht
+        )
+
+        frais_billetterie_ttc = (
+            evenement.frais_billetterie_ttc
+        )
+
+    # ========================================================
+    # 15. CONTEXTE DU TEMPLATE
+    # ========================================================
+
+    contexte = {
+
+        # ----------------------------------------------------
+        # ÉVÉNEMENT
+        # ----------------------------------------------------
+
+        "evenement": evenement,
+
+        # ----------------------------------------------------
+        # TALENT
+        # ----------------------------------------------------
+
+        "talent": talent,
+
+        "nom_talent": nom_talent,
+
+        "est_proprietaire": proprietaire,
+
+        # ----------------------------------------------------
+        # PRIX DES BILLETS DESTINÉS AUX FANS
+        # ----------------------------------------------------
+
+        "prix_billet": prix_billet,
+
+        "devise_billet": devise_billet,
+
+        # ----------------------------------------------------
+        # FORMULAIRE D'ACHAT
+        # ----------------------------------------------------
+
+        "formulaire": formulaire,
+
+        # ----------------------------------------------------
+        # DISPONIBILITÉ
+        # ----------------------------------------------------
+
+        "places_disponibles": places_disponibles,
+
+        "peut_reserver": peut_reserver,
+
+        "billetterie_ouverte": billetterie_ouverte,
+
+        # ----------------------------------------------------
+        # FRAIS AFROFANS
+        # ----------------------------------------------------
+
+        "paiement_frais": paiement_frais,
+
+        "paiement_confirme": paiement_confirme,
+
+        "paiement_en_attente": paiement_en_attente,
+
+        "peut_payer_frais": peut_payer_frais,
+
+        "frais_payes": frais_payes,
+
+        "nombre_tranches": nombre_tranches,
+
+        "frais_billetterie_ht": frais_billetterie_ht,
+
+        "frais_billetterie_ttc": frais_billetterie_ttc,
+
+        # ----------------------------------------------------
+        # PUBLICATION
+        # ----------------------------------------------------
+
+        "evenement_publie": evenement_publie,
+
+        # ----------------------------------------------------
+        # ADMINISTRATION
+        # ----------------------------------------------------
+
+        "est_administrateur": est_administrateur,
+
+    }
+
+    # ========================================================
+    # 16. AFFICHER LA PAGE
+    # ========================================================
 
     return render(
         request,
         "Afrons/detail_evenement.html",
-        {
-            # Événement
-            "evenement": evenement,
-
-            # Formulaire de réservation
-            "formulaire": formulaire,
-
-            # Talent / organisateur
-            "est_proprietaire": proprietaire,
-            "talent": talent,
-            "nom_talent": nom_talent,
-
-            # Paiement des frais
-            "frais_payes": frais_payes,
-            "paiement_en_attente": paiement_en_attente,
-
-            # Publication
-            "evenement_publie": evenement_publie,
-            "billetterie_ouverte": billetterie_ouverte,
-
-            # Billets
-            "places_disponibles": places_disponibles,
-            "peut_reserver": peut_reserver,
-
-            # Administration HexaQuébec
-            "est_administrateur": (
-                request.user.is_authenticated
-                and request.user.is_staff
-            ),
-        },
+        contexte,
     )
+
 
 
 # =====================================================
 # 5. ACHETER UN BILLET
 # =====================================================
 
-# =====================================================
-# AFROFANS - ACHAT ET RÉSERVATION DES BILLETS
-# Vérification du talent, du paiement des frais,
-# de la disponibilité et du compte Fan.
-# =====================================================
+# ============================================================
+# AFROFANS — ACHAT ET RÉSERVATION DES BILLETS
+#
+# TALENT :
+# - Fixe le prix de chaque billet
+# - Paie les frais de création de billetterie à AfroFans
+#
+# FAN :
+# - Achète les billets au prix fixé par le talent
+# - Paiement obligatoire avant confirmation
+# - QR codes disponibles après paiement confirmé
+#
+# SÉCURITÉ :
+# - Événement publié
+# - Frais AfroFans confirmés
+# - Vérification des places
+# - Réservation temporaire
+# - Aucun billet marqué comme payé sans confirmation
+# ============================================================
 
 @login_required
 @require_POST
 @transaction.atomic
 def acheter_billet(request, evenement_id):
 
-    # ==========================================
-    # 1. RÉCUPÉRER L'ÉVÉNEMENT AUTORISÉ
-    # ==========================================
+    # ========================================================
+    # 1. RÉCUPÉRER L'ÉVÉNEMENT
+    # ========================================================
 
     evenement = get_object_or_404(
-        Evenement.objects.select_for_update().select_related(
+        Evenement.objects
+        .select_for_update()
+        .select_related(
             "createur",
             "createur__profil",
         ),
@@ -631,54 +1127,153 @@ def acheter_billet(request, evenement_id):
         frais_billetterie_payes=True,
     )
 
-    # ==========================================
-    # 2. INTERDIRE L'ACHAT AU PROPRIÉTAIRE
-    # ==========================================
+    destination = "Afrons:detail_evenement"
 
-    if request.user.pk == evenement.createur_id:
+    # ========================================================
+    # 2. INTERDIRE AU TALENT D'ACHETER SES PROPRES BILLETS
+    # ========================================================
+
+    if evenement.createur_id == request.user.pk:
 
         messages.error(
             request,
-            "Vous ne pouvez pas acheter "
-            "vos propres billets."
+            "Vous ne pouvez pas acheter les billets "
+            "de votre propre événement."
         )
 
         return redirect(
-            "Afrons:detail_evenement",
+            destination,
             evenement_id=evenement.pk,
         )
 
-    # ==========================================
+    # ========================================================
     # 3. VÉRIFIER LE COMPTE FAN
-    # ==========================================
+    # ========================================================
 
     profil = getattr(
         request.user,
         "profil",
-        None
+        None,
     )
 
-    if not profil or profil.type_compte != "fan":
+    if (
+        profil is None
+        or profil.type_compte != "fan"
+    ):
 
         messages.error(
             request,
-            "Seuls les utilisateurs possédant "
-            "un compte Fan peuvent réserver "
-            "des billets sur AfroFans."
+            "Seuls les comptes Fan peuvent "
+            "acheter des billets sur AfroFans."
         )
 
         return redirect(
-            "Afrons:detail_evenement",
+            destination,
             evenement_id=evenement.pk,
         )
 
-    # ==========================================
-    # 4. CONTRÔLER LES PLACES DISPONIBLES
-    # ==========================================
+    # ========================================================
+    # 4. VÉRIFIER LE PAIEMENT DES FRAIS AFROFANS
+    # ========================================================
+
+    # Le talent doit avoir payé les frais de création
+    # de billetterie avant la vente aux fans.
+
+    paiement_frais = (
+        PaiementFraisEvenement.objects
+        .filter(
+            evenement=evenement,
+            statut="paye",
+        )
+        .first()
+    )
+
+    if paiement_frais is None:
+
+        messages.error(
+            request,
+            "La billetterie de cet événement "
+            "n'est pas encore autorisée."
+        )
+
+        return redirect(
+            destination,
+            evenement_id=evenement.pk,
+        )
+
+    # ========================================================
+    # 5. VÉRIFIER LA PUBLICATION
+    # ========================================================
+
+    if evenement.statut not in (
+        "publie",
+        "ouvert",
+    ):
+
+        messages.error(
+            request,
+            "Cet événement n'est pas encore "
+            "ouvert à la vente."
+        )
+
+        return redirect(
+            destination,
+            evenement_id=evenement.pk,
+        )
+
+    # ========================================================
+    # 6. VÉRIFIER LA DATE DE L'ÉVÉNEMENT
+    # ========================================================
+
+    if (
+        evenement.date_evenement
+        and evenement.date_evenement <= timezone.now()
+    ):
+
+        messages.error(
+            request,
+            "La vente des billets est terminée "
+            "pour cet événement."
+        )
+
+        return redirect(
+            destination,
+            evenement_id=evenement.pk,
+        )
+
+    # ========================================================
+    # 7. VÉRIFIER LA DEVISE
+    # ========================================================
+
+    if evenement.devise not in (
+        "CAD",
+        "EUR",
+        "XOF",
+    ):
+
+        messages.error(
+            request,
+            "La devise des billets de cet "
+            "événement n'est pas prise en charge."
+        )
+
+        return redirect(
+            destination,
+            evenement_id=evenement.pk,
+        )
+
+    # ========================================================
+    # 8. CONTRÔLER LES PLACES DISPONIBLES
+    # ========================================================
+
+    # L'événement est verrouillé durant la transaction.
+    #
+    # La fonction capacite_restante() tient compte
+    # des billets vendus et des réservations actives.
 
     places_disponibles = max(
         0,
-        capacite_restante(evenement)
+        capacite_restante(evenement),
     )
 
     if places_disponibles <= 0:
@@ -686,71 +1281,101 @@ def acheter_billet(request, evenement_id):
         messages.error(
             request,
             "Cet événement est complet. "
-            "Aucune place n'est actuellement disponible."
+            "Aucune place n'est disponible."
         )
 
         return redirect(
-            "Afrons:detail_evenement",
+            destination,
             evenement_id=evenement.pk,
         )
 
-    # ==========================================
-    # 5. INITIALISER LE FORMULAIRE DE RÉSERVATION
-    # ==========================================
+    # ========================================================
+    # 9. INITIALISER LE FORMULAIRE D'ACHAT
+    # ========================================================
 
     formulaire = AchatBilletForm(
         request.POST,
         evenement=evenement,
     )
 
-    # Association du billet
+    # Renseigner les relations avant validation.
     formulaire.instance.evenement = evenement
     formulaire.instance.acheteur = request.user
 
-    # ==========================================
-    # 6. VALIDER LES INFORMATIONS
-    # ==========================================
+    # ========================================================
+    # 10. VALIDER LES INFORMATIONS
+    # ========================================================
 
     if formulaire.is_valid():
 
-        billet = formulaire.save(commit=False)
+        billet = formulaire.save(
+            commit=False,
+        )
 
         billet.evenement = evenement
         billet.acheteur = request.user
 
-        # Ce statut ne signifie PAS que le
-        # paiement du fan est confirmé.
-        billet.statut = "en_attente"
+        # ----------------------------------------------------
+        # 10.1 PRIX FIXÉ PAR LE TALENT
+        # ----------------------------------------------------
 
-        # ======================================
-        # 7. VÉRIFIER LA QUANTITÉ
-        # ======================================
+        # Le modèle BilletEvenement récupère déjà
+        # evenement.prix dans sa méthode save().
+        #
+        # Ne jamais récupérer le prix depuis
+        # request.POST : le montant doit venir
+        # exclusivement de la base de données.
 
-        if billet.quantite > places_disponibles:
+        # ----------------------------------------------------
+        # 10.2 VÉRIFIER LA QUANTITÉ
+        # ----------------------------------------------------
+
+        quantite = billet.quantite
+
+        if (
+            quantite is None
+            or quantite < 1
+        ):
+
+            formulaire.add_error(
+                "quantite",
+                "Sélectionnez au moins un billet."
+            )
+
+        elif quantite > places_disponibles:
 
             formulaire.add_error(
                 "quantite",
                 (
-                    "Il ne reste que "
+                    f"Il reste seulement "
                     f"{places_disponibles} "
-                    "place(s) disponible(s) "
+                    "place(s) disponibles "
                     "pour cet événement."
                 )
             )
 
         else:
 
-            # ==================================
-            # 8. ENREGISTRER LA RÉSERVATION
-            # ==================================
+            # =================================================
+            # 11. ENREGISTRER UNE RÉSERVATION EN ATTENTE
+            # =================================================
+
+            billet.statut = "en_attente"
+
+            # L'enregistrement du billet calcule :
+            #
+            # prix_unitaire = evenement.prix
+            # montant_total = prix_unitaire * quantite
+            #
+            # La devise est celle de l'événement.
 
             billet.save()
 
             formulaire.save_m2m()
 
-            # ==================================
-            # 9. CRÉER LE DÉLAI D'EXPIRATION
-            # ==================================
+            # =================================================
+            # 12. DÉLAI D'EXPIRATION
+            # =================================================
 
             expiration = (
                 timezone.now()
@@ -762,33 +1387,61 @@ def acheter_billet(request, evenement_id):
                 expire_le=expiration,
             )
 
-            # ==================================
-            # 10. CONFIRMATION DE LA RÉSERVATION
-            # ==================================
+            # =================================================
+            # 13. MÉTHODE DE PAIEMENT
+            # =================================================
+
+            # Canada / France :
+            # Paiement par carte via Stripe.
+            #
+            # Pays XOF :
+            # Paiement non encore disponible tant
+            # que le prestataire local n'est pas intégré.
+            #
+            # Aucun statut "paye" n'est défini ici.
+
+            if evenement.devise in (
+                "CAD",
+                "EUR",
+            ):
+
+                billet.methode_paiement = "carte"
+
+                billet.save(
+                    update_fields=[
+                        "methode_paiement",
+                    ]
+                )
+
+            # =================================================
+            # 14. CONFIRMATION DE LA RÉSERVATION
+            # =================================================
 
             messages.success(
                 request,
-                "Votre réservation a été enregistrée. "
-                "Finalisez le paiement avant son "
-                "expiration pour confirmer votre achat. "
-                "Les QR codes de vos billets seront "
-                "disponibles uniquement après "
-                "confirmation du paiement."
+                (
+                    "Votre réservation a été enregistrée. "
+                    f"Montant à régler : "
+                    f"{billet.montant_total} "
+                    f"{evenement.devise}. "
+                    "Vous devez confirmer le paiement "
+                    "avant l'expiration de la réservation "
+                    "pour recevoir vos billets QR."
+                )
             )
 
-            # ==================================
-            # 11. REDIRECTION
-            # ==================================
+            # =================================================
+            # 15. REDIRECTION VERS LA CONFIRMATION
+            # =================================================
 
             return redirect(
                 "Afrons:confirmation_billet",
                 code_billet=billet.code_billet,
             )
 
-    # ==========================================
-    # 12. FORMULAIRE INVALIDE
-    # RÉAFFICHER LE DESIGN AVEC LES ERREURS
-    # ==========================================
+    # ========================================================
+    # 16. FORMULAIRE INVALIDE
+    # ========================================================
 
     talent = evenement.createur
 
@@ -797,28 +1450,87 @@ def acheter_billet(request, evenement_id):
         or talent.get_username()
     )
 
+    messages.error(
+        request,
+        "Veuillez corriger les informations "
+        "de votre réservation."
+    )
+
+    # ========================================================
+    # 17. RÉAFFICHER LA PAGE AVEC LES ERREURS
+    # ========================================================
+
     return render(
         request,
         "Afrons/detail_evenement.html",
         {
+            # ------------------------------------------------
+            # ÉVÉNEMENT
+            # ------------------------------------------------
+
             "evenement": evenement,
+
+            # ------------------------------------------------
+            # FORMULAIRE
+            # ------------------------------------------------
+
             "formulaire": formulaire,
+
+            # ------------------------------------------------
+            # TALENT
+            # ------------------------------------------------
+
+            "talent": talent,
+
+            "nom_talent": nom_talent,
 
             "est_proprietaire": False,
 
-            "talent": talent,
-            "nom_talent": nom_talent,
+            # ------------------------------------------------
+            # PRIX DES BILLETS
+            # ------------------------------------------------
+
+            "prix_billet": evenement.prix,
+
+            "devise_billet": evenement.devise,
+
+            # ------------------------------------------------
+            # PAIEMENT DES FRAIS AFROFANS
+            # ------------------------------------------------
 
             "frais_payes": True,
+
+            "paiement_confirme": True,
+
             "paiement_en_attente": False,
 
+            "paiement_frais": None,
+
+            "peut_payer_frais": False,
+
+            # ------------------------------------------------
+            # PUBLICATION
+            # ------------------------------------------------
+
             "evenement_publie": True,
+
             "billetterie_ouverte": True,
 
+            # ------------------------------------------------
+            # DISPONIBILITÉ
+            # ------------------------------------------------
+
             "places_disponibles": places_disponibles,
+
             "peut_reserver": True,
 
-            "est_administrateur": request.user.is_staff,
+            # ------------------------------------------------
+            # ADMINISTRATION
+            # ------------------------------------------------
+
+            "est_administrateur": (
+                request.user.is_staff
+            ),
         },
         status=400,
     )
