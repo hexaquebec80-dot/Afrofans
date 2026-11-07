@@ -680,22 +680,22 @@ AFROFANS_DONS_ACTIFS = env_bool(
 
 AFROFANS_VERIFICATION_PAIEMENT_ACTIF = env_bool(
     "AFROFANS_VERIFICATION_PAIEMENT_ACTIF",
-    False,
+    True,
 )
 
 
 # ============================================================
 # 31. STRIPE CONNECT — RETRAITS
 # ============================================================
+# ==========================================
+# AFROFANS — STRIPE CONNECT
+# ==========================================
 
-AFROFANS_STRIPE_CONNECT_ACTIF = env_bool(
-    "AFROFANS_STRIPE_CONNECT_ACTIF",
-    False,
-)
+AFROFANS_STRIPE_CONNECT_ACTIF = True
 
 AFROFANS_RETRAITS_ACTIFS = env_bool(
     "AFROFANS_RETRAITS_ACTIFS",
-    False,
+    True,
 )
 
 
@@ -738,3 +738,39 @@ LOGGING = {
 # FIN — SETTINGS AFROFANS
 # HEXAQUÉBEC
 # ============================================================
+
+
+
+# ============================================================
+# AFROFANS — CONVERSION DES FRAIS DE BILLETTERIE
+# ============================================================
+
+import os
+from decimal import Decimal, InvalidOperation
+
+
+def lire_taux_conversion(nom):
+    valeur = os.environ.get(nom, "").strip()
+
+    if not valeur:
+        return None
+
+    try:
+        taux = Decimal(valeur)
+
+        if not taux.is_finite() or taux <= 0:
+            return None
+
+        return taux
+
+    except (InvalidOperation, ValueError):
+        return None
+
+
+TAUX_XOF_CAD = lire_taux_conversion(
+    "TAUX_XOF_CAD"
+)
+
+TAUX_XOF_EUR = lire_taux_conversion(
+    "TAUX_XOF_EUR"
+)

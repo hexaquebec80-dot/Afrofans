@@ -473,6 +473,10 @@ path(
     views.webhook_telechargement_video,
     name="webhook_telechargement_video",
 ),
-
+path(
+    "parametres/compte-retrait/",
+    views.configurer_compte_retrait,
+    name="configurer_compte_retrait",
+),
 
 ]

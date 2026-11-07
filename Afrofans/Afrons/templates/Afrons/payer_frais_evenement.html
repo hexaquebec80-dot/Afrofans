@@ -2,478 +2,1491 @@
 {% extends "Afrons/base.html" %}
 
 {% block title %}
-Paiement de la billetterie | AfroFans
+Paiement des frais de billetterie | AfroFans
 {% endblock %}
 
 {% block content %}
 
 <style>
-.afpay {
-    --orange: #ff8a00;
-    background: radial-gradient(ellipse at 15% 0%, #34200c, #080808 45%);
+
+/* =========================================================
+   AFROFANS — PAIEMENT DES FRAIS DE BILLETTERIE
+   DESIGN PROFESSIONNEL : NOIR / ORANGE / BLANC
+========================================================= */
+
+.afpay-page {
+    --af-orange: #ff8a00;
+    --af-orange-light: #ffb347;
+    --af-bg: #090909;
+    --af-card: #171717;
+    --af-border: #333333;
+    --af-text: #ffffff;
+    --af-muted: #aaa;
+
     min-height: 100vh;
-    padding: 105px 18px 90px;
+    padding: 105px 20px 90px;
+
+    background:
+        radial-gradient(
+            ellipse at 20% 0%,
+            rgba(255,138,0,.13),
+            transparent 42%
+        ),
+        #090909;
+
+    color: var(--af-text);
+}
+
+.afpay-page *,
+.afpay-page *::before,
+.afpay-page *::after {
+    box-sizing: border-box;
+}
+
+.afpay-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* =========================================================
+   RETOUR
+========================================================= */
+
+.afpay-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+
+    margin-bottom: 30px;
+
+    color: #ffb347;
+    text-decoration: none;
+
+    font-size: 13px;
+    font-weight: 800;
+
+    transition: color .2s;
+}
+
+.afpay-back:hover {
     color: white;
 }
-.afpay * { box-sizing: border-box; }
-.afpay-wrap { max-width: 1120px; margin: auto; }
-.afpay-label {
-    color: #ff9d26;
+
+/* =========================================================
+   EN-TÊTE
+========================================================= */
+
+.afpay-heading {
+    margin-bottom: 35px;
+}
+
+.afpay-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+
+    color: var(--af-orange-light);
+
     font-size: 11px;
     font-weight: 900;
     letter-spacing: 1.8px;
+    text-transform: uppercase;
 }
-.afpay h1 {
-    font-size: clamp(29px, 5vw, 44px);
-    margin: 12px 0 30px;
+
+.afpay-eyebrow::before {
+    content: "";
+
+    width: 8px;
+    height: 8px;
+
+    background: var(--af-orange);
+    border-radius: 50%;
 }
-.afpay h1 span { color: var(--orange); }
-.afpay-grid {
-    display: grid;
-    grid-template-columns: minmax(0,1fr) minmax(290px,.75fr);
-    align-items: start;
-    gap: 24px;
-}
-.afpay-card {
-    background: #151515;
-    border: 1px solid #353535;
-    border-radius: 21px;
-    overflow: hidden;
-}
-.afpay-head {
-    background: #202020;
-    border-bottom: 1px solid #353535;
-    padding: 24px;
-}
-.afpay-head h2 { margin: 9px 0; font-size: 22px; }
-.afpay-head p { color: #aaa; font-size: 13px; line-height: 1.8; }
-.afpay-body { padding: 25px; }
-.afpay-ticket {
-    border: 1px solid #6b471b;
-    border-radius: 15px;
-    overflow: hidden;
-    margin-bottom: 24px;
-}
-.afpay-ticket-top {
-    background: linear-gradient(110deg,#ffb32e,#ff8a00);
-    padding: 18px 22px;
-    color: #111;
-    font-size: 22px;
+
+.afpay-heading h1 {
+    margin: 15px 0;
+
+    font-size: clamp(29px, 4vw, 46px);
     font-weight: 950;
+    letter-spacing: -1.2px;
+    line-height: 1.2;
 }
-.afpay-ticket-content { padding: 23px; }
-.afpay-ticket-content h3 { font-size: 23px; margin: 0 0 17px; }
-.afpay-ticket-content p {
-    font-size: 13px;
-    color: #ccc;
+
+.afpay-heading h1 span {
+    color: var(--af-orange);
+}
+
+.afpay-heading p {
+    max-width: 720px;
+
+    color: #b5b5b5;
+
+    font-size: 14px;
+    line-height: 1.9;
+}
+
+/* =========================================================
+   ÉTAPES
+========================================================= */
+
+.afpay-steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 13px;
+    margin: 30px 0 35px;
+}
+
+.afpay-step {
+    display: flex;
+    align-items: center;
+
+    gap: 13px;
+    padding: 18px;
+
+    background: #161616;
+
+    border: 1px solid #353535;
+    border-radius: 14px;
+}
+
+.afpay-step-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 38px;
+    height: 38px;
+    flex: 0 0 38px;
+
+    background: #292929;
+
+    border-radius: 11px;
+
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.afpay-step.done .afpay-step-number {
+    color: #6ee4a6;
+    background: #173a2a;
+}
+
+.afpay-step.active {
+    border-color: rgba(255,138,0,.6);
+    background: #241a10;
+}
+
+.afpay-step.active .afpay-step-number {
+    color: #090909;
+    background: var(--af-orange);
+}
+
+.afpay-step strong {
+    display: block;
+
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.afpay-step small {
+    display: block;
+    margin-top: 5px;
+
+    color: #999;
+    font-size: 11px;
+}
+
+/* =========================================================
+   GRILLE
+========================================================= */
+
+.afpay-layout {
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1.2fr)
+        minmax(320px, .8fr);
+
+    gap: 27px;
+    align-items: start;
+}
+
+.afpay-main,
+.afpay-sidebar {
+    min-width: 0;
+}
+
+.afpay-sidebar {
+    position: sticky;
+    top: 95px;
+}
+
+/* =========================================================
+   CARTES
+========================================================= */
+
+.afpay-card {
+    overflow: hidden;
+
+    background: #171717;
+
+    border: 1px solid #363636;
+    border-radius: 21px;
+
+    box-shadow:
+        0 20px 45px rgba(0,0,0,.25);
+}
+
+.afpay-card + .afpay-card {
+    margin-top: 24px;
+}
+
+.afpay-card-head {
+    padding: 25px 27px;
+
+    background: #1e1e1e;
+
+    border-bottom: 1px solid #343434;
+}
+
+.afpay-card-head h2 {
+    margin: 10px 0 8px;
+
+    color: white;
+
+    font-size: 21px;
+    font-weight: 900;
+}
+
+.afpay-card-head p {
+    margin: 0;
+
+    color: #aaa;
+
+    font-size: 12px;
     line-height: 1.8;
 }
-.afpay-description {
-    border-top: 1px solid #3b3b3b;
-    padding-top: 15px;
-    margin-top: 18px;
+
+.afpay-card-body {
+    padding: 27px;
 }
-.afpay-fields {
+
+/* =========================================================
+   BILLET ÉVÉNEMENT
+========================================================= */
+
+.afpay-ticket {
+    overflow: hidden;
+
+    background: #111;
+
+    border: 1px solid #634118;
+    border-radius: 17px;
+}
+
+.afpay-ticket-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 12px;
+    padding: 19px 23px;
+
+    background:
+        linear-gradient(
+            115deg,
+            #ffb83d,
+            #ff8a00 65%,
+            #ed7100
+        );
+
+    color: #080808;
+}
+
+.afpay-ticket-logo {
+    font-size: 25px;
+    font-weight: 950;
+    letter-spacing: -1px;
+}
+
+.afpay-ticket-logo span {
+    color: white;
+}
+
+.afpay-ticket-tag {
+    padding: 8px 10px;
+
+    border: 1px solid rgba(0,0,0,.25);
+    border-radius: 7px;
+
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 1px;
+}
+
+.afpay-ticket-content {
+    padding: 27px;
+}
+
+.afpay-ticket-content h3 {
+    margin: 0 0 25px;
+
+    font-size: clamp(23px, 3vw, 32px);
+    font-weight: 950;
+
+    overflow-wrap: anywhere;
+}
+
+.afpay-ticket-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    gap: 24px 17px;
 }
+
+.afpay-ticket-item small {
+    display: block;
+
+    margin-bottom: 7px;
+
+    color: #999;
+
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.afpay-ticket-item strong {
+    display: block;
+
+    color: #f5f5f5;
+
+    font-size: 13px;
+    font-weight: 900;
+    line-height: 1.7;
+
+    overflow-wrap: anywhere;
+}
+
+.afpay-ticket-item .afpay-price {
+    color: #ffb347;
+    font-size: 20px;
+}
+
+.afpay-ticket-description {
+    margin-top: 27px;
+    padding-top: 23px;
+
+    border-top: 1px solid #373737;
+}
+
+.afpay-ticket-description strong {
+    display: block;
+
+    margin-bottom: 12px;
+
+    color: #ffb347;
+    font-size: 12px;
+}
+
+.afpay-ticket-description p {
+    margin: 0;
+
+    color: #bbb;
+
+    font-size: 12px;
+    line-height: 1.9;
+}
+
+/* =========================================================
+   FORMULAIRE DE PAIEMENT
+========================================================= */
+
+.afpay-form {
+    display: block;
+}
+
+.afpay-field {
+    margin-bottom: 22px;
+}
+
 .afpay-field label {
     display: block;
-    color: #ddd;
+
+    margin-bottom: 10px;
+
+    color: #eaeaea;
+
     font-size: 12px;
-    font-weight: 800;
-    margin-bottom: 9px;
+    font-weight: 900;
 }
-.afpay-field select {
+
+.afpay-field input,
+.afpay-field select,
+.afpay-field textarea {
+    display: block;
+
     width: 100%;
-    height: 49px;
+    min-height: 50px;
+
+    padding: 13px 15px;
+
     background: #252525;
+
+    border: 1px solid #474747;
+    border-radius: 11px;
+
     color: white;
-    border: 1px solid #484848;
-    border-radius: 10px;
-    padding: 12px;
-}
-.afpay-methods {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 9px;
-    margin: 20px 0;
-}
-.afpay-methods span {
-    padding: 10px 13px;
-    border: 1px solid #444;
-    background: #282828;
-    border-radius: 25px;
-    font-size: 12px;
-}
-.afpay-alert {
-    background: #302213;
-    color: #ffd69d;
-    border: 1px solid #85541c;
-    border-radius: 12px;
-    padding: 20px;
-    line-height: 1.8;
+
+    font-family: inherit;
     font-size: 13px;
 }
-.afpay-alert strong {
-    display: block;
-    color: #ffb74a;
-    margin-bottom: 8px;
+
+.afpay-field select option {
+    color: white;
+    background: #252525;
 }
-.afpay-row {
+
+.afpay-field input:focus,
+.afpay-field select:focus,
+.afpay-field textarea:focus {
+    outline: none;
+
+    border-color: #ff8a00;
+
+    box-shadow:
+        0 0 0 3px rgba(255,138,0,.11);
+}
+
+.afpay-field input[type="checkbox"] {
+    display: inline-block;
+    width: auto;
+    min-height: 0;
+    accent-color: #ff8a00;
+}
+
+.afpay-help {
+    display: block;
+
+    margin-top: 8px;
+
+    color: #aaa;
+
+    font-size: 11px;
+    line-height: 1.7;
+}
+
+.afpay-error {
+    margin-top: 9px;
+
+    color: #ff939b;
+
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+/* =========================================================
+   ALERTE OBLIGATOIRE
+========================================================= */
+
+.afpay-warning {
+    padding: 21px;
+
+    border: 1px solid #86531a;
+    border-radius: 13px;
+
+    background:
+        linear-gradient(
+            140deg,
+            #302112,
+            #211a13
+        );
+}
+
+.afpay-warning strong {
+    display: block;
+
+    margin-bottom: 10px;
+
+    color: #ffb347;
+
+    font-size: 14px;
+    font-weight: 900;
+}
+
+.afpay-warning p {
+    margin: 0;
+
+    color: #e5d1b6;
+
+    font-size: 12px;
+    line-height: 1.9;
+}
+
+/* =========================================================
+   STATUT PAYÉ
+========================================================= */
+
+.afpay-success {
+    padding: 22px;
+
+    border: 1px solid #397650;
+    border-radius: 13px;
+
+    background: #16281d;
+}
+
+.afpay-success strong {
+    display: block;
+
+    margin-bottom: 11px;
+
+    color: #84e7a8;
+
+    font-size: 15px;
+    font-weight: 900;
+}
+
+.afpay-success p {
+    margin: 0;
+
+    color: #b9e3c8;
+
+    font-size: 12px;
+    line-height: 1.9;
+}
+
+/* =========================================================
+   RÉCAPITULATIF
+========================================================= */
+
+.afpay-summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+
+    gap: 18px;
+    padding: 15px 0;
+
+    border-bottom: 1px solid #303030;
+}
+
+.afpay-summary-row span {
+    color: #aaa;
+    font-size: 12px;
+}
+
+.afpay-summary-row strong {
+    color: white;
+
+    font-size: 13px;
+    font-weight: 900;
+    text-align: right;
+}
+
+.afpay-total {
     display: flex;
     justify-content: space-between;
     align-items: center;
+
     gap: 15px;
-    padding: 13px 0;
-    font-size: 13px;
-    color: #aaa;
+
+    margin-top: 18px;
+    padding-top: 23px;
+
+    border-top: 2px dashed #555;
 }
-.afpay-row strong { color: white; text-align: right; }
-.afpay-total {
-    border-top: 1px dashed #666;
-    margin-top: 12px;
-    padding-top: 22px;
-}
-.afpay-total strong {
-    color: #ffad32;
-    font-size: 24px;
-}
-.afpay-btn {
-    display: block;
-    width: 100%;
-    padding: 17px;
-    margin-top: 23px;
-    background: linear-gradient(115deg,#ffb22e,#ff8a00);
-    color: #080808;
+
+.afpay-total span {
+    color: white;
+
     font-size: 14px;
     font-weight: 900;
-    border: 0;
-    border-radius: 11px;
-    cursor: pointer;
 }
-.afpay-back {
-    display: inline-block;
-    margin-bottom: 18px;
-    color: #ffad39;
+
+.afpay-total strong {
+    color: #ffb347;
+
+    font-size: 23px;
+    font-weight: 950;
+    text-align: right;
+}
+
+/* =========================================================
+   BOUTONS
+========================================================= */
+
+.afpay-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 10px;
+
+    width: 100%;
+    min-height: 55px;
+
+    padding: 15px 19px;
+    margin-top: 22px;
+
+    background:
+        linear-gradient(
+            115deg,
+            #ffb638,
+            #ff8a00
+        );
+
+    border: none;
+    border-radius: 12px;
+
+    color: #080808;
+
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 950;
+
+    text-align: center;
     text-decoration: none;
-    font-size: 13px;
+
+    cursor: pointer;
+
+    transition:
+        transform .2s,
+        opacity .2s;
 }
+
+.afpay-btn:hover {
+    transform: translateY(-2px);
+    color: #080808;
+}
+
+.afpay-btn-secondary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+    min-height: 49px;
+
+    padding: 13px 17px;
+    margin-top: 12px;
+
+    background: #292929;
+
+    border: 1px solid #484848;
+    border-radius: 11px;
+
+    color: white;
+
+    font-size: 12px;
+    font-weight: 800;
+
+    text-align: center;
+    text-decoration: none;
+}
+
+.afpay-btn-secondary:hover {
+    color: white;
+    border-color: #ff8a00;
+}
+
 .afpay-note {
-    color: #aaa;
+    margin-top: 19px;
+
+    color: #999;
+
     font-size: 11px;
-    line-height: 1.8;
-    margin-top: 18px;
+    line-height: 1.9;
+    text-align: center;
 }
-@media(max-width:850px) {
-    .afpay-grid { grid-template-columns: 1fr; }
+
+/* =========================================================
+   SÉCURITÉ
+========================================================= */
+
+.afpay-security {
+    display: flex;
+    gap: 13px;
+
+    margin-top: 22px;
+    padding: 19px;
+
+    background: #14251b;
+
+    border: 1px solid #315e42;
+    border-radius: 12px;
+
+    color: #b1e5c2;
+
+    font-size: 12px;
+    line-height: 1.9;
 }
-@media(max-width:450px) {
-    .afpay { padding: 85px 11px 60px; }
-    .afpay-fields { grid-template-columns: 1fr; }
-    .afpay-body { padding: 18px; }
+
+.afpay-security-icon {
+    font-size: 19px;
 }
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+.afpay-footer {
+    margin-top: 34px;
+
+    color: #888;
+
+    font-size: 11px;
+    line-height: 1.9;
+    text-align: center;
+}
+
+.afpay-footer strong {
+    color: #ffb347;
+}
+
+/* =========================================================
+   RESPONSIVE TABLETTE
+========================================================= */
+
+@media (max-width: 960px) {
+
+    .afpay-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .afpay-sidebar {
+        position: static;
+    }
+
+}
+
+/* =========================================================
+   RESPONSIVE TÉLÉPHONE
+========================================================= */
+
+@media (max-width: 650px) {
+
+    .afpay-page {
+        padding: 82px 12px 60px;
+    }
+
+    .afpay-heading h1 {
+        font-size: 30px;
+    }
+
+    .afpay-steps {
+        grid-template-columns: 1fr;
+        gap: 9px;
+    }
+
+    .afpay-step {
+        padding: 13px;
+    }
+
+    .afpay-card-head,
+    .afpay-card-body {
+        padding: 20px;
+    }
+
+    .afpay-ticket-content {
+        padding: 20px;
+    }
+
+    .afpay-ticket-grid {
+        gap: 18px 12px;
+    }
+
+    .afpay-total strong {
+        font-size: 20px;
+    }
+
+    .afpay-btn {
+        font-size: 13px;
+    }
+
+}
+
+@media (max-width: 380px) {
+
+    .afpay-ticket-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .afpay-ticket-logo {
+        font-size: 21px;
+    }
+
+}
+
 </style>
 
-<main class="afpay">
-<div class="afpay-wrap">
 
-    <a
-        href="{% url 'Afrons:detail_evenement' evenement.id %}"
-        class="afpay-back"
-    >
-        ← Retour à l'événement
-    </a>
+<!-- =========================================================
+     AFROFANS — PAGE PAIEMENT FRAIS ÉVÉNEMENT
+========================================================= -->
 
-    <div class="afpay-label">
-        AFROFANS · HEXAQUÉBEC
-    </div>
+<main class="afpay-page">
 
-    <h1>
-        Paiement des frais de
-        <span>billetterie</span>
-    </h1>
+    <div class="afpay-container">
 
-    <div class="afpay-grid">
+        <!-- RETOUR -->
 
-        <section class="afpay-card">
+        <a
+            href="{% url 'Afrons:detail_evenement' evenement.id %}"
+            class="afpay-back"
+        >
+            ← Retour à mon événement
+        </a>
 
-            <div class="afpay-head">
-                <div class="afpay-label">
-                    ÉVÉNEMENT EN ATTENTE
+
+        <!-- =================================================
+             EN-TÊTE
+        ================================================== -->
+
+        <header class="afpay-heading">
+
+            <span class="afpay-eyebrow">
+                AFROFANS · PAIEMENT OFFICIEL
+            </span>
+
+            <h1>
+                Finaliser la publication
+                de votre <span>événement</span>
+            </h1>
+
+            <p>
+                Votre événement a été enregistré.
+
+                Le paiement des frais de billetterie
+                est obligatoire avant sa validation
+                et sa publication sur AfroFans.
+            </p>
+
+        </header>
+
+
+        <!-- =================================================
+             ÉTAPES
+        ================================================== -->
+
+        <div class="afpay-steps">
+
+            <div class="afpay-step done">
+
+                <div class="afpay-step-number">
+                    ✓
                 </div>
-                <h2>Finaliser votre événement</h2>
-                <p>
-                    Le paiement doit être confirmé
-                    avant validation et publication
-                    de votre événement.
-                </p>
+
+                <div>
+                    <strong>
+                        01 · Création
+                    </strong>
+
+                    <small>
+                        Événement enregistré
+                    </small>
+                </div>
+
             </div>
 
-            <div class="afpay-body">
 
-                <article class="afpay-ticket">
+            <div class="afpay-step {% if paiement.statut != 'paye' %}active{% else %}done{% endif %}">
 
-                    <div class="afpay-ticket-top">
-                        AfroFans · EVENT PASS
+                <div class="afpay-step-number">
+
+                    {% if paiement.statut == "paye" %}
+                        ✓
+                    {% else %}
+                        02
+                    {% endif %}
+
+                </div>
+
+                <div>
+                    <strong>
+                        Paiement obligatoire
+                    </strong>
+
+                    <small>
+                        Frais de billetterie
+                    </small>
+                </div>
+
+            </div>
+
+
+            <div class="afpay-step {% if paiement.statut == 'paye' %}active{% endif %}">
+
+                <div class="afpay-step-number">
+                    03
+                </div>
+
+                <div>
+                    <strong>
+                        Validation et publication
+                    </strong>
+
+                    <small>
+                        Contrôle administratif AfroFans
+                    </small>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             CONTENU
+        ================================================== -->
+
+        <div class="afpay-layout">
+
+            <!-- =============================================
+                 COLONNE GAUCHE
+            ============================================== -->
+
+            <div class="afpay-main">
+
+                <!-- ÉVÉNEMENT -->
+
+                <section class="afpay-card">
+
+                    <div class="afpay-card-head">
+
+                        <span class="afpay-eyebrow">
+                            VOTRE ÉVÉNEMENT
+                        </span>
+
+                        <h2>
+                            Récapitulatif de l'événement
+                        </h2>
+
+                        <p>
+                            Consultez les informations
+                            enregistrées avant de poursuivre.
+                        </p>
+
                     </div>
 
-                    <div class="afpay-ticket-content">
+                    <div class="afpay-card-body">
 
-                        <h3>{{ evenement.titre }}</h3>
+                        <article class="afpay-ticket">
 
-                        <p>
-                            <strong>Date :</strong>
-                            {{ evenement.date_evenement|date:"d/m/Y à H:i" }}
-                        </p>
+                            <div class="afpay-ticket-banner">
 
-                        <p>
-                            <strong>Lieu :</strong>
-                            {{ evenement.lieu }},
-                            {{ evenement.ville }}
-                        </p>
+                                <div class="afpay-ticket-logo">
+                                    Afro<span>Fans</span>
+                                </div>
 
-                        <p>
-                            <strong>Billets :</strong>
-                            {{ evenement.nombre_places }}
-                        </p>
+                                <div class="afpay-ticket-tag">
+                                    EVENT PASS
+                                </div>
 
-                        <div class="afpay-description">
-                            <div class="afpay-label">
-                                DESCRIPTION DE L'ÉVÉNEMENT
                             </div>
 
-                            <p>
-                                {{ evenement.description|linebreaksbr }}
-                            </p>
-                        </div>
+                            <div class="afpay-ticket-content">
+
+                                <h3>
+                                    {{ evenement.titre }}
+                                </h3>
+
+                                <div class="afpay-ticket-grid">
+
+                                    <div class="afpay-ticket-item">
+
+                                        <small>
+                                            Date et heure
+                                        </small>
+
+                                        <strong>
+                                            {{ evenement.date_evenement|date:"d/m/Y à H:i" }}
+                                        </strong>
+
+                                    </div>
+
+
+                                    <div class="afpay-ticket-item">
+
+                                        <small>
+                                            Ville
+                                        </small>
+
+                                        <strong>
+                                            {{ evenement.ville|default:"À préciser" }}
+                                        </strong>
+
+                                    </div>
+
+
+                                    <div class="afpay-ticket-item">
+
+                                        <small>
+                                            Lieu
+                                        </small>
+
+                                        <strong>
+                                            {{ evenement.lieu|default:"À préciser" }}
+                                        </strong>
+
+                                    </div>
+
+
+                                    <div class="afpay-ticket-item">
+
+                                        <small>
+                                            Capacité
+                                        </small>
+
+                                        <strong>
+                                            {{ evenement.nombre_places }}
+                                            places
+                                        </strong>
+
+                                    </div>
+
+
+                                    <div class="afpay-ticket-item">
+
+                                        <small>
+                                            Prix par billet
+                                        </small>
+
+                                        <strong class="afpay-price">
+
+                                            {% if evenement.prix == 0 %}
+
+                                                Gratuit
+
+                                            {% else %}
+
+                                                {{ evenement.prix }}
+                                                {{ evenement.devise }}
+
+                                            {% endif %}
+
+                                        </strong>
+
+                                    </div>
+
+
+                                    <div class="afpay-ticket-item">
+
+                                        <small>
+                                            Statut de l'événement
+                                        </small>
+
+                                        <strong style="color:#ffb347;">
+
+                                            {{ evenement.get_statut_display }}
+
+                                        </strong>
+
+                                    </div>
+
+                                </div>
+
+
+                                {% if evenement.description %}
+
+                                    <div class="afpay-ticket-description">
+
+                                        <strong>
+                                            Description de l'événement
+                                        </strong>
+
+                                        <p>
+                                            {{ evenement.description|linebreaksbr }}
+                                        </p>
+
+                                    </div>
+
+                                {% endif %}
+
+                            </div>
+
+                        </article>
 
                     </div>
 
-                </article>
+                </section>
 
-                <form method="get" class="afpay-fields">
 
-                    <div class="afpay-field">
-                        <label for="pays">
-                            Pays de paiement
-                        </label>
+                <!-- =============================================
+                     FORMULAIRE
+                ============================================== -->
 
-                        <select
-                            id="pays"
-                            name="pays"
-                            onchange="this.form.submit()"
-                        >
-                            <option value="CA" {% if pays == "CA" %}selected{% endif %}>
-                                🇨🇦 Canada
-                            </option>
+                <section class="afpay-card">
 
-                            <option value="ML" {% if pays == "ML" %}selected{% endif %}>
-                                🇲🇱 Mali
-                            </option>
+                    <div class="afpay-card-head">
 
-                            <option value="SN" {% if pays == "SN" %}selected{% endif %}>
-                                🇸🇳 Sénégal
-                            </option>
+                        <span class="afpay-eyebrow">
+                            INFORMATIONS DE PAIEMENT
+                        </span>
 
-                            <option value="CI" {% if pays == "CI" %}selected{% endif %}>
-                                🇨🇮 Côte d'Ivoire
-                            </option>
-                        </select>
-                    </div>
-
-                    <div class="afpay-field">
-                        <label for="province">
-                            Province canadienne
-                        </label>
-
-                        <select
-                            id="province"
-                            name="province"
-                            onchange="this.form.submit()"
-                            {% if pays != "CA" %}disabled{% endif %}
-                        >
-                            <option value="QC" {% if province == "QC" %}selected{% endif %}>
-                                Québec
-                            </option>
-
-                            <option value="AUTRE" {% if province == "AUTRE" %}selected{% endif %}>
-                                Autre province
-                            </option>
-                        </select>
-                    </div>
-
-                </form>
-
-                <h3 style="margin-top:27px;font-size:17px;">
-                    Moyens de paiement
-                </h3>
-
-                <div class="afpay-methods">
-                    {% for moyen in devis.moyens %}
-                        <span>{{ moyen }}</span>
-                    {% endfor %}
-                </div>
-
-                {% if devis.disponible %}
-
-                    <p class="afpay-note">
-                        Paiement par carte bancaire
-                        traité par Stripe.
-                    </p>
-
-                {% else %}
-
-                    <div class="afpay-alert">
-
-                        <strong>
-                            Service temporairement indisponible
-                        </strong>
-
-                        {{ devis.raison }}
+                        <h2>
+                            Choisir le mode de paiement
+                        </h2>
 
                         <p>
-                            Service clientèle HexaQuébec :
-                            <a
-                                href="tel:+15144677377"
-                                style="color:white;font-weight:900;"
-                            >
-                                514 467-7377
-                            </a>
+                            Sélectionnez la devise et
+                            la méthode de paiement
+                            disponibles dans AfroFans.
                         </p>
 
                     </div>
 
-                {% endif %}
+                    <div class="afpay-card-body">
 
-            </div>
+                        {% if paiement.statut == "paye" %}
 
-        </section>
+                            <div class="afpay-success">
 
-        <aside class="afpay-card">
+                                <strong>
+                                    ✓ Frais de billetterie payés
+                                </strong>
 
-            <div class="afpay-head">
-                <div class="afpay-label">
-                    RÉCAPITULATIF
-                </div>
+                                <p>
+                                    Votre paiement a été enregistré.
 
-                <h2>Détails du paiement</h2>
+                                    Votre événement peut désormais
+                                    passer à la validation administrative
+                                    avant publication.
+                                </p>
 
-                <p>
-                    Montant calculé selon le pays sélectionné.
-                </p>
-            </div>
+                            </div>
 
-            <div class="afpay-body">
+                        {% else %}
 
-                <div class="afpay-row">
-                    <span>Nombre de billets</span>
-                    <strong>{{ evenement.nombre_places }}</strong>
-                </div>
+                            <form
+                                method="post"
+                                class="afpay-form"
+                                id="afpay-payment-form"
+                            >
 
-                <div class="afpay-row">
-                    <span>Frais de base</span>
-                    <strong>
-                        {{ devis.base|floatformat:2 }}
-                        {{ devis.devise }}
-                    </strong>
-                </div>
+                                {% csrf_token %}
 
-                {% if pays == "CA" and province == "QC" %}
+                                {% for erreur in formulaire.non_field_errors %}
 
-                    <div class="afpay-row">
-                        <span>TPS · 5 %</span>
-                        <strong>
-                            {{ devis.tps|floatformat:2 }} CAD
-                        </strong>
-                    </div>
+                                    <div class="afpay-error">
+                                        {{ erreur }}
+                                    </div>
 
-                    <div class="afpay-row">
-                        <span>TVQ · 9,975 %</span>
-                        <strong>
-                            {{ devis.tvq|floatformat:2 }} CAD
-                        </strong>
-                    </div>
+                                {% endfor %}
 
-                {% endif %}
 
-                <div class="afpay-row afpay-total">
+                                {% for champ in formulaire %}
 
-                    <span>
-                        Total
-                        {% if not devis.disponible %}
-                            indicatif
+                                    {% if champ.is_hidden %}
+
+                                        {{ champ }}
+
+                                    {% elif champ.field.widget.input_type == "checkbox" %}
+
+                                        <div class="afpay-field">
+
+                                            <label for="{{ champ.id_for_label }}">
+
+                                                {{ champ }}
+                                                {{ champ.label }}
+
+                                            </label>
+
+                                            {% if champ.help_text %}
+
+                                                <small class="afpay-help">
+                                                    {{ champ.help_text }}
+                                                </small>
+
+                                            {% endif %}
+
+                                            {% for erreur in champ.errors %}
+
+                                                <div class="afpay-error">
+                                                    {{ erreur }}
+                                                </div>
+
+                                            {% endfor %}
+
+                                        </div>
+
+                                    {% else %}
+
+                                        <div class="afpay-field">
+
+                                            <label for="{{ champ.id_for_label }}">
+                                                {{ champ.label }}
+                                            </label>
+
+                                            {{ champ }}
+
+                                            {% if champ.help_text %}
+
+                                                <small class="afpay-help">
+                                                    {{ champ.help_text }}
+                                                </small>
+
+                                            {% endif %}
+
+                                            {% for erreur in champ.errors %}
+
+                                                <div class="afpay-error">
+                                                    {{ erreur }}
+                                                </div>
+
+                                            {% endfor %}
+
+                                        </div>
+
+                                    {% endif %}
+
+                                {% endfor %}
+
+
+                                <div class="afpay-warning">
+
+                                    <strong>
+                                        Paiement obligatoire avant publication
+                                    </strong>
+
+                                    <p>
+                                        Cet événement ne pourra pas
+                                        être publié tant que les frais
+                                        de billetterie n'auront pas
+                                        été confirmés.
+
+                                        La validation administrative
+                                        interviendra ensuite.
+                                    </p>
+
+                                </div>
+
+
+                                <button
+                                    type="submit"
+                                    class="afpay-btn"
+                                >
+                                    Continuer vers le paiement →
+                                </button>
+
+
+                                <p class="afpay-note">
+                                    Cette étape enregistre votre
+                                    choix de paiement.
+
+                                    Le paiement devra ensuite
+                                    être effectué et confirmé
+                                    avant toute publication.
+                                </p>
+
+                            </form>
+
                         {% endif %}
-                    </span>
 
-                    <strong>
-                        {{ devis.total|floatformat:2 }}
-                        {{ devis.devise }}
-                    </strong>
+                    </div>
 
-                </div>
-
-                <div class="afpay-alert" style="margin-top:25px;">
-                    <strong>Statut du paiement</strong>
-
-                    {{ paiement.get_statut_display }}
-
-                    <p>
-                        Votre événement ne sera pas publié
-                        avant paiement confirmé et validation.
-                    </p>
-                </div>
-
-                {% if devis.disponible %}
-
-                    <form method="post">
-                        {% csrf_token %}
-
-                        <input
-                            type="hidden"
-                            name="pays"
-                            value="CA"
-                        >
-
-                        <input
-                            type="hidden"
-                            name="province"
-                            value="QC"
-                        >
-
-                        <button
-                            type="submit"
-                            class="afpay-btn"
-                        >
-                            Payer
-                            {{ devis.total|floatformat:2 }}
-                            CAD →
-                        </button>
-                    </form>
-
-                {% else %}
-
-                    <p class="afpay-note">
-                        Aucun paiement ne peut être
-                        démarré tant que ce moyen
-                        n'est pas activé.
-                    </p>
-
-                {% endif %}
-
-                <p class="afpay-note">
-                    Assistance officielle HexaQuébec :
-                    514 467-7377
-                </p>
+                </section>
 
             </div>
 
-        </aside>
+
+            <!-- =============================================
+                 COLONNE DROITE
+            ============================================== -->
+
+            <aside class="afpay-sidebar">
+
+                <section class="afpay-card">
+
+                    <div class="afpay-card-head">
+
+                        <span class="afpay-eyebrow">
+                            RÉCAPITULATIF
+                        </span>
+
+                        <h2>
+                            Frais de billetterie
+                        </h2>
+
+                        <p>
+                            Paiement obligatoire
+                            pour finaliser la publication.
+                        </p>
+
+                    </div>
+
+
+                    <div class="afpay-card-body">
+
+                        <div class="afpay-summary-row">
+
+                            <span>
+                                Événement
+                            </span>
+
+                            <strong>
+                                {{ evenement.titre }}
+                            </strong>
+
+                        </div>
+
+
+                        <div class="afpay-summary-row">
+
+                            <span>
+                                Nombre de places
+                            </span>
+
+                            <strong>
+                                {{ evenement.nombre_places }}
+                            </strong>
+
+                        </div>
+
+
+                        <div class="afpay-summary-row">
+
+                            <span>
+                                Devise sélectionnée
+                            </span>
+
+                            <strong>
+                                {{ paiement.devise_paiement }}
+                            </strong>
+
+                        </div>
+
+
+                        <div class="afpay-summary-row">
+
+                            <span>
+                                Statut du paiement
+                            </span>
+
+                            <strong style="color:#ffb347;">
+                                {{ paiement.get_statut_display }}
+                            </strong>
+
+                        </div>
+
+
+                        <div class="afpay-total">
+
+                            <span>
+                                Frais à régler
+                            </span>
+
+                            <strong>
+                                Voir montant calculé
+                            </strong>
+
+                        </div>
+
+
+                        {% if paiement.statut == "paye" %}
+
+                            <div class="afpay-success"
+                                 style="margin-top:24px;">
+
+                                <strong>
+                                    Paiement confirmé
+                                </strong>
+
+                                <p>
+                                    Vos frais sont enregistrés
+                                    comme payés.
+
+                                    Votre événement reste
+                                    soumis à la validation
+                                    de l'administration AfroFans.
+                                </p>
+
+                            </div>
+
+                        {% else %}
+
+                            <div class="afpay-warning"
+                                 style="margin-top:24px;">
+
+                                <strong>
+                                    Frais non encore payés
+                                </strong>
+
+                                <p>
+                                    La publication reste bloquée.
+
+                                    Finalisez votre paiement
+                                    et attendez sa confirmation
+                                    pour poursuivre la validation.
+                                </p>
+
+                            </div>
+
+                        {% endif %}
+
+
+                        <a
+                            href="{% url 'Afrons:detail_evenement' evenement.id %}"
+                            class="afpay-btn-secondary"
+                        >
+                            Retour à mon événement
+                        </a>
+
+
+                        <div class="afpay-security">
+
+                            <span class="afpay-security-icon">
+                                ✓
+                            </span>
+
+                            <div>
+                                <strong>
+                                    Contrôle de paiement AfroFans
+                                </strong>
+
+                                <div>
+                                    La confirmation du paiement
+                                    et la publication de
+                                    l'événement doivent être
+                                    vérifiées par le serveur.
+                                </div>
+                            </div>
+
+                        </div>
+
+
+                        <p class="afpay-note">
+                            Assistance AfroFans
+                            <br>
+                            514 467-7377
+                        </p>
+
+                    </div>
+
+                </section>
+
+
+                <div class="afpay-footer">
+
+                    Plateforme de billetterie AfroFans
+
+                    <br>
+
+                    Développée et contrôlée
+                    techniquement par
+
+                    <strong>HexaQuébec</strong>
+
+                </div>
+
+            </aside>
+
+        </div>
 
     </div>
 
-</div>
 </main>
 
 {% endblock %}

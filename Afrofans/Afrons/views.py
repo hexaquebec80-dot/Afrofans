@@ -2892,139 +2892,382 @@ def lire_notification_evenement(
 
 
 
+# ============================================================
+# AFROFANS — PAIEMENT DES FRAIS D'ÉVÉNEMENT
+# REDIRECTION DIRECTE VERS STRIPE CHECKOUT
+# DEVISE : CAD
+# ============================================================
+
+import logging
+from decimal import Decimal, InvalidOperation
+
+import stripe
+
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import (
+    get_object_or_404,
+    redirect,
+    render,
+    reverse,
+)
+
+logger = logging.getLogger(__name__)
+
+
 @login_required
-@transaction.atomic
-def payer_frais_evenement(
-    request,
-    paiement_id,
-):
+def payer_frais_evenement(request, paiement_id):
+
+    # ========================================================
+    # 1. RÉCUPÉRER LE PAIEMENT ET L'ÉVÉNEMENT
+    # ========================================================
+
     paiement = get_object_or_404(
         PaiementFraisEvenement.objects
-        .select_for_update()
-        .select_related(
-            "evenement",
-            "createur",
-        ),
-        id=paiement_id,
+        .select_related("evenement", "createur"),
+        pk=paiement_id,
         createur=request.user,
     )
 
     evenement = paiement.evenement
 
-    if evenement.createur != request.user:
+    # ========================================================
+    # 2. VÉRIFIER LE PROPRIÉTAIRE
+    # ========================================================
+
+    if evenement.createur_id != request.user.pk:
+
         messages.error(
             request,
-            (
-                "Tu n’as pas l’autorisation "
-                "d’accéder à ce paiement."
-            ),
+            "Vous n'êtes pas autorisé à effectuer "
+            "ce paiement."
         )
 
-        return redirect(
-            "Afrons:flux"
-        )
+        return redirect("Afrons:flux")
 
-    if paiement.statut == "paye":
+    # ========================================================
+    # 3. VÉRIFIER LE STATUT
+    # ========================================================
+
+    if (
+        paiement.statut == "paye"
+        or evenement.frais_billetterie_payes
+    ):
+
         messages.info(
             request,
-            (
-                "Les frais de cet événement "
-                "sont déjà payés."
-            ),
+            "Les frais de billetterie sont déjà payés."
         )
 
         return redirect(
             "Afrons:detail_evenement",
-            evenement_id=evenement.id,
+            evenement_id=evenement.pk,
         )
 
-    formulaire = (
-        PaiementFraisEvenementForm(
-            request.POST or None,
-            initial={
-                "devise_paiement": (
-                    paiement.devise_paiement
-                ),
-            },
+    if paiement.statut == "rembourse":
+
+        messages.error(
+            request,
+            "Ce paiement a été remboursé. "
+            "Contactez l'administration AfroFans."
         )
+
+        return redirect(
+            "Afrons:detail_evenement",
+            evenement_id=evenement.pk,
+        )
+
+    # ========================================================
+    # 4. FORMULAIRE
+    # ========================================================
+
+    formulaire = PaiementFraisEvenementForm(
+        request.POST or None,
+        initial={
+            "devise_paiement": "CAD",
+        },
     )
 
-    if (
-        request.method == "POST"
-        and formulaire.is_valid()
-    ):
-        devise = formulaire.cleaned_data[
-            "devise_paiement"
-        ]
+    # ========================================================
+    # 5. AFFICHAGE DE LA PAGE
+    # ========================================================
 
-        methode = formulaire.cleaned_data[
-            "methode_paiement"
-        ]
+    if request.method != "POST":
 
-        taux_conversion = Decimal("1")
-
-        if devise == "CAD":
-            taux_conversion = Decimal(
-                str(
-                    getattr(
-                        settings,
-                        "TAUX_XOF_CAD",
-                        "0.00230",
-                    )
-                )
-            )
-
-        elif devise == "EUR":
-            taux_conversion = Decimal(
-                str(
-                    getattr(
-                        settings,
-                        "TAUX_XOF_EUR",
-                        "0.00152449",
-                    )
-                )
-            )
-
-        paiement.devise_paiement = devise
-        paiement.taux_conversion = (
-            taux_conversion
+        return render(
+            request,
+            "Afrons/payer_frais_evenement.html",
+            {
+                "paiement": paiement,
+                "evenement": evenement,
+                "formulaire": formulaire,
+                "paiement_confirme": False,
+                "paiement_obligatoire": True,
+            },
         )
 
-        # save() recalcule automatiquement
-        # le total dans la devise choisie.
-        paiement.save()
+    # ========================================================
+    # 6. VÉRIFIER LE FORMULAIRE
+    # ========================================================
 
-        request.session[
-            f"methode_paiement_frais_"
-            f"{paiement.id}"
-        ] = methode
+    if not formulaire.is_valid():
 
-        messages.success(
+        messages.error(
             request,
-            (
-                "Ta demande de paiement a été "
-                "préparée. Le paiement doit être "
-                "confirmé avant la validation "
-                "de l’événement."
-            ),
+            "Veuillez vérifier les informations "
+            "du formulaire."
+        )
+
+        return render(
+            request,
+            "Afrons/payer_frais_evenement.html",
+            {
+                "paiement": paiement,
+                "evenement": evenement,
+                "formulaire": formulaire,
+                "paiement_confirme": False,
+                "paiement_obligatoire": True,
+            },
+        )
+
+    devise = str(
+        formulaire.cleaned_data.get(
+            "devise_paiement",
+            ""
+        )
+    ).strip().upper()
+
+    if devise != "CAD":
+
+        messages.error(
+            request,
+            "Le paiement des frais est actuellement "
+            "disponible en dollars canadiens (CAD)."
         )
 
         return redirect(
             "Afrons:payer_frais_evenement",
-            paiement_id=paiement.id,
+            paiement_id=paiement.pk,
         )
 
-    contexte = {
-        "paiement": paiement,
-        "evenement": evenement,
-        "formulaire": formulaire,
-    }
+    # ========================================================
+    # 7. AUCUNE CONVERSION XOF VERS CAD
+    # ========================================================
 
-    return render(
-        request,
-        "Afrons/payer_frais_evenement.html",
-        contexte,
+    # Les frais de l'événement sont déjà
+    # exprimés en dollars canadiens.
+    #
+    # Le modèle conserve temporairement
+    # ses anciens noms de champs *_xof.
+    # Il faudra les harmoniser ultérieurement.
+
+    paiement.devise_paiement = "CAD"
+    paiement.taux_conversion = Decimal("1")
+
+    # Le save() du modèle recalcule total_converti.
+    paiement.save()
+
+    # ========================================================
+    # 8. MONTANT RÉEL À PAYER
+    # ========================================================
+
+    try:
+
+        montant = Decimal(
+            str(paiement.total_converti)
+        )
+
+    except (
+        InvalidOperation,
+        ValueError,
+        TypeError,
+    ):
+
+        messages.error(
+            request,
+            "Impossible de calculer le montant "
+            "du paiement."
+        )
+
+        return redirect(
+            "Afrons:payer_frais_evenement",
+            paiement_id=paiement.pk,
+        )
+
+    if not montant.is_finite() or montant <= 0:
+
+        messages.error(
+            request,
+            "Le montant du paiement est invalide."
+        )
+
+        return redirect(
+            "Afrons:payer_frais_evenement",
+            paiement_id=paiement.pk,
+        )
+
+    # Stripe attend le montant CAD en cents.
+    montant_centimes = int(
+        (montant * Decimal("100")).to_integral_exact()
     )
+
+    if montant_centimes < 50:
+
+        messages.error(
+            request,
+            "Le montant est trop faible pour "
+            "être payé par carte."
+        )
+
+        return redirect(
+            "Afrons:payer_frais_evenement",
+            paiement_id=paiement.pk,
+        )
+
+    # ========================================================
+    # 9. CONFIGURATION STRIPE
+    # ========================================================
+
+    stripe_key = getattr(
+        settings,
+        "STRIPE_SECRET_KEY",
+        None,
+    )
+
+    if not stripe_key:
+
+        messages.error(
+            request,
+            "Le paiement Stripe n'est pas configuré."
+        )
+
+        return redirect(
+            "Afrons:payer_frais_evenement",
+            paiement_id=paiement.pk,
+        )
+
+    stripe.api_key = stripe_key
+
+    # ========================================================
+    # 10. URL APRÈS PAIEMENT
+    # ========================================================
+
+    url_detail = request.build_absolute_uri(
+        reverse(
+            "Afrons:detail_evenement",
+            kwargs={
+                "evenement_id": evenement.pk,
+            },
+        )
+    )
+
+    url_annulation = request.build_absolute_uri(
+        reverse(
+            "Afrons:payer_frais_evenement",
+            kwargs={
+                "paiement_id": paiement.pk,
+            },
+        )
+    )
+
+    # ========================================================
+    # 11. CRÉER LA SESSION STRIPE CHECKOUT
+    # ========================================================
+
+    try:
+
+        session = stripe.checkout.Session.create(
+
+            mode="payment",
+
+            payment_method_types=[
+                "card",
+            ],
+
+            line_items=[
+                {
+                    "price_data": {
+                        "currency": "cad",
+
+                        "unit_amount": montant_centimes,
+
+                        "product_data": {
+                            "name": (
+                                "Frais de billetterie AfroFans"
+                            ),
+                            "description": (
+                                f"Événement : {evenement.titre}"
+                            ),
+                        },
+                    },
+
+                    "quantity": 1,
+                },
+            ],
+
+            client_reference_id=str(paiement.pk),
+
+            customer_email=(
+                request.user.email or None
+            ),
+
+            metadata={
+                "type": "frais_evenement",
+                "paiement_id": str(paiement.pk),
+                "evenement_id": str(evenement.pk),
+                "createur_id": str(request.user.pk),
+                "reference": paiement.reference,
+            },
+
+            success_url=(
+                url_detail
+                + "?paiement_stripe=retour"
+                + "&session_id={CHECKOUT_SESSION_ID}"
+            ),
+
+            cancel_url=url_annulation,
+
+        )
+
+    except stripe.error.StripeError:
+
+        logger.exception(
+            "Erreur Stripe Checkout pour paiement %s",
+            paiement.pk,
+        )
+
+        messages.error(
+            request,
+            "Impossible d'ouvrir le paiement Stripe. "
+            "Veuillez réessayer."
+        )
+
+        return redirect(
+            "Afrons:payer_frais_evenement",
+            paiement_id=paiement.pk,
+        )
+
+    # ========================================================
+    # 12. OUVRIR DIRECTEMENT LA PAGE STRIPE
+    # ========================================================
+
+    if not session.url:
+
+        messages.error(
+            request,
+            "Stripe n'a pas retourné "
+            "de page de paiement."
+        )
+
+        return redirect(
+            "Afrons:payer_frais_evenement",
+            paiement_id=paiement.pk,
+        )
+
+    return redirect(session.url)
+
+
 
 
 
@@ -7857,3 +8100,426 @@ def webhook_telechargement_video(request):
         return HttpResponse(status=500)
 
     return HttpResponse(status=200)
+
+
+
+
+
+
+
+
+
+# ============================================================
+# AFROFANS — CONFIGURATION DU COMPTE DE RETRAIT
+# STRIPE CONNECT EXPRESS — CANADA / FRANCE
+# ============================================================
+
+import logging
+import stripe
+
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.db import transaction
+from django.shortcuts import render, redirect
+from django.urls import reverse
+from django.views.decorators.http import require_http_methods
+
+from .models import CompteRetraitTalent
+
+
+logger = logging.getLogger(__name__)
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def configurer_compte_retrait(request):
+
+    # ========================================================
+    # 1. VÉRIFIER LE COMPTE TALENT
+    # ========================================================
+
+    profil = getattr(
+        request.user,
+        "profil",
+        None,
+    )
+
+    if (
+        profil is None
+        or profil.type_compte != "createur"
+    ):
+
+        messages.error(
+            request,
+            "Cette fonctionnalité est réservée "
+            "aux comptes Talent AfroFans."
+        )
+
+        return redirect("Afrons:flux")
+
+    # ========================================================
+    # 2. VÉRIFIER L'ACTIVATION DE STRIPE CONNECT
+    # ========================================================
+
+    if not getattr(
+        settings,
+        "AFROFANS_STRIPE_CONNECT_ACTIF",
+        False,
+    ):
+
+        messages.warning(
+            request,
+            "La configuration des comptes de retrait "
+            "n'est pas encore activée sur AfroFans."
+        )
+
+        return redirect("Afrons:flux")
+
+    # ========================================================
+    # 3. PAYS AUTORISÉS
+    # ========================================================
+
+    pays = str(
+        getattr(profil, "pays", "") or ""
+    ).upper()
+
+    if pays not in ("CA", "FR"):
+
+        messages.error(
+            request,
+            "La configuration des comptes de retrait "
+            "est actuellement proposée aux Talents "
+            "du Canada et de la France."
+        )
+
+        return redirect("Afrons:flux")
+
+    # ========================================================
+    # 4. VÉRIFIER LA CLÉ STRIPE
+    # ========================================================
+
+    cle_stripe = getattr(
+        settings,
+        "STRIPE_SECRET_KEY",
+        "",
+    )
+
+    if not cle_stripe:
+
+        logger.error(
+            "AFROFANS CONNECT : STRIPE_SECRET_KEY absente."
+        )
+
+        messages.error(
+            request,
+            "Le service de configuration bancaire "
+            "est temporairement indisponible."
+        )
+
+        return redirect("Afrons:flux")
+
+    stripe.api_key = cle_stripe
+
+    mode_live = (
+        cle_stripe.startswith("sk_live_")
+        or cle_stripe.startswith("rk_live_")
+    )
+
+    # ========================================================
+    # 5. RÉCUPÉRER LE COMPTE EXISTANT
+    # ========================================================
+
+    compte = (
+        CompteRetraitTalent.objects
+        .filter(talent=request.user)
+        .first()
+    )
+
+    infos_stripe = None
+
+    # ========================================================
+    # 6. CONSULTER LE STATUT STRIPE
+    # ========================================================
+
+    if compte and compte.stripe_account_id:
+
+        try:
+
+            infos_stripe = stripe.Account.retrieve(
+                compte.stripe_account_id
+            )
+
+        except stripe.error.StripeError as erreur:
+
+            logger.exception(
+                "AFROFANS CONNECT : consultation du compte "
+                "Stripe impossible. Code : %s",
+                getattr(erreur, "code", None),
+            )
+
+            messages.error(
+                request,
+                "Impossible de consulter l'état de "
+                "votre compte de retrait. "
+                "Contactez l'assistance AfroFans."
+            )
+
+            return render(
+                request,
+                "Afrons/configurer_compte_retrait.html",
+                {
+                    "compte": compte,
+                    "infos_stripe": None,
+                    "erreur_configuration": True,
+                },
+                status=503,
+            )
+
+    # ========================================================
+    # 7. CONFIGURATION BANCAIRE
+    # ========================================================
+
+    if request.method == "POST":
+
+        # ----------------------------------------------------
+        # 7.1 HTTPS OBLIGATOIRE EN LIVE
+        # ----------------------------------------------------
+
+        if mode_live and not request.is_secure():
+
+            messages.error(
+                request,
+                "Stripe Connect en mode LIVE exige "
+                "une adresse HTTPS pour la configuration "
+                "bancaire. Utilisez le site sécurisé "
+                "AfroFans ou passez en mode TEST "
+                "pour le développement local."
+            )
+
+            return redirect(
+                "Afrons:configurer_compte_retrait"
+            )
+
+        # ----------------------------------------------------
+        # 7.2 PROTÉGER LE PAYS D'UN COMPTE EXISTANT
+        # ----------------------------------------------------
+
+        if (
+            compte is not None
+            and compte.stripe_account_id
+            and compte.pays != pays
+        ):
+
+            messages.error(
+                request,
+                "Le pays du compte bancaire "
+                "ne correspond plus au pays "
+                "enregistré. Contactez AfroFans "
+                "pour modifier votre configuration."
+            )
+
+            return redirect(
+                "Afrons:configurer_compte_retrait"
+            )
+
+        # ----------------------------------------------------
+        # 7.3 NE PAS RECRÉER UN COMPTE ACTIF
+        # ----------------------------------------------------
+
+        if (
+            infos_stripe is not None
+            and infos_stripe.payouts_enabled
+        ):
+
+            messages.success(
+                request,
+                "Votre compte de versement Stripe "
+                "est déjà activé."
+            )
+
+            return redirect(
+                "Afrons:configurer_compte_retrait"
+            )
+
+        try:
+
+            # =================================================
+            # 8. CRÉER LE COMPTE STRIPE EXPRESS
+            # =================================================
+
+            if (
+                compte is None
+                or not compte.stripe_account_id
+            ):
+
+                # On crée d'abord le compte Stripe.
+                # Un échec Stripe n'enregistre pas
+                # un identifiant de compte invalide.
+
+                nouveau_compte_stripe = (
+                    stripe.Account.create(
+                        type="express",
+                        country=pays,
+                        email=(
+                            request.user.email or None
+                        ),
+                        capabilities={
+                            "transfers": {
+                                "requested": True
+                            }
+                        },
+                        metadata={
+                            "afrofans_talent_id": str(
+                                request.user.pk
+                            ),
+                        },
+                    )
+                )
+
+                # Enregistrement local.
+                # Le compte Stripe pourra être réutilisé
+                # si la création du lien échoue ensuite.
+
+                with transaction.atomic():
+
+                    compte, cree = (
+                        CompteRetraitTalent.objects
+                        .select_for_update()
+                        .get_or_create(
+                            talent=request.user,
+                            defaults={
+                                "pays": pays,
+                            },
+                        )
+                    )
+
+                    if not compte.stripe_account_id:
+
+                        compte.stripe_account_id = (
+                            nouveau_compte_stripe.id
+                        )
+
+                        compte.pays = pays
+
+                        compte.save(
+                            update_fields=[
+                                "stripe_account_id",
+                                "pays",
+                            ]
+                        )
+
+            # =================================================
+            # 9. URLS DE RETOUR
+            # =================================================
+
+            url_retour = (
+                request.build_absolute_uri(
+                    reverse(
+                        "Afrons:configurer_compte_retrait"
+                    )
+                )
+            )
+
+            # Stripe redirige vers cette page
+            # après ou pendant l'inscription.
+            #
+            # Un lien expiré nécessite une nouvelle
+            # action POST pour créer un autre lien.
+
+            url_actualisation = url_retour
+
+            # =================================================
+            # 10. CRÉER LE LIEN DE CONFIGURATION STRIPE
+            # =================================================
+
+            lien = stripe.AccountLink.create(
+                account=compte.stripe_account_id,
+                refresh_url=url_actualisation,
+                return_url=url_retour,
+                type="account_onboarding",
+            )
+
+            logger.info(
+                "AFROFANS CONNECT : lien de configuration "
+                "créé pour le talent %s",
+                request.user.pk,
+            )
+
+            # =================================================
+            # 11. REDIRECTION VERS STRIPE
+            # =================================================
+
+            return redirect(lien.url)
+
+        # ====================================================
+        # 12. PERMISSIONS STRIPE INSUFFISANTES
+        # ====================================================
+
+        except stripe.error.PermissionError as erreur:
+
+            logger.exception(
+                "AFROFANS CONNECT : permission refusée. "
+                "Code : %s",
+                getattr(erreur, "code", None),
+            )
+
+            messages.error(
+                request,
+                "Stripe refuse une autorisation de "
+                "configuration du compte bancaire. "
+                "L'administration AfroFans doit vérifier "
+                "les permissions de la clé API."
+            )
+
+        # ====================================================
+        # 13. PARAMÈTRES STRIPE INVALIDES
+        # ====================================================
+
+        except stripe.error.InvalidRequestError as erreur:
+
+            logger.exception(
+                "AFROFANS CONNECT : requête invalide. "
+                "Code : %s",
+                getattr(erreur, "code", None),
+            )
+
+            messages.error(
+                request,
+                "Stripe a refusé la configuration "
+                "du compte. Vérifiez la configuration "
+                "Stripe Connect et les URL HTTPS."
+            )
+
+        # ====================================================
+        # 14. AUTRES ERREURS STRIPE
+        # ====================================================
+
+        except stripe.error.StripeError as erreur:
+
+            logger.exception(
+                "AFROFANS CONNECT : erreur Stripe. "
+                "Code : %s",
+                getattr(erreur, "code", None),
+            )
+
+            messages.error(
+                request,
+                "Le service Stripe Connect est "
+                "temporairement indisponible. "
+                "Veuillez réessayer."
+            )
+
+    # ========================================================
+    # 15. AFFICHER LA PAGE DE CONFIGURATION
+    # ========================================================
+
+    return render(
+        request,
+        "Afrons/configurer_compte_retrait.html",
+        {
+            "compte": compte,
+            "infos_stripe": infos_stripe,
+            "erreur_configuration": False,
+        },
+    )

@@ -1281,54 +1281,198 @@
 
                 </section>
 
-                <!-- =========================================
-                     GESTION ORGANISATEUR
-                ========================================== -->
+<!-- =====================================================
+     AFROFANS — GESTION DE L'ÉVÉNEMENT
+     PAIEMENT OBLIGATOIRE AVANT PUBLICATION
+===================================================== -->
 
-                {% if est_proprietaire %}
+{% if est_proprietaire %}
 
-                <section class="afd-owner">
+<section class="afd-owner">
 
-                    <span class="afd-owner-tag">
-                        ESPACE ORGANISATEUR
-                    </span>
+    <span class="afd-owner-tag">
+        ESPACE ORGANISATEUR
+    </span>
 
-                    <h2>
-                        Gestion de votre événement
-                    </h2>
+    <h2>
+        Gestion de votre événement
+    </h2>
 
-                    <p>
-                        Gérez les contrôleurs,
-                        le code unique de votre événement,
-                        le scanner des billets et
-                        le suivi des présences.
-                    </p>
+    <p>
+        Gérez les paiements de billetterie,
+        les contrôleurs, le code unique de
+        votre événement, le scanner des billets
+        et le suivi des présences.
+    </p>
 
-                    <div class="afd-owner-actions">
+    <!-- ================================================
+         1. FRAIS DE BILLETTERIE NON PAYÉS
+    ================================================= -->
 
-                        <a
-                            href="{% url 'Afrons:tableau_presence' evenement.id %}"
-                            class="afd-btn afd-btn-primary"
-                        >
-                            Gérer mon événement →
-                        </a>
+    {% if paiement_en_attente %}
 
-                        {% if evenement.statut != "ouvert" and evenement.statut != "termine" %}
+        <div
+            class="afd-booking-notice"
+            style="
+                margin: 0 0 20px;
+                border-color: rgba(255,138,0,.5);
+                background: #251b0e;
+                padding: 20px;
+            "
+        >
 
-                            <a
-                                href="{% url 'Afrons:modifier_evenement' evenement.id %}"
-                                class="afd-btn afd-btn-secondary"
-                            >
-                                Modifier l'événement
-                            </a>
+            <strong style="font-size:15px;">
+                Paiement des frais obligatoire
+            </strong>
 
-                        {% endif %}
+            <p style="
+                margin: 12px 0 16px;
+                color: #dedede;
+            ">
+                Votre événement a été enregistré
+                avec succès, mais il n'est pas
+                encore publié.
 
-                    </div>
+                Le paiement des frais de billetterie
+                AfroFans est obligatoire avant
+                toute validation et publication.
 
-                </section>
+                Après confirmation du paiement,
+                votre événement sera soumis à
+                la validation de l'administration.
+            </p>
 
-                {% endif %}
+            {% if paiement_frais %}
+
+                <a
+                    href="{% url 'Afrons:payer_frais_evenement' paiement_frais.pk %}"
+                    class="afd-btn afd-btn-primary afd-btn-full"
+                >
+                    Payer les frais de billetterie
+                </a>
+
+            {% else %}
+
+                <div class="afd-booking-empty">
+
+                    <strong>
+                        Dossier de paiement indisponible
+                    </strong>
+
+                    Aucun dossier de paiement n'a été
+                    trouvé pour cet événement.
+
+                    Contactez l'assistance AfroFans
+                    pour régulariser la situation.
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    <!-- ================================================
+         2. FRAIS PAYÉS — VALIDATION EN ATTENTE
+    ================================================= -->
+
+    {% elif frais_payes and not evenement_publie %}
+
+        <div
+            class="afd-booking-notice"
+            style="
+                margin: 0 0 20px;
+                border-color: #3a7758;
+                background: #16251d;
+                padding: 20px;
+            "
+        >
+
+            <strong style="color:#7ce3a8;">
+                Frais de billetterie confirmés
+            </strong>
+
+            <p style="
+                margin: 12px 0 0;
+                color: #dedede;
+            ">
+                Votre paiement a été enregistré.
+
+                Votre événement attend maintenant
+                la validation et la publication
+                officielle par AfroFans.
+
+                Vous serez informé lorsque
+                votre événement sera publié.
+            </p>
+
+        </div>
+
+    <!-- ================================================
+         3. ÉVÉNEMENT PUBLIÉ
+    ================================================= -->
+
+    {% elif frais_payes and evenement_publie %}
+
+        <div
+            class="afd-booking-notice"
+            style="
+                margin: 0 0 20px;
+                border-color: #3a7758;
+                background: #16251d;
+                padding: 20px;
+            "
+        >
+
+            <strong style="color:#7ce3a8;">
+                Événement publié
+            </strong>
+
+            <p style="
+                margin: 12px 0 0;
+                color: #dedede;
+            ">
+                Les frais de billetterie sont
+                confirmés et votre événement
+                est officiellement publié sur
+                AfroFans.
+
+                Les Fans peuvent réserver leurs
+                billets selon les disponibilités.
+            </p>
+
+        </div>
+
+    {% endif %}
+
+    <!-- ================================================
+         4. ACTIONS DE GESTION
+    ================================================= -->
+
+    <div class="afd-owner-actions">
+
+        <a
+            href="{% url 'Afrons:tableau_presence' evenement.id %}"
+            class="afd-btn afd-btn-primary"
+        >
+            Gérer mon événement
+        </a>
+
+        {% if evenement.statut != "ouvert" and evenement.statut != "termine" and evenement.statut != "annule" %}
+
+            <a
+                href="{% url 'Afrons:modifier_evenement' evenement.id %}"
+                class="afd-btn afd-btn-secondary"
+            >
+                Modifier l'événement
+            </a>
+
+        {% endif %}
+
+    </div>
+
+</section>
+
+{% endif %}
 
             </div>
 

@@ -1281,14 +1281,55 @@ class Don(models.Model):
 
 
 
+# ============================================================
+# AFROFANS — MODÈLE OFFICIEL DES ÉVÉNEMENTS
+#
+# BILLETTERIE :
+# - 20 CAD HT par tranche de 100 billets au Canada
+# - Tarif EUR configurable pour la France
+# - Tarif XOF configurable pour les pays CFA
+#
+# Le talent définit son propre prix de billet.
+#
+# Paiement des frais obligatoire avant publication.
+# ============================================================
+
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
+
+from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.core.validators import (
+    MinValueValidator,
+    MaxValueValidator,
+)
+from django.db import models
+from django.db.models import Sum
+from django.urls import reverse
+from django.utils import timezone
+
+
 class Evenement(models.Model):
+
+    # ========================================================
+    # 1. DEVISES
+    # ========================================================
 
     DEVISES = Don.DEVISES
 
+    # ========================================================
+    # 2. STATUTS
+    # ========================================================
+
     STATUTS = [
         ("brouillon", "Brouillon"),
-        ("paiement_attente", "Paiement des frais en attente"),
-        ("en_attente", "En attente de validation"),
+        (
+            "paiement_attente",
+            "Paiement des frais en attente",
+        ),
+        (
+            "en_attente",
+            "En attente de validation",
+        ),
         ("publie", "Publié"),
         ("ouvert", "Événement ouvert"),
         ("refuse", "Refusé"),
@@ -1296,22 +1337,42 @@ class Evenement(models.Model):
         ("termine", "Terminé"),
     ]
 
+    # ========================================================
+    # 3. TALENT / ORGANISATEUR
+    # ========================================================
+
     createur = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="evenements",
     )
 
-    titre = models.CharField(max_length=160)
-    description = models.TextField(max_length=3000)
+    # ========================================================
+    # 4. INFORMATIONS DE L'ÉVÉNEMENT
+    # ========================================================
 
-    affiche = models.ImageField(
-        upload_to="evenements/affiches/%Y/%m/"
+    titre = models.CharField(
+        max_length=160,
     )
 
-    lieu = models.CharField(max_length=180)
-    adresse = models.CharField(max_length=250, blank=True)
-    ville = models.CharField(max_length=100)
+    description = models.TextField(
+        max_length=3000,
+    )
+
+
+
+    lieu = models.CharField(
+        max_length=180,
+    )
+
+    adresse = models.CharField(
+        max_length=250,
+        blank=True,
+    )
+
+    ville = models.CharField(
+        max_length=100,
+    )
 
     pays = models.CharField(
         max_length=2,
@@ -1320,29 +1381,66 @@ class Evenement(models.Model):
 
     date_evenement = models.DateTimeField()
 
+    # ========================================================
+    # 5. PRIX DU BILLET FIXÉ PAR LE TALENT
+    # ========================================================
+
+    # Ce prix appartient à la billetterie de l'événement.
+    #
+    # Exemple :
+    # Le talent choisit 60 CAD par billet.
+    #
+    # Les fans voient :
+    # 60 CAD / billet.
+    #
+    # Ce prix ne détermine PAS les frais de publication
+    # facturés au talent par AfroFans.
+
     prix = models.DecimalField(
         max_digits=12,
         decimal_places=2,
         validators=[
-            MinValueValidator(Decimal("0.01"))
+            MinValueValidator(
+                Decimal("0.01")
+            ),
         ],
         verbose_name="Prix d'un billet",
     )
 
+    # ========================================================
+    # 6. DEVISE DE L'ÉVÉNEMENT
+    # ========================================================
+
     devise = models.CharField(
         max_length=3,
         choices=DEVISES,
-        default="XOF",
+        default="CAD",
     )
 
+    # ========================================================
+    # 7. NOMBRE DE BILLETS
+    # ========================================================
+
+    # Une tranche commencée de 100 billets
+    # entraîne des frais de billetterie.
+    #
+    # Exemples :
+    # 1 à 100 billets : 1 tranche
+    # 101 à 200 : 2 tranches
+    # 201 à 300 : 3 tranches
+
     nombre_places = models.PositiveIntegerField(
-        default=10,
+        default=100,
         validators=[
             MinValueValidator(1),
-            MaxValueValidator(100),
+            MaxValueValidator(10000),
         ],
         verbose_name="Nombre de billets",
     )
+
+    # ========================================================
+    # 8. STATUT DE L'ÉVÉNEMENT
+    # ========================================================
 
     statut = models.CharField(
         max_length=25,
@@ -1350,8 +1448,12 @@ class Evenement(models.Model):
         default="brouillon",
     )
 
+    # ========================================================
+    # 9. FRAIS DE BILLETTERIE
+    # ========================================================
+
     frais_billetterie_payes = models.BooleanField(
-        default=False
+        default=False,
     )
 
     frais_payes_le = models.DateTimeField(
@@ -1359,111 +1461,408 @@ class Evenement(models.Model):
         blank=True,
     )
 
+    # ========================================================
+    # 10. NOTIFICATIONS ET REFUS
+    # ========================================================
+
     notifications_envoyees = models.BooleanField(
-        default=False
+        default=False,
     )
 
-    motif_refus = models.TextField(blank=True)
+    motif_refus = models.TextField(
+        blank=True,
+    )
 
-    cree_le = models.DateTimeField(auto_now_add=True)
-    modifie_le = models.DateTimeField(auto_now=True)
+    # ========================================================
+    # 11. DATES
+    # ========================================================
+
+    cree_le = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    modifie_le = models.DateTimeField(
+        auto_now=True,
+    )
+
+    # ========================================================
+    # 12. MÉTADONNÉES
+    # ========================================================
 
     class Meta:
-        ordering = ["date_evenement"]
+
+        ordering = [
+            "date_evenement",
+        ]
+
         verbose_name = "Événement"
         verbose_name_plural = "Événements"
 
+    # ========================================================
+    # 13. VALIDATION GÉNÉRALE
+    # ========================================================
+
     def clean(self):
+
         super().clean()
 
         erreurs = {}
 
-        if not 1 <= self.nombre_places <= 100:
+        # ----------------------------------------------------
+        # NOMBRE DE BILLETS
+        # ----------------------------------------------------
+
+        if (
+            self.nombre_places is None
+            or not 1 <= self.nombre_places <= 10000
+        ):
+
             erreurs["nombre_places"] = (
                 "Le nombre de billets doit être "
-                "compris entre 1 et 100."
+                "compris entre 1 et 10 000."
             )
 
+        # ----------------------------------------------------
+        # DATE DE L'ÉVÉNEMENT
+        # ----------------------------------------------------
+
         if self.date_evenement:
+
             if (
                 self._state.adding
                 and self.date_evenement <= timezone.now()
             ):
+
                 erreurs["date_evenement"] = (
-                    "La date doit être dans le futur."
+                    "La date de l'événement doit "
+                    "être dans le futur."
                 )
 
-        if self.prix is not None and self.prix <= 0:
+        # ----------------------------------------------------
+        # PRIX DU BILLET
+        # ----------------------------------------------------
+
+        if (
+            self.prix is None
+            or self.prix <= Decimal("0")
+        ):
+
             erreurs["prix"] = (
-                "Le prix doit être supérieur à zéro."
+                "Le prix du billet doit être "
+                "supérieur à zéro."
             )
 
-        if self.statut in ("publie", "ouvert"):
+        # ----------------------------------------------------
+        # COHÉRENCE PAYS / DEVISE
+        # ----------------------------------------------------
+
+        devises_par_pays = {
+            "CA": "CAD",
+            "FR": "EUR",
+            "ML": "XOF",
+            "SN": "XOF",
+            "CI": "XOF",
+        }
+
+        devise_attendue = devises_par_pays.get(
+            self.pays
+        )
+
+        if (
+            devise_attendue
+            and self.devise != devise_attendue
+        ):
+
+            erreurs["devise"] = (
+                "La devise sélectionnée ne "
+                "correspond pas au pays "
+                "de cet événement."
+            )
+
+        # ----------------------------------------------------
+        # PUBLICATION INTERDITE SANS PAIEMENT
+        # ----------------------------------------------------
+
+        if self.statut in (
+            "publie",
+            "ouvert",
+        ):
+
             if not self.frais_billetterie_payes:
+
                 erreurs["statut"] = (
                     "Les frais de billetterie "
-                    "doivent être payés."
+                    "doivent être payés et "
+                    "confirmés avant publication."
                 )
 
         if erreurs:
+
             raise ValidationError(erreurs)
+
+    # ========================================================
+    # 14. TARIF POUR 100 BILLETS
+    # ========================================================
+
+    @property
+    def tarif_par_100_billets(self):
+
+        if self.devise == "CAD":
+
+            return Decimal("20.00")
+
+        elif self.devise == "EUR":
+
+            tarif = getattr(
+                settings,
+                "AFROFANS_FRAIS_100_EUR",
+                None,
+            )
+
+        elif self.devise == "XOF":
+
+            tarif = getattr(
+                settings,
+                "AFROFANS_FRAIS_100_XOF",
+                None,
+            )
+
+        else:
+
+            raise ValidationError(
+                "Devise non prise en charge "
+                "pour la billetterie AfroFans."
+            )
+
+        if tarif is None:
+
+            raise ValidationError(
+                "Le tarif de billetterie "
+                f"en {self.devise} "
+                "n'est pas configuré."
+            )
+
+        try:
+
+            montant = Decimal(str(tarif))
+
+        except (
+            InvalidOperation,
+            ValueError,
+            TypeError,
+        ):
+
+            raise ValidationError(
+                "Le tarif de billetterie "
+                "configuré est invalide."
+            )
+
+        if (
+            not montant.is_finite()
+            or montant <= 0
+        ):
+
+            raise ValidationError(
+                "Le tarif de billetterie doit "
+                "être supérieur à zéro."
+            )
+
+        return montant.quantize(
+            Decimal("0.01"),
+            rounding=ROUND_HALF_UP,
+        )
+
+    # ========================================================
+    # 15. NOMBRE DE TRANCHES DE 100 BILLETS
+    # ========================================================
 
     @property
     def nombre_tranches(self):
-        return int(
-            (
-                Decimal(self.nombre_places)
-                / Decimal("10")
-            ).to_integral_value(
-                rounding=ROUND_CEILING
-            )
-        )
+
+        if not self.nombre_places:
+            return 0
+
+        return (
+            self.nombre_places + 99
+        ) // 100
+
+    # ========================================================
+    # 16. FRAIS DE BILLETTERIE HORS TAXES
+    # ========================================================
 
     @property
     def frais_billetterie_ht(self):
-        return (
+
+        frais = (
             Decimal(self.nombre_tranches)
-            * Decimal("50.00")
+            * self.tarif_par_100_billets
+        )
+
+        return frais.quantize(
+            Decimal("0.01"),
+            rounding=ROUND_HALF_UP,
+        )
+
+    # ========================================================
+    # 17. TAUX DE TAXES
+    # ========================================================
+
+    # Les taxes dépendent de la situation fiscale
+    # réelle du vendeur et de la transaction.
+    #
+    # L'application ne doit pas considérer
+    # automatiquement que toute vente canadienne
+    # relève de la fiscalité québécoise.
+    #
+    # Une configuration fiscale validée doit
+    # déterminer les taux applicables.
+
+    @property
+    def taux_tps(self):
+
+        if self.pays != "CA":
+            return Decimal("0")
+
+        return self._taux_fiscal(
+            "AFROFANS_TPS",
+            "0.05",
         )
 
     @property
+    def taux_tvq(self):
+
+        if self.pays != "CA":
+            return Decimal("0")
+
+        return self._taux_fiscal(
+            "AFROFANS_TVQ",
+            "0.09975",
+        )
+
+    @staticmethod
+    def _taux_fiscal(nom, defaut):
+
+        valeur = getattr(
+            settings,
+            nom,
+            defaut,
+        )
+
+        try:
+
+            taux = Decimal(str(valeur))
+
+        except (
+            InvalidOperation,
+            ValueError,
+            TypeError,
+        ):
+
+            raise ValidationError(
+                f"Taux fiscal invalide : {nom}"
+            )
+
+        if (
+            not taux.is_finite()
+            or taux < 0
+            or taux > 1
+        ):
+
+            raise ValidationError(
+                f"Taux fiscal invalide : {nom}"
+            )
+
+        return taux
+
+    # ========================================================
+    # 18. MONTANT TPS
+    # ========================================================
+
+    @property
     def montant_tps(self):
+
         return (
             self.frais_billetterie_ht
-            * Decimal("0.05")
-        ).quantize(Decimal("0.01"))
+            * self.taux_tps
+        ).quantize(
+            Decimal("0.01"),
+            rounding=ROUND_HALF_UP,
+        )
+
+    # ========================================================
+    # 19. MONTANT TVQ
+    # ========================================================
 
     @property
     def montant_tvq(self):
+
         return (
             self.frais_billetterie_ht
-            * Decimal("0.09975")
-        ).quantize(Decimal("0.01"))
+            * self.taux_tvq
+        ).quantize(
+            Decimal("0.01"),
+            rounding=ROUND_HALF_UP,
+        )
+
+    # ========================================================
+    # 20. TOTAL DES TAXES
+    # ========================================================
 
     @property
     def total_taxes(self):
-        return self.montant_tps + self.montant_tvq
+
+        return (
+            self.montant_tps
+            + self.montant_tvq
+        ).quantize(
+            Decimal("0.01"),
+            rounding=ROUND_HALF_UP,
+        )
+
+    # ========================================================
+    # 21. FRAIS TOUTES TAXES COMPRISES
+    # ========================================================
 
     @property
     def frais_billetterie_ttc(self):
-        return (
+
+        total = (
             self.frais_billetterie_ht
             + self.total_taxes
         )
 
+        return total.quantize(
+            Decimal("0.01"),
+            rounding=ROUND_HALF_UP,
+        )
+
+    # ========================================================
+    # 22. PLACES VENDUES
+    # ========================================================
+
     @property
     def places_vendues(self):
+
+        if not self.pk:
+            return 0
+
         resultat = self.billets.filter(
-            statut="paye"
+            statut="paye",
         ).aggregate(
-            total=Sum("quantite")
+            total=Sum("quantite"),
         )
 
         return resultat["total"] or 0
 
+    # ========================================================
+    # 23. PLACES RESTANTES
+    # ========================================================
+
     @property
     def places_restantes(self):
+
         if not self.pk:
+
             return self.nombre_places
 
         modele = self._meta.apps.get_model(
@@ -1476,7 +1875,7 @@ class Evenement(models.Model):
             billet__statut="en_attente",
             expire_le__gt=timezone.now(),
         ).aggregate(
-            total=Sum("billet__quantite")
+            total=Sum("billet__quantite"),
         )["total"] or 0
 
         return max(
@@ -1486,40 +1885,78 @@ class Evenement(models.Model):
             0,
         )
 
+    # ========================================================
+    # 24. PLACES DISPONIBLES
+    # ========================================================
+
     @property
     def places_disponibles(self):
+
         return self.places_restantes
+
+    # ========================================================
+    # 25. ÉVÉNEMENT COMPLET
+    # ========================================================
 
     @property
     def est_complet(self):
+
         return self.places_restantes <= 0
+
+    # ========================================================
+    # 26. REVENUS DES BILLETS
+    # ========================================================
 
     @property
     def revenu_total(self):
+
+        if not self.pk:
+            return Decimal("0.00")
+
         resultat = self.billets.filter(
-            statut="paye"
+            statut="paye",
         ).aggregate(
-            total=Sum("montant_total")
+            total=Sum("montant_total"),
         )
 
-        return resultat["total"] or Decimal("0.00")
+        return (
+            resultat["total"]
+            or Decimal("0.00")
+        )
+
+    # ========================================================
+    # 27. ÉTAT DE L'ÉVÉNEMENT
+    # ========================================================
 
     @property
     def est_ouvert(self):
+
         return self.statut == "ouvert"
 
     @property
     def est_termine(self):
+
         return self.statut == "termine"
 
+    # ========================================================
+    # 28. URL DE L'ÉVÉNEMENT
+    # ========================================================
+
     def get_absolute_url(self):
+
         return reverse(
             "Afrons:detail_evenement",
             args=[self.pk],
         )
 
+    # ========================================================
+    # 29. REPRÉSENTATION
+    # ========================================================
+
     def __str__(self):
+
         return self.titre
+
 
 
 
@@ -3228,3 +3665,37 @@ class BilletUnitePayeeAfroFans(models.Model):
                 name="af_unite_unique_par_paiement",
             ),
         ]
+
+
+
+
+
+class CompteRetraitTalent(models.Model):
+
+    talent = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="compte_retrait_talent",
+    )
+
+    stripe_account_id = models.CharField(
+        max_length=100,
+        unique=True,
+        null=True,
+        blank=True,
+    )
+
+    pays = models.CharField(
+        max_length=2,
+        choices=[
+            ("CA", "Canada"),
+            ("FR", "France"),
+        ],
+    )
+
+    cree_le = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    def __str__(self):
+        return f"Compte de retrait de {self.talent}"

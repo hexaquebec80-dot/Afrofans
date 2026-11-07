@@ -862,7 +862,7 @@ class EvenementForm(forms.ModelForm):
         fields = (
             "titre",
             "description",
-            "affiche",
+        
             "lieu",
             "adresse",
             "ville",

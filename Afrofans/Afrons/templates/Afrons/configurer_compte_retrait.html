@@ -1,0 +1,96 @@
+
+{% extends "Afrons/base.html" %}
+
+{% block title %}
+Compte de retrait | AfroFans
+{% endblock %}
+
+{% block content %}
+
+<section style="
+    max-width:620px;
+    margin:100px auto 60px;
+    padding:30px;
+    background:#191b24;
+    border:1px solid #484048;
+    border-radius:20px;
+    color:#fff;
+    font-family:inherit;
+">
+
+    <h1 style="
+        font-size:27px;
+        margin-bottom:12px;
+    ">
+        <span style="color:#ff900d;">AfroFans</span>
+        — Compte de retrait
+    </h1>
+
+    <p style="color:#b7b8c1;line-height:1.7;">
+        Configurez votre compte bancaire pour recevoir
+        vos revenus de talent en toute sécurité.
+        Vos coordonnées bancaires seront recueillies
+        directement par Stripe.
+    </p>
+
+    {% if infos_stripe %}
+
+        {% if infos_stripe.payouts_enabled %}
+
+            <p style="color:#70e0af;">
+                Votre compte de versement est activé.
+            </p>
+
+        {% elif infos_stripe.details_submitted %}
+
+            <p style="color:#ffc36d;">
+                Vos informations ont été soumises.
+                Stripe doit encore autoriser les versements.
+            </p>
+
+        {% else %}
+
+            <p style="color:#ffc36d;">
+                Votre configuration bancaire est incomplète.
+            </p>
+
+        {% endif %}
+
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+
+        <button type="submit" style="
+            display:block;
+            width:100%;
+            margin-top:25px;
+            padding:15px;
+            border:0;
+            border-radius:11px;
+            background:linear-gradient(110deg,#ffc36d,#ff8900);
+            color:#221407;
+            font-size:14px;
+            font-weight:800;
+            cursor:pointer;
+        ">
+            {% if compte %}
+                Continuer la configuration Stripe
+            {% else %}
+                Configurer mon compte bancaire
+            {% endif %}
+        </button>
+    </form>
+
+    <p style="
+        margin-top:20px;
+        font-size:12px;
+        color:#a2a4b0;
+    ">
+        Aucun retrait ne sera effectué automatiquement
+        en cliquant sur ce bouton.
+    </p>
+
+</section>
+
+{% endblock %}
