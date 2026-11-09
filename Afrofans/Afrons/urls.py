@@ -5,7 +5,7 @@ from . import views_billetterie_stripe
 from . import views
 
 from django.urls import path
-
+from . import api_mobile
 from . import views_billetterie as vues
 from . import views_paiement_afrofans
 from . import views_notifications_afrofans
@@ -478,5 +478,89 @@ path(
     views.configurer_compte_retrait,
     name="configurer_compte_retrait",
 ),
+
+# ==================================================
+# AFROFANS — ROUTES APPLICATION MOBILE
+# ==================================================
+
+path(
+    "api/mobile/connexion/",
+    api_mobile.connexion_mobile,
+    name="mobile_connexion",
+),
+
+path(
+    "api/mobile/profil/",
+    api_mobile.profil_mobile,
+    name="mobile_profil",
+),
+
+path(
+    "api/mobile/evenements/",
+    api_mobile.evenements_mobile,
+    name="mobile_evenements",
+),
+
+path(
+    "api/mobile/deconnexion/",
+    api_mobile.deconnexion_mobile,
+    name="mobile_deconnexion",
+),
+
+
+# ============================================================
+# AFROFANS MOBILE — API VIDÉOS ET INTERACTIONS
+# ============================================================
+
+path(
+    "api/mobile/videos/",
+    api_mobile.videos_mobile,
+    name="mobile_videos",
+),
+
+path(
+    "api/mobile/videos/<int:video_id>/aimer/",
+    api_mobile.aimer_video_mobile,
+    name="mobile_aimer_video",
+),
+
+path(
+    "api/mobile/videos/<int:video_id>/favori/",
+    api_mobile.favori_video_mobile,
+    name="mobile_favori_video",
+),
+
+path(
+    "api/mobile/talents/<str:username>/suivre/",
+    api_mobile.suivre_talent_mobile,
+    name="mobile_suivre_talent",
+),
+
+path(
+    "api/mobile/videos/<int:video_id>/commentaires/",
+    api_mobile.commentaires_video_mobile,
+    name="mobile_commentaires_video",
+),
+
+path(
+    "api/mobile/commentaires/<int:commentaire_id>/aimer/",
+    api_mobile.aimer_commentaire_mobile,
+    name="mobile_aimer_commentaire",
+),
+
+path(
+    "api/mobile/commentaires/<int:commentaire_id>/supprimer/",
+    api_mobile.supprimer_commentaire_mobile,
+    name="mobile_supprimer_commentaire",
+),
+
+path(
+    "api/mobile/commentaires/<int:commentaire_id>/signaler/",
+    api_mobile.signaler_commentaire_mobile,
+    name="mobile_signaler_commentaire",
+),
+
+
+
 
 ]
