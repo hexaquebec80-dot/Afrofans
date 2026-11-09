@@ -167,6 +167,9 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "rest_framework",
+    "rest_framework.authtoken",
+
 
     # Cloudinary
     "cloudinary_storage",
@@ -774,3 +777,18 @@ TAUX_XOF_CAD = lire_taux_conversion(
 TAUX_XOF_EUR = lire_taux_conversion(
     "TAUX_XOF_EUR"
 )
+
+
+
+# ==================================================
+# AFROFANS — API MOBILE
+# ==================================================
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+}
