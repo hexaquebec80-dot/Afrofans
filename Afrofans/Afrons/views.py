@@ -8135,104 +8135,236 @@ logger = logging.getLogger(__name__)
 @require_http_methods(["GET", "POST"])
 def configurer_compte_retrait(request):
 
-    # 1. Vérifier le compte Talent
+    # ==========================================================
+    # 1. VÉRIFIER LE COMPTE TALENT AFROFANS
+    # ==========================================================
+
     profil = getattr(request.user, "profil", None)
 
-    if profil is None or profil.type_compte != "createur":
+    if (
+        profil is None
+        or profil.type_compte != "createur"
+    ):
         messages.error(
             request,
-            "Cette fonctionnalité est réservée aux comptes Talent AfroFans."
+            "Cette fonctionnalité est réservée "
+            "aux comptes Talent AfroFans."
         )
         return redirect("Afrons:flux")
 
-    # 2. Activer Stripe Connect
-    if not getattr(settings, "AFROFANS_STRIPE_CONNECT_ACTIF", False):
+    # ==========================================================
+    # 2. VÉRIFIER L'ACTIVATION STRIPE CONNECT
+    # ==========================================================
+
+    if not getattr(
+        settings,
+        "AFROFANS_STRIPE_CONNECT_ACTIF",
+        False
+    ):
         messages.warning(
             request,
-            "La configuration des comptes de retrait n'est pas encore activée."
+            "La configuration des comptes de retrait "
+            "n'est pas encore activée sur AfroFans."
         )
         return redirect("Afrons:flux")
 
-    # 3. Pays autorisés
-    pays = str(getattr(profil, "pays", "") or "").upper()
+    # ==========================================================
+    # 3. PAYS AUTORISÉS
+    # ==========================================================
+
+    pays = str(
+        getattr(profil, "pays", "") or ""
+    ).strip().upper()
 
     if pays not in ("CA", "FR"):
         messages.error(
             request,
-            "Les comptes de retrait sont actuellement réservés "
-            "aux talents du Canada et de la France."
+            "Les comptes de retrait AfroFans sont "
+            "actuellement disponibles pour les talents "
+            "du Canada et de la France."
         )
         return redirect("Afrons:flux")
 
-    # 4. Configuration Stripe
-    cle_stripe = getattr(settings, "STRIPE_SECRET_KEY", "")
+    # ==========================================================
+    # 4. CONFIGURATION STRIPE
+    # ==========================================================
+
+    cle_stripe = getattr(
+        settings,
+        "STRIPE_SECRET_KEY",
+        ""
+    )
 
     if not cle_stripe:
-        logger.error("AFROFANS CONNECT : clé Stripe absente.")
+        logger.error(
+            "AFROFANS CONNECT : STRIPE_SECRET_KEY absente."
+        )
+
         messages.error(
             request,
-            "Le service de retrait est temporairement indisponible."
+            "Le service de configuration bancaire "
+            "est temporairement indisponible."
         )
+
         return redirect("Afrons:flux")
 
     stripe.api_key = cle_stripe
 
-    mode_live = cle_stripe.startswith(("sk_live_", "rk_live_"))
+    mode_live = cle_stripe.startswith(
+        ("sk_live_", "rk_live_")
+    )
 
-    # 5. Compte local
+    # ==========================================================
+    # 5. RÉCUPÉRER LE COMPTE DE RETRAIT LOCAL
+    # ==========================================================
+
     compte = (
         CompteRetraitTalent.objects
         .filter(talent=request.user)
         .first()
     )
 
+    # ==========================================================
+    # 6. INITIALISER LES STATUTS
+    # ==========================================================
+
     infos_stripe = None
+
     compte_retrait_actif = False
     details_soumis = False
     configuration_requise = False
     verification_en_cours = False
     erreur_configuration = False
 
-    # 6. Récupérer le statut réel auprès de Stripe
+    champs_requis = []
+    champs_en_retard = []
+    champs_en_verification = []
+
+    raison_blocage = None
+
+    # ==========================================================
+    # 7. CONSULTER LE COMPTE EXISTANT SUR STRIPE
+    # ==========================================================
+
     if compte and compte.stripe_account_id:
+
         try:
+
             infos_stripe = stripe.Account.retrieve(
                 compte.stripe_account_id
             )
 
+            # IMPORTANT :
+            # StripeObject ne prend pas en charge .get()
+            # dans la version Stripe actuellement installée.
+            # Utiliser getattr() évite AttributeError: get.
+
             compte_retrait_actif = bool(
-                infos_stripe.get("payouts_enabled", False)
+                getattr(
+                    infos_stripe,
+                    "payouts_enabled",
+                    False
+                )
             )
 
             details_soumis = bool(
-                infos_stripe.get("details_submitted", False)
+                getattr(
+                    infos_stripe,
+                    "details_submitted",
+                    False
+                )
             )
 
-            requirements = infos_stripe.get("requirements") or {}
+            # ==================================================
+            # 8. VÉRIFIER LES EXIGENCES STRIPE
+            # ==================================================
 
-            champs_requis = requirements.get("currently_due") or []
-            champs_en_retard = requirements.get("past_due") or []
-            raison_blocage = requirements.get("disabled_reason")
+            requirements = getattr(
+                infos_stripe,
+                "requirements",
+                None
+            )
+
+            champs_requis = (
+                getattr(
+                    requirements,
+                    "currently_due",
+                    None
+                ) or []
+            )
+
+            champs_en_retard = (
+                getattr(
+                    requirements,
+                    "past_due",
+                    None
+                ) or []
+            )
+
+            champs_en_verification = (
+                getattr(
+                    requirements,
+                    "pending_verification",
+                    None
+                ) or []
+            )
+
+            raison_blocage = getattr(
+                requirements,
+                "disabled_reason",
+                None
+            )
+
+            # ==================================================
+            # 9. DÉTERMINER L'ÉTAT DE CONFIGURATION
+            # ==================================================
 
             configuration_requise = (
-                bool(champs_requis)
-                or bool(champs_en_retard)
-                or not details_soumis
+                not compte_retrait_actif
+                and (
+                    not details_soumis
+                    or bool(champs_requis)
+                    or bool(champs_en_retard)
+                )
             )
+
+            # Un compte peut être en cours de vérification
+            # même après transmission des documents.
 
             verification_en_cours = (
                 not compte_retrait_actif
                 and not configuration_requise
                 and (
-                    details_soumis
-                    or bool(raison_blocage == "requirements.pending_verification")
+                    bool(champs_en_verification)
+                    or raison_blocage
+                    == "requirements.pending_verification"
+                    or details_soumis
                 )
             )
 
+            logger.info(
+                "AFROFANS CONNECT : talent=%s, "
+                "payouts_enabled=%s, "
+                "details_submitted=%s, "
+                "configuration_requise=%s, "
+                "verification_en_cours=%s",
+                request.user.pk,
+                compte_retrait_actif,
+                details_soumis,
+                configuration_requise,
+                verification_en_cours,
+            )
+
+        # ======================================================
+        # 10. ERREUR DE CONSULTATION STRIPE
+        # ======================================================
+
         except stripe.error.StripeError as erreur:
+
             logger.exception(
-                "AFROFANS CONNECT : consultation Stripe impossible. "
-                "Code : %s",
+                "AFROFANS CONNECT : consultation Stripe "
+                "impossible pour le talent %s. Code : %s",
+                request.user.pk,
                 getattr(erreur, "code", None),
             )
 
@@ -8240,8 +8372,9 @@ def configurer_compte_retrait(request):
 
             messages.error(
                 request,
-                "Impossible de vérifier le statut de votre compte "
-                "Stripe. Veuillez réessayer."
+                "Impossible de vérifier le statut "
+                "de votre compte de retrait Stripe. "
+                "Veuillez réessayer."
             )
 
             return render(
@@ -8259,149 +8392,269 @@ def configurer_compte_retrait(request):
                 status=503,
             )
 
-    # 7. Traitement de la configuration bancaire
+    # ==========================================================
+    # 11. TRAITEMENT DE LA CONFIGURATION BANCAIRE
+    # ==========================================================
+
     if request.method == "POST":
 
-        # Un compte déjà actif ne repart pas dans l'onboarding
+        # ======================================================
+        # 11.1. COMPTE DÉJÀ ACTIVÉ
+        # ======================================================
+
         if compte_retrait_actif:
+
             messages.success(
                 request,
-                "Votre compte de retrait est déjà activé."
+                "Votre compte de retrait AfroFans "
+                "est déjà activé. "
+                "Les versements sont autorisés par Stripe."
             )
-            return redirect("Afrons:configurer_compte_retrait")
 
-        # Éviter de relancer inutilement l'onboarding
-        # pendant une vérification en cours
+            return redirect(
+                "Afrons:configurer_compte_retrait"
+            )
+
+        # ======================================================
+        # 11.2. VÉRIFICATION EN COURS
+        # ======================================================
+
         if verification_en_cours:
+
             messages.info(
                 request,
-                "Votre compte est en cours de vérification par Stripe."
+                "Votre compte Stripe est en cours "
+                "de vérification. "
+                "Aucune nouvelle configuration "
+                "n'est nécessaire actuellement."
             )
-            return redirect("Afrons:configurer_compte_retrait")
 
-        # HTTPS en mode LIVE
+            return redirect(
+                "Afrons:configurer_compte_retrait"
+            )
+
+        # ======================================================
+        # 11.3. HTTPS OBLIGATOIRE EN MODE LIVE
+        # ======================================================
+
         if mode_live and not request.is_secure():
+
             messages.error(
                 request,
-                "Une connexion HTTPS est nécessaire pour "
-                "configurer votre compte Stripe."
+                "La configuration bancaire Stripe "
+                "nécessite une connexion HTTPS sécurisée."
             )
-            return redirect("Afrons:configurer_compte_retrait")
 
-        # Éviter le changement non autorisé de pays
+            return redirect(
+                "Afrons:configurer_compte_retrait"
+            )
+
+        # ======================================================
+        # 11.4. VÉRIFIER LE PAYS DU COMPTE EXISTANT
+        # ======================================================
+
         if (
             compte is not None
             and compte.stripe_account_id
             and compte.pays != pays
         ):
+
             messages.error(
                 request,
-                "Le pays enregistré ne correspond plus à celui "
-                "du compte Stripe. Contactez AfroFans."
+                "Le pays de votre profil ne correspond "
+                "plus au pays du compte Stripe. "
+                "Contactez l'assistance AfroFans."
             )
-            return redirect("Afrons:configurer_compte_retrait")
+
+            return redirect(
+                "Afrons:configurer_compte_retrait"
+            )
 
         try:
-            # 8. Créer un compte Express si nécessaire
-            if compte is None or not compte.stripe_account_id:
+
+            # ==================================================
+            # 12. CRÉER UN COMPTE STRIPE EXPRESS SI NÉCESSAIRE
+            # ==================================================
+
+            if (
+                compte is None
+                or not compte.stripe_account_id
+            ):
+
+                # Utiliser une clé d'idempotence permet
+                # d'éviter de créer plusieurs comptes
+                # pour une même tentative logique.
 
                 nouveau_compte = stripe.Account.create(
                     type="express",
                     country=pays,
                     email=request.user.email or None,
                     capabilities={
-                        "transfers": {"requested": True}
+                        "transfers": {
+                            "requested": True
+                        }
                     },
                     metadata={
-                        "afrofans_talent_id": str(request.user.pk)
+                        "afrofans_talent_id": str(
+                            request.user.pk
+                        )
                     },
                     idempotency_key=(
-                        f"afrofans-express-{request.user.pk}-{pays}"
+                        f"afrofans-connect-express-"
+                        f"{request.user.pk}-{pays}"
                     ),
                 )
 
+                # ==============================================
+                # 13. ENREGISTRER LE COMPTE DANS POSTGRESQL
+                # ==============================================
+
                 with transaction.atomic():
-                    compte, _ = (
+
+                    compte, cree = (
                         CompteRetraitTalent.objects
                         .select_for_update()
                         .get_or_create(
                             talent=request.user,
-                            defaults={"pays": pays},
+                            defaults={
+                                "pays": pays
+                            }
                         )
                     )
 
                     if not compte.stripe_account_id:
-                        compte.stripe_account_id = nouveau_compte.id
-                        compte.pays = pays
-                        compte.save(
-                            update_fields=["stripe_account_id", "pays"]
+
+                        compte.stripe_account_id = (
+                            nouveau_compte.id
                         )
 
-            # 9. URL de retour
+                        compte.pays = pays
+
+                        compte.save(
+                            update_fields=[
+                                "stripe_account_id",
+                                "pays",
+                            ]
+                        )
+
+                logger.info(
+                    "AFROFANS CONNECT : compte Express "
+                    "enregistré pour le talent %s.",
+                    request.user.pk,
+                )
+
+            # ==================================================
+            # 14. CONSTRUIRE LES URLS DE RETOUR
+            # ==================================================
+
             url_retour = request.build_absolute_uri(
-                reverse("Afrons:configurer_compte_retrait")
+                reverse(
+                    "Afrons:configurer_compte_retrait"
+                )
             )
 
-            # 10. Générer le lien sécurisé Stripe
+            url_actualisation = url_retour
+
+            # ==================================================
+            # 15. CRÉER LE LIEN STRIPE CONNECT
+            # ==================================================
+
             lien = stripe.AccountLink.create(
                 account=compte.stripe_account_id,
-                refresh_url=url_retour,
+                refresh_url=url_actualisation,
                 return_url=url_retour,
                 type="account_onboarding",
             )
 
             logger.info(
-                "AFROFANS CONNECT : lien créé pour le talent %s",
+                "AFROFANS CONNECT : lien d'onboarding "
+                "créé pour le talent %s.",
                 request.user.pk,
             )
 
+            # ==================================================
+            # 16. REDIRIGER LE TALENT VERS STRIPE
+            # ==================================================
+
             return redirect(lien.url)
 
+        # ======================================================
+        # 17. PERMISSIONS STRIPE INSUFFISANTES
+        # ======================================================
+
         except stripe.error.PermissionError as erreur:
+
             logger.exception(
-                "AFROFANS CONNECT : permission Stripe refusée. "
-                "Code : %s",
+                "AFROFANS CONNECT : permission refusée "
+                "pour le talent %s. Code : %s",
+                request.user.pk,
                 getattr(erreur, "code", None),
             )
+
             messages.error(
                 request,
-                "Le service de configuration est momentanément "
-                "indisponible. Contactez l'administration AfroFans."
+                "Stripe n'autorise pas actuellement "
+                "cette opération. "
+                "L'administration AfroFans doit "
+                "vérifier les permissions de l'API."
             )
+
+        # ======================================================
+        # 18. REQUÊTE STRIPE INVALIDE
+        # ======================================================
 
         except stripe.error.InvalidRequestError as erreur:
+
             logger.exception(
                 "AFROFANS CONNECT : requête Stripe invalide. "
-                "Code : %s",
+                "Talent : %s. Code : %s",
+                request.user.pk,
                 getattr(erreur, "code", None),
             )
+
             messages.error(
                 request,
-                "La configuration Stripe n'a pas pu être ouverte. "
-                "Veuillez contacter l'assistance."
+                "Stripe n'a pas pu ouvrir "
+                "la configuration de votre compte. "
+                "Contactez l'assistance AfroFans."
             )
+
+        # ======================================================
+        # 19. AUTRES ERREURS STRIPE
+        # ======================================================
 
         except stripe.error.StripeError as erreur:
+
             logger.exception(
-                "AFROFANS CONNECT : erreur Stripe. Code : %s",
+                "AFROFANS CONNECT : erreur Stripe "
+                "pour le talent %s. Code : %s",
+                request.user.pk,
                 getattr(erreur, "code", None),
             )
+
             messages.error(
                 request,
-                "Une erreur Stripe est survenue. Réessayez."
+                "Le service Stripe Connect est "
+                "temporairement indisponible. "
+                "Veuillez réessayer."
             )
 
-    # 11. Afficher la page et son statut
+    # ==========================================================
+    # 20. AFFICHER LA PAGE MODERNE AFROFANS
+    # ==========================================================
+
+    contexte = {
+        "compte": compte,
+        "infos_stripe": infos_stripe,
+        "compte_retrait_actif": compte_retrait_actif,
+        "details_soumis": details_soumis,
+        "configuration_requise": configuration_requise,
+        "verification_en_cours": verification_en_cours,
+        "erreur_configuration": erreur_configuration,
+    }
+
     return render(
         request,
         "Afrons/configurer_compte_retrait.html",
-        {
-            "compte": compte,
-            "infos_stripe": infos_stripe,
-            "compte_retrait_actif": compte_retrait_actif,
-            "details_soumis": details_soumis,
-            "configuration_requise": configuration_requise,
-            "verification_en_cours": verification_en_cours,
-            "erreur_configuration": erreur_configuration,
-        },
+        contexte,
     )
