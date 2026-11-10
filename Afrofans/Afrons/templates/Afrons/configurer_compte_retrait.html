@@ -1,96 +1,821 @@
 
 {% extends "Afrons/base.html" %}
 
-{% block title %}
-Compte de retrait | AfroFans
-{% endblock %}
+{% block title %}Compte de retrait | AfroFans{% endblock %}
 
 {% block content %}
 
-<section style="
-    max-width:620px;
-    margin:100px auto 60px;
-    padding:30px;
-    background:#191b24;
-    border:1px solid #484048;
-    border-radius:20px;
-    color:#fff;
-    font-family:inherit;
-">
+<style>
+/* ============================================================
+   AFROFANS — COMPTE DE RETRAIT
+   Design responsive et professionnel
+============================================================ */
 
-    <h1 style="
-        font-size:27px;
-        margin-bottom:12px;
-    ">
-        <span style="color:#ff900d;">AfroFans</span>
-        — Compte de retrait
-    </h1>
+.af-retrait-page {
+    --af-bg: #0d1320;
+    --af-surface: #151e2d;
+    --af-surface-2: #1d293a;
+    --af-border: rgba(255,255,255,.09);
+    --af-text: #f7f9fc;
+    --af-muted: #a1adc0;
+    --af-primary: #5265eb;
+    --af-success: #35d5a0;
+    --af-warning: #f4c46a;
+    --af-error: #fb7185;
 
-    <p style="color:#b7b8c1;line-height:1.7;">
-        Configurez votre compte bancaire pour recevoir
-        vos revenus de talent en toute sécurité.
-        Vos coordonnées bancaires seront recueillies
-        directement par Stripe.
-    </p>
+    min-height: 75vh;
+    padding: 38px 18px 70px;
+    color: var(--af-text);
+    font-family: inherit;
+}
 
-    {% if infos_stripe %}
+.af-retrait-container {
+    max-width: 920px;
+    margin: 0 auto;
+}
 
-        {% if infos_stripe.payouts_enabled %}
+/* HEADER */
 
-            <p style="color:#70e0af;">
-                Votre compte de versement est activé.
+.af-retrait-header {
+    margin-bottom: 28px;
+}
+
+.af-retrait-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 25px;
+    color: var(--af-muted);
+    text-decoration: none;
+    font-size: 14px;
+    transition: color .2s;
+}
+
+.af-retrait-back:hover {
+    color: var(--af-text);
+}
+
+.af-retrait-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #a9b5ff;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.3px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+}
+
+.af-retrait-eyebrow::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    background: var(--af-primary);
+    border-radius: 50%;
+}
+
+.af-retrait-header h1 {
+    font-size: clamp(27px, 4vw, 36px);
+    font-weight: 800;
+    letter-spacing: -.8px;
+    margin: 0 0 12px;
+    line-height: 1.2;
+}
+
+.af-retrait-header p {
+    max-width: 650px;
+    font-size: 14px;
+    color: var(--af-muted);
+    line-height: 1.8;
+    margin: 0;
+}
+
+/* MAIN CARD */
+
+.af-retrait-card {
+    background: var(--af-surface);
+    border: 1px solid var(--af-border);
+    border-radius: 22px;
+    padding: 28px;
+    box-shadow: 0 18px 48px rgba(0,0,0,.13);
+}
+
+/* TOP ROW */
+
+.af-retrait-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding-bottom: 22px;
+    border-bottom: 1px solid var(--af-border);
+}
+
+.af-retrait-service {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+}
+
+.af-retrait-service-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: rgba(82,101,235,.14);
+    display: grid;
+    place-items: center;
+    color: #aab4ff;
+}
+
+.af-retrait-service-icon svg {
+    width: 24px;
+    height: 24px;
+}
+
+.af-retrait-service strong {
+    display: block;
+    font-size: 15px;
+    margin-bottom: 4px;
+}
+
+.af-retrait-service small {
+    color: var(--af-muted);
+    font-size: 12px;
+}
+
+.af-retrait-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-weight: 750;
+    font-size: 12px;
+    padding: 9px 12px;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+.af-retrait-badge::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.af-retrait-badge.active {
+    color: #55e5b2;
+    background: rgba(53,213,160,.11);
+}
+
+.af-retrait-badge.pending {
+    color: #f4c46a;
+    background: rgba(244,196,106,.11);
+}
+
+.af-retrait-badge.error {
+    color: #fb7185;
+    background: rgba(251,113,133,.12);
+}
+
+/* STATUS HERO */
+
+.af-retrait-status {
+    margin-top: 25px;
+    padding: 36px 24px;
+    text-align: center;
+    background: linear-gradient(
+        140deg,
+        rgba(53,213,160,.11),
+        rgba(53,213,160,.025)
+    );
+    border: 1px solid rgba(53,213,160,.21);
+    border-radius: 20px;
+}
+
+.af-retrait-status.pending {
+    background: linear-gradient(
+        140deg,
+        rgba(244,196,106,.10),
+        rgba(244,196,106,.02)
+    );
+    border-color: rgba(244,196,106,.19);
+}
+
+.af-retrait-status.error {
+    background: linear-gradient(
+        140deg,
+        rgba(251,113,133,.10),
+        rgba(251,113,133,.02)
+    );
+    border-color: rgba(251,113,133,.20);
+}
+
+.af-retrait-status-icon {
+    width: 76px;
+    height: 76px;
+    border-radius: 24px;
+    margin: 0 auto 22px;
+    background: rgba(53,213,160,.17);
+    display: grid;
+    place-items: center;
+    color: #55e5b2;
+}
+
+.af-retrait-status.pending .af-retrait-status-icon {
+    background: rgba(244,196,106,.15);
+    color: #f4c46a;
+}
+
+.af-retrait-status.error .af-retrait-status-icon {
+    background: rgba(251,113,133,.14);
+    color: #fb7185;
+}
+
+.af-retrait-status-icon svg {
+    width: 38px;
+    height: 38px;
+}
+
+.af-retrait-status h2 {
+    font-size: clamp(20px, 3vw, 25px);
+    margin: 0 0 12px;
+    font-weight: 800;
+    letter-spacing: -.4px;
+}
+
+.af-retrait-status p {
+    max-width: 520px;
+    margin: 0 auto;
+    color: #c4cede;
+    font-size: 14px;
+    line-height: 1.75;
+}
+
+/* STATUS DETAILS */
+
+.af-retrait-details {
+    margin-top: 28px;
+}
+
+.af-retrait-details-title {
+    font-size: 14px;
+    font-weight: 800;
+    margin: 0 0 15px;
+}
+
+.af-retrait-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--af-border);
+    font-size: 13px;
+}
+
+.af-retrait-row:last-child {
+    border-bottom: none;
+}
+
+.af-retrait-row span {
+    color: var(--af-muted);
+}
+
+.af-retrait-row strong {
+    text-align: right;
+    font-size: 13px;
+}
+
+.af-retrait-green {
+    color: var(--af-success);
+}
+
+.af-retrait-yellow {
+    color: var(--af-warning);
+}
+
+.af-retrait-red {
+    color: var(--af-error);
+}
+
+/* ACTION BUTTON */
+
+.af-retrait-actions {
+    margin-top: 25px;
+}
+
+.af-retrait-button {
+    width: 100%;
+    min-height: 54px;
+    background: var(--af-primary);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 13px;
+    color: #fff;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 11px;
+    transition:
+        transform .18s,
+        background .18s,
+        box-shadow .18s;
+}
+
+.af-retrait-button:hover {
+    background: #4356d7;
+    transform: translateY(-1px);
+    box-shadow: 0 10px 28px rgba(82,101,235,.22);
+}
+
+.af-retrait-button:focus-visible {
+    outline: 3px solid #aab4ff;
+    outline-offset: 3px;
+}
+
+.af-retrait-button svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* SECURITY BOX */
+
+.af-retrait-security {
+    display: flex;
+    align-items: flex-start;
+    gap: 13px;
+    margin-top: 25px;
+    padding: 18px;
+    background: var(--af-surface-2);
+    border: 1px solid var(--af-border);
+    border-radius: 15px;
+}
+
+.af-retrait-security-icon {
+    flex-shrink: 0;
+    color: var(--af-success);
+}
+
+.af-retrait-security-icon svg {
+    width: 22px;
+    height: 22px;
+}
+
+.af-retrait-security strong {
+    font-size: 13px;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.af-retrait-security p {
+    font-size: 12px;
+    color: var(--af-muted);
+    line-height: 1.75;
+    margin: 0;
+}
+
+/* FOOTER */
+
+.af-retrait-footer {
+    text-align: center;
+    color: var(--af-muted);
+    font-size: 12px;
+    margin-top: 25px;
+    line-height: 1.8;
+}
+
+.af-retrait-footer strong {
+    color: #d9e1ef;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 600px) {
+    .af-retrait-page {
+        padding: 22px 12px 45px;
+    }
+
+    .af-retrait-header {
+        margin-bottom: 21px;
+    }
+
+    .af-retrait-back {
+        margin-bottom: 18px;
+    }
+
+    .af-retrait-header h1 {
+        font-size: 27px;
+    }
+
+    .af-retrait-card {
+        padding: 18px;
+        border-radius: 18px;
+    }
+
+    .af-retrait-top {
+        align-items: flex-start;
+    }
+
+    .af-retrait-status {
+        padding: 30px 16px;
+        border-radius: 16px;
+    }
+
+    .af-retrait-status-icon {
+        width: 66px;
+        height: 66px;
+        border-radius: 20px;
+    }
+
+    .af-retrait-status-icon svg {
+        width: 32px;
+        height: 32px;
+    }
+
+    .af-retrait-row {
+        align-items: flex-start;
+    }
+
+    .af-retrait-row strong {
+        max-width: 55%;
+    }
+
+    .af-retrait-security {
+        padding: 15px;
+    }
+}
+</style>
+
+<div class="af-retrait-page">
+    <div class="af-retrait-container">
+
+        <!-- EN-TÊTE -->
+        <header class="af-retrait-header">
+
+            <a
+                class="af-retrait-back"
+                href="{% url 'Afrons:flux' %}"
+            >
+                ← Retour à AfroFans
+            </a>
+
+            <div class="af-retrait-eyebrow">
+                Espace Talent · Finances
+            </div>
+
+            <h1>Compte de retrait</h1>
+
+            <p>
+                Configurez et suivez votre compte de
+                versement pour recevoir vos revenus
+                AfroFans. Vos informations bancaires
+                sont recueillies directement par Stripe.
             </p>
 
-        {% elif infos_stripe.details_submitted %}
+        </header>
 
-            <p style="color:#ffc36d;">
-                Vos informations ont été soumises.
-                Stripe doit encore autoriser les versements.
-            </p>
+        <main class="af-retrait-card">
 
-        {% else %}
+            <!-- SERVICE -->
+            <div class="af-retrait-top">
 
-            <p style="color:#ffc36d;">
-                Votre configuration bancaire est incomplète.
-            </p>
+                <div class="af-retrait-service">
 
-        {% endif %}
+                    <div class="af-retrait-service-icon">
+                        <svg viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="1.8"
+                             stroke-linecap="round"
+                             stroke-linejoin="round">
+                            <rect x="3" y="5"
+                                  width="18" height="14"
+                                  rx="3"/>
+                            <path d="M3 10h18"/>
+                            <path d="M7 15h4"/>
+                        </svg>
+                    </div>
 
-    {% endif %}
+                    <div>
+                        <strong>Stripe Connect</strong>
+                        <small>
+                            Gestion des versements sécurisés
+                        </small>
+                    </div>
 
-    <form method="post">
-        {% csrf_token %}
+                </div>
 
-        <button type="submit" style="
-            display:block;
-            width:100%;
-            margin-top:25px;
-            padding:15px;
-            border:0;
-            border-radius:11px;
-            background:linear-gradient(110deg,#ffc36d,#ff8900);
-            color:#221407;
-            font-size:14px;
-            font-weight:800;
-            cursor:pointer;
-        ">
-            {% if compte %}
-                Continuer la configuration Stripe
+                {% if erreur_configuration %}
+
+                    <span class="af-retrait-badge error">
+                        Indisponible
+                    </span>
+
+                {% elif compte_retrait_actif %}
+
+                    <span class="af-retrait-badge active">
+                        Compte activé
+                    </span>
+
+                {% elif verification_en_cours %}
+
+                    <span class="af-retrait-badge pending">
+                        En vérification
+                    </span>
+
+                {% else %}
+
+                    <span class="af-retrait-badge pending">
+                        À configurer
+                    </span>
+
+                {% endif %}
+
+            </div>
+
+            <!-- ERREUR -->
+            {% if erreur_configuration %}
+
+                <section class="af-retrait-status error">
+
+                    <div class="af-retrait-status-icon">
+                        <svg viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="2"
+                             stroke-linecap="round">
+                            <circle cx="12" cy="12"
+                                    r="10"/>
+                            <path d="M12 7v6"/>
+                            <path d="M12 17h.01"/>
+                        </svg>
+                    </div>
+
+                    <h2>Statut temporairement indisponible</h2>
+
+                    <p>
+                        AfroFans ne peut pas vérifier
+                        les informations de votre compte
+                        Stripe pour le moment.
+                        Veuillez réessayer ultérieurement.
+                    </p>
+
+                </section>
+
+            <!-- COMPTE ACTIVÉ -->
+            {% elif compte_retrait_actif %}
+
+                <section class="af-retrait-status">
+
+                    <div class="af-retrait-status-icon">
+                        <svg viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="2.2"
+                             stroke-linecap="round"
+                             stroke-linejoin="round">
+                            <circle cx="12" cy="12"
+                                    r="10"/>
+                            <path d="m7.5 12 3 3 6-6"/>
+                        </svg>
+                    </div>
+
+                    <h2>Votre compte de retrait est activé</h2>
+
+                    <p>
+                        Félicitations ! Stripe a autorisé
+                        les versements sur votre compte.
+                        Vous pouvez désormais utiliser
+                        les fonctionnalités de retrait
+                        disponibles sur AfroFans,
+                        sous réserve de votre solde
+                        et des conditions applicables.
+                    </p>
+
+                </section>
+
+                <div class="af-retrait-details">
+
+                    <h3 class="af-retrait-details-title">
+                        Informations du compte
+                    </h3>
+
+                    <div class="af-retrait-row">
+                        <span>Statut Stripe Connect</span>
+                        <strong class="af-retrait-green">
+                            Activé
+                        </strong>
+                    </div>
+
+                    <div class="af-retrait-row">
+                        <span>Autorisation des versements</span>
+                        <strong class="af-retrait-green">
+                            Autorisée
+                        </strong>
+                    </div>
+
+                    <div class="af-retrait-row">
+                        <span>Pays du compte</span>
+                        <strong>
+                            {% if compte.pays == "CA" %}
+                                Canada
+                            {% elif compte.pays == "FR" %}
+                                France
+                            {% else %}
+                                Non renseigné
+                            {% endif %}
+                        </strong>
+                    </div>
+
+                    <div class="af-retrait-row">
+                        <span>Prestataire de paiement</span>
+                        <strong>Stripe</strong>
+                    </div>
+
+                </div>
+
+                <!--
+                Le bouton de configuration initiale
+                n'est plus affiché si payouts_enabled=True.
+
+                Pour ajouter "Gérer mon compte Stripe",
+                créer une vue Django sécurisée utilisant
+                stripe.Account.create_login_link()
+                pour un compte Express compatible.
+                -->
+
+            <!-- VÉRIFICATION EN COURS -->
+            {% elif verification_en_cours %}
+
+                <section class="af-retrait-status pending">
+
+                    <div class="af-retrait-status-icon">
+                        <svg viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="2"
+                             stroke-linecap="round">
+                            <circle cx="12" cy="12"
+                                    r="9"/>
+                            <path d="M12 7v5l3 2"/>
+                        </svg>
+                    </div>
+
+                    <h2>Vérification en cours</h2>
+
+                    <p>
+                        Vos informations ont été transmises
+                        à Stripe. La vérification de votre
+                        compte est en cours.
+                        Vous pourrez recevoir des versements
+                        lorsque Stripe les aura autorisés.
+                    </p>
+
+                </section>
+
+                <div class="af-retrait-details">
+
+                    <div class="af-retrait-row">
+                        <span>État de la vérification</span>
+                        <strong class="af-retrait-yellow">
+                            En cours
+                        </strong>
+                    </div>
+
+                    <div class="af-retrait-row">
+                        <span>Autorisation des versements</span>
+                        <strong class="af-retrait-yellow">
+                            En attente
+                        </strong>
+                    </div>
+
+                </div>
+
+            <!-- CONFIGURATION -->
             {% else %}
-                Configurer mon compte bancaire
+
+                <section class="af-retrait-status pending">
+
+                    <div class="af-retrait-status-icon">
+                        <svg viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="2"
+                             stroke-linecap="round"
+                             stroke-linejoin="round">
+                            <circle cx="12" cy="12"
+                                    r="9"/>
+                            <path d="M12 8v5"/>
+                            <path d="M12 16h.01"/>
+                        </svg>
+                    </div>
+
+                    <h2>
+                        {% if compte and compte.stripe_account_id %}
+                            Configuration à terminer
+                        {% else %}
+                            Activez votre compte de retrait
+                        {% endif %}
+                    </h2>
+
+                    <p>
+                        {% if compte and compte.stripe_account_id %}
+                            Votre compte Stripe existe déjà.
+                            Complétez les informations demandées
+                            pour permettre l'activation
+                            des versements.
+                        {% else %}
+                            Configurez votre compte Stripe
+                            en quelques étapes pour recevoir
+                            les revenus issus de vos activités
+                            sur AfroFans.
+                        {% endif %}
+                    </p>
+
+                </section>
+
+                <div class="af-retrait-actions">
+
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <button
+                            class="af-retrait-button"
+                            type="submit"
+                        >
+                            {% if compte and compte.stripe_account_id %}
+                                Continuer la configuration Stripe
+                            {% else %}
+                                Configurer mon compte de retrait
+                            {% endif %}
+
+                            <svg viewBox="0 0 24 24"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 stroke-width="2"
+                                 stroke-linecap="round"
+                                 stroke-linejoin="round">
+                                <path d="M5 12h14"/>
+                                <path d="m13 6 6 6-6 6"/>
+                            </svg>
+
+                        </button>
+
+                    </form>
+
+                </div>
+
             {% endif %}
-        </button>
-    </form>
 
-    <p style="
-        margin-top:20px;
-        font-size:12px;
-        color:#a2a4b0;
-    ">
-        Aucun retrait ne sera effectué automatiquement
-        en cliquant sur ce bouton.
-    </p>
+            <!-- SÉCURITÉ -->
+            <div class="af-retrait-security">
 
-</section>
+                <div class="af-retrait-security-icon">
+                    <svg viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="1.8"
+                         stroke-linecap="round"
+                         stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/>
+                        <path d="m9 12 2 2 4-4"/>
+                    </svg>
+                </div>
+
+                <div>
+                    <strong>
+                        Vos informations bancaires sont protégées
+                    </strong>
+
+                    <p>
+                        La configuration bancaire est effectuée
+                        directement sur les pages sécurisées
+                        de Stripe Connect. AfroFans ne vous
+                        demande jamais de transmettre
+                        votre mot de passe bancaire.
+                        Cette page ne déclenche aucun retrait.
+                    </p>
+                </div>
+
+            </div>
+
+        </main>
+
+        <footer class="af-retrait-footer">
+            AfroFans · Plateforme développée par
+            <strong>HexaQuébec</strong>
+            <div>
+                Services financiers fournis par Stripe,
+                selon les conditions applicables.
+            </div>
+        </footer>
+
+    </div>
+</div>
 
 {% endblock %}
